@@ -74,7 +74,7 @@ struct DownloadSectionView: View {
                         openSessionsFolder()
                     }
                     .buttonStyle(.borderless)
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accentColor)
                 }
             } icon: {
                 Image(systemName: "folder")
