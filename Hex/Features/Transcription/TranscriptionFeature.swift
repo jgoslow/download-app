@@ -14,6 +14,7 @@ import SwiftUI
 import WhisperKit
 
 private let transcriptionFeatureLogger = HexLog.transcription
+private let routerLogger = HexLog.app
 
 @Reducer
 struct TranscriptionFeature {
@@ -70,6 +71,7 @@ struct TranscriptionFeature {
   @Dependency(\.sleepManagement) var sleepManagement
   @Dependency(\.date.now) var now
   @Dependency(\.transcriptPersistence) var transcriptPersistence
+  @Dependency(\.destinationRouter) var destinationRouter
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
@@ -441,6 +443,10 @@ private extension TranscriptionFeature {
     let sourceAppBundleID = state.sourceAppBundleID
     let sourceAppName = state.sourceAppName
     let transcriptionHistory = state.$transcriptionHistory
+    let downloadSettings = state.hexSettings.downloadSettings
+    let selectedModel = state.hexSettings.selectedModel
+    let outputLanguage = state.hexSettings.outputLanguage
+    let router = destinationRouter
 
     return .run { send in
       do {
@@ -450,11 +456,30 @@ private extension TranscriptionFeature {
           sourceAppBundleID: sourceAppBundleID,
           sourceAppName: sourceAppName,
           audioURL: audioURL,
-          transcriptionHistory: transcriptionHistory
+          transcriptionHistory: transcriptionHistory,
+          shouldPaste: downloadSettings.pasteAfterSession
         )
       } catch {
         await send(.transcriptionError(error, audioURL))
+        return
       }
+
+      // Route session to configured Download destinations
+      let session = DownloadSession(
+        device: Host.current().localizedName ?? "mac",
+        platform: .macos,
+        downloadTypeID: downloadSettings.defaultDownloadTypeID,
+        rawText: modifiedResult,
+        durationSeconds: duration,
+        wordCount: modifiedResult.split(separator: " ").count,
+        metadata: DownloadSession.Metadata(
+          appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
+          whisperModel: selectedModel,
+          language: outputLanguage
+        )
+      )
+      let status = await router.route(session)
+      routerLogger.info("Session routed: \(String(describing: status))")
     }
     .cancellable(id: CancelID.transcription)
   }
@@ -475,14 +500,15 @@ private extension TranscriptionFeature {
     return .none
   }
 
-  /// Move file to permanent location, create a transcript record, paste text, and play sound.
+  /// Move file to permanent location, create a transcript record, optionally paste text, and play sound.
   func finalizeRecordingAndStoreTranscript(
     result: String,
     duration: TimeInterval,
     sourceAppBundleID: String?,
     sourceAppName: String?,
     audioURL: URL,
-    transcriptionHistory: Shared<TranscriptionHistory>
+    transcriptionHistory: Shared<TranscriptionHistory>,
+    shouldPaste: Bool
   ) async throws {
     @Shared(.hexSettings) var hexSettings: HexSettings
 
@@ -512,7 +538,10 @@ private extension TranscriptionFeature {
       try? FileManager.default.removeItem(at: audioURL)
     }
 
-    await pasteboard.paste(result)
+    // Paste to cursor only if explicitly enabled (off by default in Download mode)
+    if shouldPaste {
+      await pasteboard.paste(result)
+    }
     soundEffect.play(.pasteTranscript)
   }
 }
