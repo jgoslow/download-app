@@ -29,6 +29,7 @@ struct TranscriptionFeature {
     var sourceAppBundleID: String?
     var sourceAppName: String?
     var lastAnalysis: SessionAnalysis? = nil
+    var selectedDownloadTypeID: String = "open"
     @Shared(.hexSettings) var hexSettings: HexSettings
     @Shared(.isRemappingScratchpadFocused) var isRemappingScratchpadFocused: Bool = false
     @Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
@@ -55,6 +56,7 @@ struct TranscriptionFeature {
     case transcriptionResult(String, URL)
     case transcriptionError(Error, URL?)
     case analysisReceived(SessionAnalysis)
+    case setDownloadType(String)
 
     // Model availability
     case modelMissing
@@ -128,6 +130,10 @@ struct TranscriptionFeature {
 
       case let .analysisReceived(analysis):
         state.lastAnalysis = analysis
+        return .none
+
+      case let .setDownloadType(typeID):
+        state.selectedDownloadTypeID = typeID
         return .none
 
       case .modelMissing:
@@ -451,6 +457,7 @@ private extension TranscriptionFeature {
     let sourceAppName = state.sourceAppName
     let transcriptionHistory = state.$transcriptionHistory
     let downloadSettings = state.hexSettings.downloadSettings
+    let downloadTypeID = state.selectedDownloadTypeID
     let selectedModel = state.hexSettings.selectedModel
     let outputLanguage = state.hexSettings.outputLanguage
     let router = destinationRouter
@@ -476,7 +483,7 @@ private extension TranscriptionFeature {
       let session = DownloadSession(
         device: Host.current().localizedName ?? "mac",
         platform: .macos,
-        downloadTypeID: downloadSettings.defaultDownloadTypeID,
+        downloadTypeID: downloadTypeID,
         rawText: modifiedResult,
         durationSeconds: duration,
         wordCount: modifiedResult.split(separator: " ").count,

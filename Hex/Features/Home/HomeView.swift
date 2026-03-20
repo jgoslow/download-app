@@ -14,51 +14,174 @@ import SwiftUI
 struct HomeView: View {
     @Bindable var store: StoreOf<AppFeature>
     @ObserveInjection var inject
+    @State private var showHistory = false
 
     var isRecording: Bool { store.transcription.isRecording }
     var isTranscribing: Bool { store.transcription.isTranscribing }
     var isModelReady: Bool { store.modelBootstrapState.isModelReady }
     var lastAnalysis: SessionAnalysis? { store.transcription.lastAnalysis }
+    var history: [Transcript] { store.transcription.transcriptionHistory.history }
+    fileprivate var selectedType: DownloadTypeInfo {
+        Self.downloadTypes.first { $0.id == store.transcription.selectedDownloadTypeID }
+            ?? Self.downloadTypes[0]
+    }
+
+    private static let downloadTypes: [DownloadTypeInfo] = [
+        DownloadTypeInfo(
+            id: "open",
+            name: "Open",
+            intro: "No structure. No prompts. Press record, speak, press stop.",
+            prompts: []
+        ),
+        DownloadTypeInfo(
+            id: "morning-kickoff",
+            name: "Morning Kickoff",
+            intro: "Before the day gets its hooks in you. Start with how you're actually doing, then build your day.",
+            prompts: [
+                "How are you feeling right now? Body, not thoughts.",
+                "What would make today feel good — not productive, good?",
+                "What needs to get done today that isn't captured?"
+            ]
+        ),
+        DownloadTypeInfo(
+            id: "mid-day-touchstone",
+            name: "Mid-Day Touchstone",
+            intro: "Meetings are done. Adjust the day's trajectory based on what's actually happened.",
+            prompts: [
+                "Quick body check — where are you holding tension?",
+                "New priorities or things now urgent?",
+                "Most important thing before you close the laptop?"
+            ]
+        ),
+        DownloadTypeInfo(
+            id: "days-end",
+            name: "Day's End",
+            intro: "Close the loop. What actually happened, what it felt like, what gets tracked.",
+            prompts: [
+                "Walk through the day — what did you work on?",
+                "How did today feel? Not productivity — how did it feel?",
+                "Anything unfinished pulling at you tonight? Name it and set it down."
+            ]
+        ),
+        DownloadTypeInfo(
+            id: "backlog-clean",
+            name: "Backlog Clean",
+            intro: "You're not doing the work right now. You're making sure the work is visible and assigned.",
+            prompts: [
+                "Which project needs the most attention?",
+                "Any new work that needs a Jira card?",
+                "Who owns PM review — Diego or Josh?"
+            ]
+        ),
+        DownloadTypeInfo(
+            id: "vision-alignment",
+            name: "Vision Alignment",
+            intro: "You don't have to have answers. You just have to be honest. Let's see what the quarter says.",
+            prompts: [
+                "Looking at the last quarter — what's the story?",
+                "Concrete goal for the next 90 days?",
+                "What do you actually want your life to look like?"
+            ]
+        ),
+    ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        ScrollView {
+            VStack(spacing: 0) {
+                Spacer().frame(height: 40)
 
-            // Record button
-            Button(action: handleRecordButton) {
-                ZStack {
-                    Circle()
-                        .fill(buttonBackground)
-                        .frame(width: 88, height: 88)
-                        .shadow(color: shadowColor, radius: isRecording ? 16 : 4, x: 0, y: 2)
+                // Download type picker
+                if !isRecording && !isTranscribing {
+                    Picker("Type", selection: Binding(
+                        get: { store.transcription.selectedDownloadTypeID },
+                        set: { store.send(.transcription(.setDownloadType($0))) }
+                    )) {
+                        ForEach(Self.downloadTypes, id: \.id) { type in
+                            Text(type.name).tag(type.id)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(width: 200)
+                    .padding(.bottom, 8)
 
-                    Image(systemName: buttonIcon)
-                        .font(.system(size: 34, weight: .medium))
-                        .foregroundStyle(.white)
-                        .contentTransition(.symbolEffect(.replace))
+                    // Intro text
+                    Text(selectedType.intro)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 360)
+                        .padding(.bottom, 16)
                 }
-            }
-            .buttonStyle(.plain)
-            .symbolEffect(.pulse, isActive: isRecording)
-            .animation(.easeInOut(duration: 0.2), value: isRecording)
-            .animation(.easeInOut(duration: 0.2), value: isTranscribing)
-            .disabled(isTranscribing || !isModelReady)
 
-            Spacer().frame(height: 20)
+                // Record button
+                Button(action: handleRecordButton) {
+                    ZStack {
+                        Circle()
+                            .fill(buttonBackground)
+                            .frame(width: 88, height: 88)
+                            .shadow(color: shadowColor, radius: isRecording ? 16 : 4, x: 0, y: 2)
 
-            Text(statusText)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .animation(.easeInOut, value: isRecording)
-                .animation(.easeInOut, value: isTranscribing)
+                        Image(systemName: buttonIcon)
+                            .font(.system(size: 34, weight: .medium))
+                            .foregroundStyle(.white)
+                            .contentTransition(.symbolEffect(.replace))
+                    }
+                }
+                .buttonStyle(.plain)
+                .symbolEffect(.pulse, isActive: isRecording)
+                .animation(.easeInOut(duration: 0.2), value: isRecording)
+                .animation(.easeInOut(duration: 0.2), value: isTranscribing)
+                .disabled(isTranscribing || !isModelReady)
 
-            Spacer()
+                Text(statusText)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 12)
+                    .animation(.easeInOut, value: isRecording)
+                    .animation(.easeInOut, value: isTranscribing)
 
-            // Last transcript + analysis
-            if !isRecording && !isTranscribing, let lastTranscript = store.transcription.transcriptionHistory.history.first {
-                ScrollView {
+                // Shortcut hint
+                if !isRecording && !isTranscribing {
+                    Text("or use the keyboard shortcut")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 4)
+                }
+
+                // Guided prompts
+                if !selectedType.prompts.isEmpty && !isTranscribing {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Things to cover")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .textCase(.uppercase)
+                        ForEach(Array(selectedType.prompts.enumerated()), id: \.offset) { _, prompt in
+                            HStack(alignment: .top, spacing: 8) {
+                                Circle()
+                                    .fill(.tertiary)
+                                    .frame(width: 5, height: 5)
+                                    .padding(.top, 5)
+                                Text(prompt)
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(.separator, lineWidth: 0.5)
+                    )
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                }
+
+                // Last transcript + analysis
+                if !isRecording && !isTranscribing, let lastTranscript = history.first {
                     VStack(alignment: .leading, spacing: 12) {
-                        // Raw transcript
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Transcript")
                                 .font(.caption)
@@ -71,7 +194,6 @@ struct HomeView: View {
                                 .textSelection(.enabled)
                         }
 
-                        // Analysis
                         if let analysis = lastAnalysis {
                             Divider()
                             AnalysisCard(analysis: analysis)
@@ -84,21 +206,31 @@ struct HomeView: View {
                         RoundedRectangle(cornerRadius: 12)
                             .strokeBorder(.separator, lineWidth: 0.5)
                     )
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .padding(.horizontal, 20)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
 
-            // Shortcut hint
-            if !isRecording && !isTranscribing {
-                Text("or use the keyboard shortcut")
+                // Session history
+                if !isRecording && !isTranscribing && history.count > 1 {
+                    DisclosureGroup("Previous sessions", isExpanded: $showHistory) {
+                        VStack(spacing: 8) {
+                            ForEach(history.dropFirst().prefix(10)) { transcript in
+                                SessionRow(transcript: transcript)
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
                     .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
                     .padding(.top, 12)
-                    .padding(.bottom, 20)
+                }
+
+                Spacer().frame(height: 20)
             }
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .animation(.easeInOut(duration: 0.3), value: lastAnalysis != nil)
         .enableInjection()
     }
@@ -139,6 +271,15 @@ struct HomeView: View {
             store.send(.transcription(.startRecording))
         }
     }
+}
+
+// MARK: - Download Type Info
+
+fileprivate struct DownloadTypeInfo: Identifiable {
+    let id: String
+    let name: String
+    let intro: String
+    let prompts: [String]
 }
 
 // MARK: - Analysis Card
@@ -197,5 +338,37 @@ private struct AnalysisCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - Session Row
+
+private struct SessionRow: View {
+    let transcript: Transcript
+
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .short
+        f.timeStyle = .short
+        return f
+    }()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(Self.timeFormatter.string(from: transcript.timestamp))
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+            Text(transcript.text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(.separator, lineWidth: 0.5)
+        )
     }
 }
