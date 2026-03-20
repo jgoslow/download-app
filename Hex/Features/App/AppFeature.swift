@@ -14,6 +14,7 @@ import SwiftUI
 @Reducer
 struct AppFeature {
   enum ActiveTab: Equatable {
+    case home
     case settings
     case remappings
     case history
@@ -25,7 +26,7 @@ struct AppFeature {
 		var transcription: TranscriptionFeature.State = .init()
 		var settings: SettingsFeature.State = .init()
 		var history: HistoryFeature.State = .init()
-		var activeTab: ActiveTab = .settings
+		var activeTab: ActiveTab = .home
 		@Shared(.hexSettings) var hexSettings: HexSettings
 		@Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
 
@@ -263,6 +264,16 @@ struct AppView: View {
     NavigationSplitView(columnVisibility: $columnVisibility) {
       List(selection: $store.activeTab) {
         Button {
+          store.send(.setActiveTab(.home))
+        } label: {
+          Label("Download", systemImage: "arrow.down.circle")
+        }
+        .buttonStyle(.plain)
+        .tag(AppFeature.ActiveTab.home)
+
+        Divider()
+
+        Button {
           store.send(.setActiveTab(.settings))
         } label: {
           Label("Settings", systemImage: "gearshape")
@@ -296,6 +307,9 @@ struct AppView: View {
       }
     } detail: {
       switch store.state.activeTab {
+      case .home:
+        HomeView(store: store)
+          .navigationTitle("Download")
       case .settings:
         SettingsView(
           store: store.scope(state: \.settings, action: \.settings),

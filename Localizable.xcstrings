@@ -70,6 +70,9 @@
     "Add Removal" : {
 
     },
+    "Anthropic API Key" : {
+
+    },
     "Are you sure you want to delete all transcripts? This action cannot be undone." : {
       "comment" : "Delete transcript history confirm",
       "localizations" : {
@@ -93,7 +96,7 @@
     "Bearer token" : {
 
     },
-    "Become a Sponsor" : {
+    "Built on Hex (MIT)" : {
 
     },
     "Cancel" : {
@@ -297,6 +300,9 @@
     "Enable Word Removals" : {
 
     },
+    "Enables AI analysis after each session (summary, tasks, routing). Leave blank to skip." : {
+
+    },
     "Ensure Hex can access your microphone and system accessibility features." : {
       "comment" : "Footer for permissions section in settings",
       "extractionState" : "stale",
@@ -348,6 +354,7 @@
     },
     "Hex is open source" : {
       "comment" : "In about section in settings.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -356,6 +363,9 @@
           }
         }
       }
+    },
+    "Hex on GitHub" : {
+
     },
     "History" : {
       "comment" : "History View Title",
@@ -485,6 +495,9 @@
           }
         }
       }
+    },
+    "or use the keyboard shortcut" : {
+
     },
     "Output Language" : {
       "comment" : "transcription model setting for which language to use for text output.",
@@ -684,6 +697,9 @@
     "Show more" : {
 
     },
+    "sk-ant-..." : {
+
+    },
     "Sound" : {
       "comment" : "sound section in general settings.",
       "localizations" : {
@@ -723,7 +739,7 @@
     "Super Fast Mode" : {
 
     },
-    "Support the developer" : {
+    "Transcript" : {
 
     },
     "Transcript Modifications" : {
@@ -790,6 +806,7 @@
     },
     "Visit our GitHub" : {
       "comment" : "button text to link to github",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

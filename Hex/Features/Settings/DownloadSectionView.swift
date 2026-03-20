@@ -48,6 +48,23 @@ struct DownloadSectionView: View {
                 Image(systemName: "key")
             }
 
+            // Anthropic API key
+            Label {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Anthropic API Key")
+                    SecureField(
+                        "sk-ant-...",
+                        text: $store.hexSettings.downloadSettings.anthropicAPIKey
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(.body, design: .monospaced))
+                    Text("Enables AI analysis after each session (summary, tasks, routing). Leave blank to skip.")
+                        .settingsCaption()
+                }
+            } icon: {
+                Image(systemName: "sparkles")
+            }
+
             // Paste after session toggle
             Label {
                 Toggle(

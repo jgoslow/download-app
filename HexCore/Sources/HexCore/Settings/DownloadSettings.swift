@@ -15,16 +15,20 @@ public struct DownloadSettings: Codable, Equatable, Sendable {
     /// Keep this on if you want Hex's original behavior alongside session routing.
     /// Default is false — the app routes to destinations, not your cursor.
     public var pasteAfterSession: Bool
+    /// Anthropic API key for Phase 2+ AI routing. Empty = Phase 1 (local save only).
+    public var anthropicAPIKey: String
 
     public init(
         serverURL: String = "",
         authToken: String = "",
         defaultDownloadTypeID: String = "open",
-        pasteAfterSession: Bool = false
+        pasteAfterSession: Bool = false,
+        anthropicAPIKey: String = ""
     ) {
         self.serverURL = serverURL
         self.authToken = authToken
         self.defaultDownloadTypeID = defaultDownloadTypeID
         self.pasteAfterSession = pasteAfterSession
+        self.anthropicAPIKey = anthropicAPIKey
     }
 }

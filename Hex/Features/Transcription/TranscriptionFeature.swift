@@ -28,6 +28,7 @@ struct TranscriptionFeature {
     var meter: Meter = .init(averagePower: 0, peakPower: 0)
     var sourceAppBundleID: String?
     var sourceAppName: String?
+    var lastAnalysis: SessionAnalysis? = nil
     @Shared(.hexSettings) var hexSettings: HexSettings
     @Shared(.isRemappingScratchpadFocused) var isRemappingScratchpadFocused: Bool = false
     @Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
@@ -53,6 +54,7 @@ struct TranscriptionFeature {
     // Transcription result flow
     case transcriptionResult(String, URL)
     case transcriptionError(Error, URL?)
+    case analysisReceived(SessionAnalysis)
 
     // Model availability
     case modelMissing
@@ -72,6 +74,7 @@ struct TranscriptionFeature {
   @Dependency(\.date.now) var now
   @Dependency(\.transcriptPersistence) var transcriptPersistence
   @Dependency(\.destinationRouter) var destinationRouter
+  @Dependency(\.anthropic) var anthropic
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
@@ -122,6 +125,10 @@ struct TranscriptionFeature {
 
       case let .transcriptionError(error, audioURL):
         return handleTranscriptionError(&state, error: error, audioURL: audioURL)
+
+      case let .analysisReceived(analysis):
+        state.lastAnalysis = analysis
+        return .none
 
       case .modelMissing:
         return .none
@@ -447,6 +454,7 @@ private extension TranscriptionFeature {
     let selectedModel = state.hexSettings.selectedModel
     let outputLanguage = state.hexSettings.outputLanguage
     let router = destinationRouter
+    let aiClient = anthropic
 
     return .run { send in
       do {
@@ -480,6 +488,10 @@ private extension TranscriptionFeature {
       )
       let status = await router.route(session)
       routerLogger.info("Session routed: \(String(describing: status))")
+
+      if let analysis = await aiClient.analyze(session, downloadSettings.anthropicAPIKey) {
+        await send(.analysisReceived(analysis))
+      }
     }
     .cancellable(id: CancelID.transcription)
   }
