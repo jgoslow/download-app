@@ -65,6 +65,18 @@ struct DownloadSectionView: View {
                 Image(systemName: "sparkles")
             }
 
+            // Daily reminders toggle
+            Label {
+                Toggle(
+                    "Daily download reminders",
+                    isOn: $store.hexSettings.downloadSettings.notificationsEnabled
+                )
+                Text("Morning Kickoff (7:30), Mid-Day Touchstone (12:00), Day's End (5:30) — weekdays only.")
+                    .settingsCaption()
+            } icon: {
+                Image(systemName: "bell")
+            }
+
             // Paste after session toggle
             Label {
                 Toggle(

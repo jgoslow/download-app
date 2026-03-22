@@ -59,6 +59,7 @@ struct AppFeature {
   @Dependency(\.pasteboard) var pasteboard
   @Dependency(\.transcription) var transcription
   @Dependency(\.permissions) var permissions
+  @Dependency(\.notifications) var notifications
 
   var body: some ReducerOf<Self> {
     BindingReducer()
@@ -78,13 +79,14 @@ struct AppFeature {
     Reduce { state, action in
       switch action {
       case .binding:
-        return .none
+        return syncNotificationSchedule()
         
       case .task:
         return .merge(
           startPasteLastTranscriptMonitoring(),
           ensureSelectedModelReadiness(),
-          startPermissionMonitoring()
+          startPermissionMonitoring(),
+          syncNotificationSchedule()
         )
         
       case .pasteLastTranscript:
@@ -236,6 +238,23 @@ struct AppFeature {
         }
       }
       await send(.modelStatusEvaluated(isReady))
+    }
+  }
+
+  private func syncNotificationSchedule() -> Effect<Action> {
+    .run { _ in
+      @Shared(.hexSettings) var hexSettings: HexSettings
+      if hexSettings.downloadSettings.notificationsEnabled {
+        let granted = await notifications.requestPermission()
+        if granted {
+          await notifications.scheduleDaily()
+        } else {
+          // Permission denied — turn off the toggle
+          $hexSettings.withLock { $0.downloadSettings.notificationsEnabled = false }
+        }
+      } else {
+        await notifications.cancelAll()
+      }
     }
   }
 

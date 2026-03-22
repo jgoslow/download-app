@@ -17,17 +17,19 @@ private let anthropicLogger = HexLog.app
 @DependencyClient
 struct AnthropicClient {
     /// Analyze a completed session transcript. Returns nil if no API key is configured.
-    var analyze: @Sendable (DownloadSession, String) async -> SessionAnalysis? = { _, _ in nil }
+    /// promptTitles: ordered list of prompt titles for the download type, used to determine which were addressed.
+    /// sessionContext: summaries of recent sessions of the same type, for continuity.
+    var analyze: @Sendable (DownloadSession, String, [String], [SessionContext]) async -> SessionAnalysis? = { _, _, _, _ in nil }
 }
 
 extension AnthropicClient: DependencyKey {
     static var liveValue: Self {
-        .init(analyze: { session, apiKey in
+        .init(analyze: { session, apiKey, promptTitles, sessionContext in
             guard !apiKey.isEmpty else { return nil }
 
             guard let url = URL(string: "https://api.anthropic.com/v1/messages") else { return nil }
 
-            let prompt = buildPrompt(for: session)
+            let prompt = buildPrompt(for: session, promptTitles: promptTitles, context: sessionContext)
 
             let requestBody: [String: Any] = [
                 "model": "claude-sonnet-4-6",
@@ -99,24 +101,51 @@ Return ONLY valid JSON with exactly these fields, no markdown, no explanation:
   "mood_tag": "one word for emotional tone, or null if neutral/work-focused",
   "tasks": ["actionable item 1", "actionable item 2"],
   "routing": ["jira", "calendar", "notes", "slack", "email", "cns"],
-  "delegations": ["Diego: specific thing to delegate"]
+  "delegations": ["Diego: specific thing to delegate"],
+  "integrations": ["jira", "toggl", "slack", "email", "calendar", "wave", "github"],
+  "prompts_addressed": [0, 2, 4]
 }
 
 routing should only include relevant destinations. tasks should be concrete and actionable. \
-delegations should name the person when possible (Diego or Josh for work items).
+delegations should name the person when possible (Diego or Josh for work items). \
+integrations should list external services that would be needed to act on the session content — \
+only include ones that are clearly relevant (e.g. "jira" if tickets are mentioned, \
+"toggl" if time tracking is discussed, "email" if emails need sending). \
+prompts_addressed should list the indices (0-based) of guided prompts that the user addressed \
+in their transcript. Only include prompts that were clearly covered. If no prompt titles \
+are provided, return an empty array.
 """
 
-private func buildPrompt(for session: DownloadSession) -> String {
+private func buildPrompt(for session: DownloadSession, promptTitles: [String], context: [SessionContext]) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "EEEE, MMMM d 'at' h:mm a"
     let timeStr = formatter.string(from: session.timestamp)
 
-    return """
+    var prompt = """
     Download type: \(session.downloadTypeID)
     Recorded: \(timeStr)
     Duration: \(Int(session.durationSeconds))s
-
-    Transcript:
-    \(session.rawText)
     """
+
+    if !context.isEmpty {
+        prompt += "\n\nRecent sessions of this type (for continuity):"
+        for ctx in context {
+            prompt += "\n- [\(ctx.timestamp ?? "unknown")] \(ctx.summary ?? "no summary")"
+            if let mood = ctx.moodTag { prompt += " (mood: \(mood))" }
+            if let tasks = ctx.tasks, !tasks.isEmpty {
+                prompt += " | tasks: \(tasks.joined(separator: ", "))"
+            }
+        }
+    }
+
+    if !promptTitles.isEmpty {
+        prompt += "\n\nGuided prompts for this session type:"
+        for (i, title) in promptTitles.enumerated() {
+            prompt += "\n  \(i). \(title)"
+        }
+    }
+
+    prompt += "\n\nTranscript:\n\(session.rawText)"
+
+    return prompt
 }

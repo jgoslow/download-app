@@ -15,6 +15,10 @@ public struct SessionAnalysis: Codable, Sendable, Equatable {
     public let routing: [RoutingDestination]
     /// Things to delegate, with who. E.g. "Diego: review the Rivera design".
     public let delegations: [String]
+    /// Integrations that would be needed to act on this session's content.
+    public let integrations: [Integration]
+    /// Indices of guided prompts that were addressed in the transcript.
+    public let promptsAddressed: [Int]
 
     public enum RoutingDestination: String, Codable, Sendable {
         case jira
@@ -25,18 +29,32 @@ public struct SessionAnalysis: Codable, Sendable, Equatable {
         case cns  // Full Pathways system
     }
 
+    public enum Integration: String, Codable, Sendable, CaseIterable {
+        case jira
+        case toggl
+        case slack
+        case email
+        case calendar
+        case wave
+        case github
+    }
+
     public init(
         summary: String,
         moodTag: String? = nil,
         tasks: [String] = [],
         routing: [RoutingDestination] = [],
-        delegations: [String] = []
+        delegations: [String] = [],
+        integrations: [Integration] = [],
+        promptsAddressed: [Int] = []
     ) {
         self.summary = summary
         self.moodTag = moodTag
         self.tasks = tasks
         self.routing = routing
         self.delegations = delegations
+        self.integrations = integrations
+        self.promptsAddressed = promptsAddressed
     }
 
     enum CodingKeys: String, CodingKey {
@@ -45,5 +63,7 @@ public struct SessionAnalysis: Codable, Sendable, Equatable {
         case tasks
         case routing
         case delegations
+        case integrations
+        case promptsAddressed = "prompts_addressed"
     }
 }

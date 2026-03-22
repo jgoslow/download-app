@@ -14,6 +14,21 @@ import HexCore
 
 private let routerLogger = HexLog.app
 
+/// A summary of a previous session, used as pre-session context.
+public struct SessionContext: Codable, Sendable {
+    public let timestamp: String?
+    public let summary: String?
+    public let moodTag: String?
+    public let tasks: [String]?
+    public let routing: [String]?
+    public let delegations: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case timestamp, summary, tasks, routing, delegations
+        case moodTag = "mood_tag"
+    }
+}
+
 /// The outcome of routing a session.
 public enum RoutingStatus: Sendable, Equatable {
     /// Saved to disk only — no server URL configured.
@@ -37,6 +52,10 @@ public enum RoutingStatus: Sendable, Equatable {
 struct DestinationRouterClient {
     /// Route a session to all configured destinations and return the result.
     var route: @Sendable (DownloadSession) async -> RoutingStatus = { _ in .savedOnly }
+    /// Post analysis back to the server for a given session ID.
+    var postAnalysis: @Sendable (String, SessionAnalysis) async -> Void = { _, _ in }
+    /// Fetch pre-session context (recent session summaries) for a download type.
+    var fetchContext: @Sendable (String) async -> [SessionContext] = { _ in [] }
 }
 
 extension DestinationRouterClient: DependencyKey {
@@ -69,7 +88,7 @@ extension DestinationRouterClient: DependencyKey {
                 encoder.dateEncodingStrategy = .iso8601
                 let body = try encoder.encode(session)
 
-                var request = URLRequest(url: serverURL.appendingPathComponent("transcript"))
+                var request = URLRequest(url: serverURL.appendingPathComponent("sessions"))
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 if !config.authToken.isEmpty {
@@ -85,6 +104,58 @@ extension DestinationRouterClient: DependencyKey {
             } catch {
                 routerLogger.error("Server POST failed for session \(session.id): \(error.localizedDescription)")
                 return .serverFailed(error: error.localizedDescription)
+            }
+        }, postAnalysis: { sessionID, analysis in
+            @Shared(.hexSettings) var hexSettings: HexSettings
+            let config = hexSettings.downloadSettings
+            guard !config.serverURL.isEmpty,
+                  let serverURL = URL(string: config.serverURL) else { return }
+
+            do {
+                let encoder = JSONEncoder()
+                let body = try encoder.encode(analysis)
+
+                var request = URLRequest(url: serverURL.appendingPathComponent("sessions/\(sessionID)/analysis"))
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                if !config.authToken.isEmpty {
+                    request.setValue("Bearer \(config.authToken)", forHTTPHeaderField: "Authorization")
+                }
+                request.httpBody = body
+                request.timeoutInterval = 10
+
+                let (_, response) = try await URLSession.shared.data(for: request)
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+                routerLogger.info("Analysis for \(sessionID) posted — HTTP \(statusCode)")
+            } catch {
+                routerLogger.error("Analysis POST failed for \(sessionID): \(error.localizedDescription)")
+            }
+        }, fetchContext: { typeID in
+            @Shared(.hexSettings) var hexSettings: HexSettings
+            let config = hexSettings.downloadSettings
+            guard !config.serverURL.isEmpty,
+                  let serverURL = URL(string: config.serverURL) else { return [] }
+
+            do {
+                let contextURL = serverURL.appendingPathComponent("sessions/context/\(typeID)")
+                var request = URLRequest(url: contextURL)
+                request.timeoutInterval = 5
+                if !config.authToken.isEmpty {
+                    request.setValue("Bearer \(config.authToken)", forHTTPHeaderField: "Authorization")
+                }
+
+                let (data, _) = try await URLSession.shared.data(for: request)
+
+                struct ContextResponse: Codable {
+                    let recent_sessions: [SessionContext]
+                }
+
+                let response = try JSONDecoder().decode(ContextResponse.self, from: data)
+                routerLogger.info("Fetched \(response.recent_sessions.count) session contexts for \(typeID)")
+                return response.recent_sessions
+            } catch {
+                routerLogger.error("Context fetch failed for \(typeID): \(error.localizedDescription)")
+                return []
             }
         })
     }

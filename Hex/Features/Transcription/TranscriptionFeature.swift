@@ -30,6 +30,7 @@ struct TranscriptionFeature {
     var sourceAppName: String?
     var lastAnalysis: SessionAnalysis? = nil
     var selectedDownloadTypeID: String = "open"
+    var promptTitles: [String] = []
     @Shared(.hexSettings) var hexSettings: HexSettings
     @Shared(.isRemappingScratchpadFocused) var isRemappingScratchpadFocused: Bool = false
     @Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
@@ -56,7 +57,7 @@ struct TranscriptionFeature {
     case transcriptionResult(String, URL)
     case transcriptionError(Error, URL?)
     case analysisReceived(SessionAnalysis)
-    case setDownloadType(String)
+    case setDownloadType(String, promptTitles: [String])
 
     // Model availability
     case modelMissing
@@ -132,8 +133,9 @@ struct TranscriptionFeature {
         state.lastAnalysis = analysis
         return .none
 
-      case let .setDownloadType(typeID):
+      case let .setDownloadType(typeID, promptTitles):
         state.selectedDownloadTypeID = typeID
+        state.promptTitles = promptTitles
         return .none
 
       case .modelMissing:
@@ -458,6 +460,7 @@ private extension TranscriptionFeature {
     let transcriptionHistory = state.$transcriptionHistory
     let downloadSettings = state.hexSettings.downloadSettings
     let downloadTypeID = state.selectedDownloadTypeID
+    let promptTitlesForAI = state.promptTitles
     let selectedModel = state.hexSettings.selectedModel
     let outputLanguage = state.hexSettings.outputLanguage
     let router = destinationRouter
@@ -496,8 +499,10 @@ private extension TranscriptionFeature {
       let status = await router.route(session)
       routerLogger.info("Session routed: \(String(describing: status))")
 
-      if let analysis = await aiClient.analyze(session, downloadSettings.anthropicAPIKey) {
+      let sessionContext = await router.fetchContext(downloadTypeID)
+      if let analysis = await aiClient.analyze(session, downloadSettings.anthropicAPIKey, promptTitlesForAI, sessionContext) {
         await send(.analysisReceived(analysis))
+        await router.postAnalysis(session.id, analysis)
       }
     }
     .cancellable(id: CancelID.transcription)

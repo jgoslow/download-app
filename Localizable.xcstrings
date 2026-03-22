@@ -193,6 +193,9 @@
     "Copy transcription text to clipboard in addition to pasting it" : {
 
     },
+    "Daily download reminders" : {
+
+    },
     "Delete" : {
 
     },
@@ -411,6 +414,9 @@
     "Input Monitoring is required so Hex can listen for your hotkey." : {
 
     },
+    "Integrations" : {
+
+    },
     "Keep the microphone warm and prepend a short in-memory buffer for near-instant capture. macOS will keep showing the microphone indicator while this mode is armed." : {
 
     },
@@ -442,6 +448,9 @@
 
     },
     "Modifier side" : {
+
+    },
+    "Morning Kickoff (7:30), Mid-Day Touchstone (12:00), Day's End (5:30) — weekdays only." : {
 
     },
     "Mute Volume" : {
@@ -577,6 +586,9 @@
 
     },
     "Previous sessions" : {
+
+    },
+    "Prompts" : {
 
     },
     "Quit" : {
@@ -740,9 +752,6 @@
       }
     },
     "Super Fast Mode" : {
-
-    },
-    "Things to cover" : {
 
     },
     "Transcript" : {

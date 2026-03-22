@@ -15,6 +15,7 @@ struct HomeView: View {
     @Bindable var store: StoreOf<AppFeature>
     @ObserveInjection var inject
     @State private var showHistory = false
+    @State private var selectedPromptID: Int? = nil
 
     var isRecording: Bool { store.transcription.isRecording }
     var isTranscribing: Bool { store.transcription.isTranscribing }
@@ -38,9 +39,20 @@ struct HomeView: View {
             name: "Morning Kickoff",
             intro: "Before the day gets its hooks in you. Start with how you're actually doing, then build your day.",
             prompts: [
-                "How are you feeling right now? Body, not thoughts.",
-                "What would make today feel good — not productive, good?",
-                "What needs to get done today that isn't captured?"
+                PromptItem(id: 0, title: "Body check-in",
+                           detail: "How are you feeling right now? Not what you think — what you actually feel. Sensations in your body, energy level, tension."),
+                PromptItem(id: 1, title: "What's weighing on you",
+                           detail: "What's bigger than your work that you're carrying into today? Personal stuff, worries, things on your mind. Let it be named."),
+                PromptItem(id: 2, title: "What would make today good",
+                           detail: "Not productive — good. What would make you feel like today was a day well spent?"),
+                PromptItem(id: 3, title: "Yesterday's follow-ups",
+                           detail: "Any follow-ups from yesterday that need to happen before you start new work?"),
+                PromptItem(id: 4, title: "Today's work",
+                           detail: "What needs to get done today that isn't already captured? Say it now — tasks, calls, deliverables."),
+                PromptItem(id: 5, title: "Delegations",
+                           detail: "Anything you want to delegate to Diego or Josh today? Be specific about what they need to know."),
+                PromptItem(id: 6, title: "Drafts",
+                           detail: "Any emails or Slack messages you want to draft while you're thinking about it?"),
             ]
         ),
         DownloadTypeInfo(
@@ -48,9 +60,16 @@ struct HomeView: View {
             name: "Mid-Day Touchstone",
             intro: "Meetings are done. Adjust the day's trajectory based on what's actually happened.",
             prompts: [
-                "Quick body check — where are you holding tension?",
-                "New priorities or things now urgent?",
-                "Most important thing before you close the laptop?"
+                PromptItem(id: 0, title: "Body check",
+                           detail: "Where are you holding tension right now? Neck, shoulders, jaw, gut? Water? Food?"),
+                PromptItem(id: 1, title: "What just happened",
+                           detail: "New priorities from this morning? Things that shifted or became urgent? Anything from a meeting you need to capture before you forget?"),
+                PromptItem(id: 2, title: "Delegation",
+                           detail: "From this morning and what just came up — what needs to go to Diego or Josh?"),
+                PromptItem(id: 3, title: "End-of-day target",
+                           detail: "What's the single most important thing to have done before you close your laptop? Anything to consciously drop?"),
+                PromptItem(id: 4, title: "Evening bridge",
+                           detail: "Need to check in about tonight? Dinner, family, coordination? What time do you want to stop working?"),
             ]
         ),
         DownloadTypeInfo(
@@ -58,9 +77,16 @@ struct HomeView: View {
             name: "Day's End",
             intro: "Close the loop. What actually happened, what it felt like, what gets tracked.",
             prompts: [
-                "Walk through the day — what did you work on?",
-                "How did today feel? Not productivity — how did it feel?",
-                "Anything unfinished pulling at you tonight? Name it and set it down."
+                PromptItem(id: 0, title: "Hour accounting",
+                           detail: "Walk through the day in roughly the order it happened. What did you work on? What's not in Toggl?"),
+                PromptItem(id: 1, title: "Task close-out",
+                           detail: "What got done? What didn't? Anything you did that wasn't on the list? It counts."),
+                PromptItem(id: 2, title: "Emotional close",
+                           detail: "How did today feel? Not how productive — how did it feel? One thing you want to remember from today."),
+                PromptItem(id: 3, title: "Unfinished business",
+                           detail: "Anything unfinished that's going to pull at you tonight? Name it and set it down."),
+                PromptItem(id: 4, title: "Tomorrow's seed",
+                           detail: "Anything the morning download should know about? Say it now and let it go."),
             ]
         ),
         DownloadTypeInfo(
@@ -68,9 +94,16 @@ struct HomeView: View {
             name: "Backlog Clean",
             intro: "You're not doing the work right now. You're making sure the work is visible and assigned.",
             prompts: [
-                "Which project needs the most attention?",
-                "Any new work that needs a Jira card?",
-                "Who owns PM review — Diego or Josh?"
+                PromptItem(id: 0, title: "Project overview",
+                           detail: "Which projects need the most attention? Which is furthest behind on scope vs. contract?"),
+                PromptItem(id: 1, title: "Scope drift",
+                           detail: "Any projects where the scope has changed but the cards haven't caught up?"),
+                PromptItem(id: 2, title: "Stale cards",
+                           detail: "Cards that haven't moved in a while — still valid? Close, update, or deprioritize?"),
+                PromptItem(id: 3, title: "New cards",
+                           detail: "Any new work that needs a Jira card? Walk through each one: what, why, roughly how long."),
+                PromptItem(id: 4, title: "PM handoff",
+                           detail: "Who owns PM review today — Diego or Josh? Any cards that need a sync call?"),
             ]
         ),
         DownloadTypeInfo(
@@ -78,23 +111,35 @@ struct HomeView: View {
             name: "Vision Alignment",
             intro: "You don't have to have answers. You just have to be honest. Let's see what the quarter says.",
             prompts: [
-                "Looking at the last quarter — what's the story?",
-                "Concrete goal for the next 90 days?",
-                "What do you actually want your life to look like?"
+                PromptItem(id: 0, title: "The mirror",
+                           detail: "Looking at the last quarter — what's the story? What were you actually doing with your time and attention?"),
+                PromptItem(id: 1, title: "Short-term goals",
+                           detail: "What's a concrete goal for the next 90 days? Be specific."),
+                PromptItem(id: 2, title: "Long-term vision",
+                           detail: "What's a longer-term goal (1-3 years) to keep in view?"),
+                PromptItem(id: 3, title: "Letting go",
+                           detail: "Any goal from 90 days ago you're ready to let go of? Personal life goals that belong on this list?"),
+                PromptItem(id: 4, title: "The real question",
+                           detail: "What do you actually want your life to look like? Not as a founder — as a person. What do you keep saying you'll do that never happens?"),
             ]
         ),
     ]
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                Spacer().frame(height: 40)
+        HStack(spacing: 0) {
+            // Main content
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer().frame(height: 40)
 
                 // Download type picker
                 if !isRecording && !isTranscribing {
                     Picker("Type", selection: Binding(
                         get: { store.transcription.selectedDownloadTypeID },
-                        set: { store.send(.transcription(.setDownloadType($0))) }
+                        set: { newID in
+                        let type = Self.downloadTypes.first { $0.id == newID } ?? Self.downloadTypes[0]
+                        store.send(.transcription(.setDownloadType(newID, promptTitles: type.prompts.map(\.title))))
+                    }
                     )) {
                         ForEach(Self.downloadTypes, id: \.id) { type in
                             Text(type.name).tag(type.id)
@@ -148,32 +193,34 @@ struct HomeView: View {
                         .padding(.top, 4)
                 }
 
-                // Guided prompts
-                if !selectedType.prompts.isEmpty && !isTranscribing {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Things to cover")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .textCase(.uppercase)
-                        ForEach(Array(selectedType.prompts.enumerated()), id: \.offset) { _, prompt in
-                            HStack(alignment: .top, spacing: 8) {
-                                Circle()
-                                    .fill(.tertiary)
-                                    .frame(width: 5, height: 5)
-                                    .padding(.top, 5)
-                                Text(prompt)
-                                    .font(.callout)
-                                    .foregroundStyle(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
+                // Prompt detail (when a prompt is selected from sidebar)
+                if let promptID = selectedPromptID,
+                   let prompt = selectedType.prompts.first(where: { $0.id == promptID }) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(prompt.title)
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Button {
+                                selectedPromptID = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.tertiary)
                             }
+                            .buttonStyle(.plain)
                         }
+                        Text(prompt.detail)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    .background(Color.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(.separator, lineWidth: 0.5)
+                            .strokeBorder(Color.accentColor.opacity(0.3), lineWidth: 1)
                     )
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
@@ -231,6 +278,18 @@ struct HomeView: View {
             }
             .frame(maxWidth: .infinity)
         }
+
+            // Prompt sidebar
+            if !selectedType.prompts.isEmpty {
+                Divider()
+                PromptSidebar(
+                    prompts: selectedType.prompts,
+                    selectedID: $selectedPromptID,
+                    addressedIDs: Set(lastAnalysis?.promptsAddressed ?? [])
+                )
+                .frame(width: 200)
+            }
+        }
         .animation(.easeInOut(duration: 0.3), value: lastAnalysis != nil)
         .enableInjection()
     }
@@ -273,13 +332,71 @@ struct HomeView: View {
     }
 }
 
+// MARK: - Prompt Sidebar
+
+private struct PromptSidebar: View {
+    let prompts: [PromptItem]
+    @Binding var selectedID: Int?
+    let addressedIDs: Set<Int>
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Prompts")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .textCase(.uppercase)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 12)
+                    .padding(.bottom, 4)
+
+                ForEach(prompts) { prompt in
+                    Button {
+                        selectedID = selectedID == prompt.id ? nil : prompt.id
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: addressedIDs.contains(prompt.id) ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 12))
+                                .foregroundStyle(addressedIDs.contains(prompt.id) ? AnyShapeStyle(.green) : AnyShapeStyle(.tertiary))
+                            Text(prompt.title)
+                                .font(.caption)
+                                .foregroundStyle(selectedID == prompt.id ? .primary : .secondary)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            selectedID == prompt.id
+                                ? Color.accentColor.opacity(0.1)
+                                : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 6)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Spacer()
+            }
+        }
+        .background(.regularMaterial)
+    }
+}
+
 // MARK: - Download Type Info
 
 fileprivate struct DownloadTypeInfo: Identifiable {
     let id: String
     let name: String
     let intro: String
-    let prompts: [String]
+    let prompts: [PromptItem]
+}
+
+fileprivate struct PromptItem: Identifiable {
+    let id: Int
+    let title: String
+    let detail: String
 }
 
 // MARK: - Analysis Card
@@ -336,8 +453,41 @@ private struct AnalysisCard: View {
                     }
                 }
             }
+
+            // Integration tags
+            if !analysis.integrations.isEmpty {
+                HStack(spacing: 6) {
+                    Text("Integrations")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                    ForEach(analysis.integrations, id: \.self) { integration in
+                        HStack(spacing: 3) {
+                            Image(systemName: integrationIcon(integration))
+                                .font(.system(size: 8))
+                            Text(integration.rawValue)
+                        }
+                        .font(.caption2)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Color.accentColor.opacity(0.12), in: Capsule())
+                        .foregroundStyle(Color.accentColor)
+                    }
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func integrationIcon(_ integration: SessionAnalysis.Integration) -> String {
+        switch integration {
+        case .jira: return "ticket"
+        case .toggl: return "clock"
+        case .slack: return "bubble.left"
+        case .email: return "envelope"
+        case .calendar: return "calendar"
+        case .wave: return "dollarsign.circle"
+        case .github: return "chevron.left.forwardslash.chevron.right"
+        }
     }
 }
 

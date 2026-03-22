@@ -17,18 +17,36 @@ public struct DownloadSettings: Codable, Equatable, Sendable {
     public var pasteAfterSession: Bool
     /// Anthropic API key for Phase 2+ AI routing. Empty = Phase 1 (local save only).
     public var anthropicAPIKey: String
+    /// Whether daily download reminders are enabled.
+    public var notificationsEnabled: Bool
 
     public init(
         serverURL: String = "",
         authToken: String = "",
         defaultDownloadTypeID: String = "open",
         pasteAfterSession: Bool = false,
-        anthropicAPIKey: String = ""
+        anthropicAPIKey: String = "",
+        notificationsEnabled: Bool = false
     ) {
         self.serverURL = serverURL
         self.authToken = authToken
         self.defaultDownloadTypeID = defaultDownloadTypeID
         self.pasteAfterSession = pasteAfterSession
         self.anthropicAPIKey = anthropicAPIKey
+        self.notificationsEnabled = notificationsEnabled
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        serverURL = try container.decodeIfPresent(String.self, forKey: .serverURL) ?? ""
+        authToken = try container.decodeIfPresent(String.self, forKey: .authToken) ?? ""
+        defaultDownloadTypeID = try container.decodeIfPresent(String.self, forKey: .defaultDownloadTypeID) ?? "open"
+        pasteAfterSession = try container.decodeIfPresent(Bool.self, forKey: .pasteAfterSession) ?? false
+        anthropicAPIKey = try container.decodeIfPresent(String.self, forKey: .anthropicAPIKey) ?? ""
+        notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? false
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case serverURL, authToken, defaultDownloadTypeID, pasteAfterSession, anthropicAPIKey, notificationsEnabled
     }
 }
