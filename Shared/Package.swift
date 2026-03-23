@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "DownloadShared",
+    name: "BasinShared",
     platforms: [
         .macOS(.v15),
         .iOS(.v17),
         .watchOS(.v10),
     ],
     products: [
-        .library(name: "DownloadShared", targets: ["DownloadShared"]),
+        .library(name: "BasinShared", targets: ["BasinShared"]),
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.11.0"),
@@ -17,18 +17,18 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "DownloadShared",
+            name: "BasinShared",
             dependencies: [
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "DependenciesMacros", package: "swift-dependencies"),
                 .product(name: "Logging", package: "swift-log"),
             ],
-            path: "Sources/DownloadShared"
+            path: "Sources/BasinShared"
         ),
         .testTarget(
-            name: "DownloadSharedTests",
-            dependencies: ["DownloadShared"],
-            path: "Tests/DownloadSharedTests"
+            name: "BasinSharedTests",
+            dependencies: ["BasinShared"],
+            path: "Tests/BasinSharedTests"
         ),
     ]
 )

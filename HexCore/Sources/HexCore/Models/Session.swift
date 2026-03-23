@@ -1,8 +1,8 @@
 import Foundation
 
-/// A completed Download session — the structured output saved to disk and sent to the server.
+/// A completed capture — the structured output saved to disk and sent to the server.
 ///
-/// This mirrors `DownloadShared.Session` but lives in HexCore so the macOS app target
+/// This mirrors `BasinShared.Session` but lives in HexCore so the macOS app target
 /// can use it without requiring the Shared package to be linked first.
 /// When iOS/watchOS targets are added, the Shared package's Session becomes authoritative
 /// and this type can be removed.

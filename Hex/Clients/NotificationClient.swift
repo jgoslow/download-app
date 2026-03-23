@@ -1,8 +1,8 @@
 //
 //  NotificationClient.swift
-//  Download
+//  Basin
 //
-//  Schedules daily reminders for Download sessions.
+//  Schedules daily reminders for capture sessions.
 //  Requires notification permission (prompted on first schedule).
 //
 

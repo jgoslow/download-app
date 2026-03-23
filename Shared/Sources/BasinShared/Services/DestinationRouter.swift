@@ -1,7 +1,7 @@
 import Foundation
 import Logging
 
-private let logger = Logger(label: "com.download.destination-router")
+private let logger = Logger(label: "com.basin.destination-router")
 
 /// The outcome of routing a session.
 public enum RoutingResult: Sendable {

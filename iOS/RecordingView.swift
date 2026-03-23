@@ -10,11 +10,11 @@
 //
 
 // import ComposableArchitecture
-// import DownloadShared
+// import BasinShared
 // import SwiftUI
 //
 // struct RecordingView: View {
-//     let downloadType: Flow
+//     let flow: Flow
 //     @State private var isRecording = false
 //     @State private var transcript: String = ""
 //
@@ -22,7 +22,7 @@
 //         VStack(spacing: 24) {
 //             // Ritual text shown before recording
 //             if !isRecording && transcript.isEmpty {
-//                 Text(downloadType.name)
+//                 Text(flow.name)
 //                     .font(.largeTitle.bold())
 //                 // Ritual / guided prompts would appear here from Flow definition
 //             }
@@ -41,7 +41,7 @@
 //             Spacer()
 //         }
 //         .padding()
-//         .navigationTitle(downloadType.name)
+//         .navigationTitle(flow.name)
 //         .navigationBarTitleDisplayMode(.inline)
 //     }
 //

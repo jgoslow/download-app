@@ -19,13 +19,13 @@
 // import WatchKit
 //
 // struct NotificationView: View {
-//     let downloadTypeName: String
+//     let flowName: String
 //     let notificationBody: String
 //     let snoozeOptionsMinutes: [Int]
 //
 //     var body: some View {
 //         VStack(alignment: .leading, spacing: 8) {
-//             Text(downloadTypeName)
+//             Text(flowName)
 //                 .font(.headline)
 //             Text(notificationBody)
 //                 .font(.body)

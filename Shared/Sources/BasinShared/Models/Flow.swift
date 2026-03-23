@@ -2,9 +2,8 @@ import Foundation
 
 /// A named session configuration — defines the ritual, prompts, and routing for a class of recording.
 ///
-/// Loaded from `download-types.json` (generated from `context/download-types/*.md` in the
-/// jonas-pathways repo). The app bundles the JSON file and re-reads it on launch so changes
-/// take effect without an app update.
+/// Loaded from `flows.json`. The app bundles the JSON file and re-reads it on launch so
+/// changes take effect without an app update.
 public struct Flow: Codable, Sendable, Identifiable, Equatable {
     public let id: String
     public let name: String

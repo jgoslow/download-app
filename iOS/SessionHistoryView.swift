@@ -8,7 +8,7 @@
 //  See SETUP.md for Xcode configuration steps.
 //
 
-// import DownloadShared
+// import BasinShared
 // import SwiftUI
 //
 // struct SessionHistoryView: View {

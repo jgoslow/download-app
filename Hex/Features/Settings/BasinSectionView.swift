@@ -1,6 +1,6 @@
 //
 //  BasinSectionView.swift
-//  Download
+//  Basin
 //
 //  Settings section for Basin-specific behavior: server endpoint, auth, routing mode.
 //
@@ -68,7 +68,7 @@ struct BasinSectionView: View {
             // Daily reminders toggle
             Label {
                 Toggle(
-                    "Daily download reminders",
+                    "Daily capture reminders",
                     isOn: $store.hexSettings.basinSettings.notificationsEnabled
                 )
                 Text("Morning Kickoff (7:30), Mid-Day Touchstone (12:00), Day's End (5:30) — weekdays only.")
@@ -94,7 +94,7 @@ struct BasinSectionView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Session storage")
-                        Text("~/Library/Application Support/Download/sessions/")
+                        Text("~/Library/Application Support/Basin/captures/")
                             .settingsCaption()
                             .font(.system(.caption, design: .monospaced))
                     }
@@ -121,7 +121,7 @@ struct BasinSectionView: View {
             appropriateFor: nil,
             create: false
         ) else { return }
-        let sessionsFolder = appSupport.appendingPathComponent("Download/sessions")
+        let sessionsFolder = appSupport.appendingPathComponent("Basin/captures")
         // Create if needed, then reveal in Finder
         try? FileManager.default.createDirectory(at: sessionsFolder, withIntermediateDirectories: true)
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: sessionsFolder.path)

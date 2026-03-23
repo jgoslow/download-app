@@ -1,6 +1,6 @@
 //
 //  AnthropicClient.swift
-//  Download
+//  Basin
 //
 //  Phase 2: one post-session call to Claude that reads the transcript and
 //  returns a structured SessionAnalysis (summary, tasks, routing, mood).
@@ -17,7 +17,7 @@ private let anthropicLogger = HexLog.app
 @DependencyClient
 struct AnthropicClient {
     /// Analyze a completed session transcript. Returns nil if no API key is configured.
-    /// promptTitles: ordered list of prompt titles for the download type, used to determine which were addressed.
+    /// promptTitles: ordered list of prompt titles for the flow, used to determine which were addressed.
     /// sessionContext: summaries of recent sessions of the same type, for continuity.
     var analyze: @Sendable (Session, String, [String], [SessionContext]) async -> SessionAnalysis? = { _, _, _, _ in nil }
 }

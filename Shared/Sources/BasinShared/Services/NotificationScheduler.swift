@@ -7,7 +7,7 @@ import Foundation
 /// A scheduled reminder that should fire at a specific time.
 public struct ScheduledReminder: Sendable {
     public let flowID: String
-    public let downloadTypeName: String
+    public let flowName: String
     public let notificationTitle: String
     public let notificationBody: String
     public let snoozeOptionsMinutes: [Int]
@@ -17,7 +17,7 @@ public struct ScheduledReminder: Sendable {
 
     public init(
         flowID: String,
-        downloadTypeName: String,
+        flowName: String,
         notificationTitle: String,
         notificationBody: String,
         snoozeOptionsMinutes: [Int],
@@ -25,7 +25,7 @@ public struct ScheduledReminder: Sendable {
         reminderTime: String? = nil
     ) {
         self.flowID = flowID
-        self.downloadTypeName = downloadTypeName
+        self.flowName = flowName
         self.notificationTitle = notificationTitle
         self.notificationBody = notificationBody
         self.snoozeOptionsMinutes = snoozeOptionsMinutes
@@ -47,7 +47,7 @@ public enum NotificationScheduler {
             for day in schedule.days {
                 reminders.append(ScheduledReminder(
                     flowID: type_.id,
-                    downloadTypeName: type_.name,
+                    flowName: type_.name,
                     notificationTitle: schedule.notificationTitle,
                     notificationBody: schedule.notificationBody,
                     snoozeOptionsMinutes: schedule.snoozeOptionsMinutes,

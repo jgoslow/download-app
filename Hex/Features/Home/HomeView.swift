@@ -86,7 +86,7 @@ struct HomeView: View {
                 PromptItem(id: 3, title: "Unfinished business",
                            detail: "Anything unfinished that's going to pull at you tonight? Name it and set it down."),
                 PromptItem(id: 4, title: "Tomorrow's seed",
-                           detail: "Anything the morning download should know about? Say it now and let it go."),
+                           detail: "Anything the morning capture should know about? Say it now and let it go."),
             ]
         ),
         FlowInfo(
@@ -132,7 +132,7 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     Spacer().frame(height: 40)
 
-                // Download type picker
+                // Flow picker
                 if !isRecording && !isTranscribing {
                     Picker("Type", selection: Binding(
                         get: { store.transcription.selectedFlowID },
@@ -384,7 +384,7 @@ private struct PromptSidebar: View {
     }
 }
 
-// MARK: - Download Type Info
+// MARK: - Flow Info
 
 fileprivate struct FlowInfo: Identifiable {
     let id: String

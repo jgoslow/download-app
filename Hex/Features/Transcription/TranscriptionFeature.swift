@@ -482,7 +482,7 @@ private extension TranscriptionFeature {
         return
       }
 
-      // Route session to configured Download destinations
+      // Route capture to configured destinations
       let session = Session(
         device: Host.current().localizedName ?? "mac",
         platform: .macos,
@@ -562,7 +562,7 @@ private extension TranscriptionFeature {
       try? FileManager.default.removeItem(at: audioURL)
     }
 
-    // Paste to cursor only if explicitly enabled (off by default in Download mode)
+    // Paste to cursor only if explicitly enabled (off by default in Basin mode)
     if shouldPaste {
       await pasteboard.paste(result)
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-/// A completed Download session — the structured output saved locally and sent to the CNS server.
+/// A completed capture — the structured output saved locally and sent to the Basin server.
 ///
 /// The JSON shape is the authoritative contract between the app and any server or downstream consumer.
 /// All field names use snake_case in JSON via explicit CodingKeys.

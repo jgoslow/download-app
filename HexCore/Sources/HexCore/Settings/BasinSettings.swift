@@ -17,7 +17,7 @@ public struct BasinSettings: Codable, Equatable, Sendable {
     public var pasteAfterSession: Bool
     /// Anthropic API key for Phase 2+ AI routing. Empty = Phase 1 (local save only).
     public var anthropicAPIKey: String
-    /// Whether daily download reminders are enabled.
+    /// Whether daily capture reminders are enabled.
     public var notificationsEnabled: Bool
 
     public init(
@@ -48,6 +48,6 @@ public struct BasinSettings: Codable, Equatable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case serverURL, authToken, pasteAfterSession, anthropicAPIKey, notificationsEnabled
-        case defaultFlowID = "defaultDownloadTypeID"
+        case defaultFlowID
     }
 }

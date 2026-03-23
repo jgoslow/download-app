@@ -1,7 +1,7 @@
 import Foundation
 import Logging
 
-private let logger = Logger(label: "com.download.session-store")
+private let logger = Logger(label: "com.basin.capture-store")
 
 /// Reads and writes Session JSON files to the local sessions directory.
 ///
@@ -75,7 +75,7 @@ extension SessionStore {
             appropriateFor: nil,
             create: true
         )
-        let dir = appSupport.appendingPathComponent("Download/sessions", isDirectory: true)
+        let dir = appSupport.appendingPathComponent("Basin/captures", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }

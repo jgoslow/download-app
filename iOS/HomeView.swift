@@ -10,7 +10,7 @@
 //
 
 // import ComposableArchitecture
-// import DownloadShared
+// import BasinShared
 // import SwiftUI
 //
 // struct HomeView: View {
@@ -19,7 +19,7 @@
 //     var body: some View {
 //         NavigationStack {
 //             List(types) { type in
-//                 NavigationLink(destination: RecordingView(downloadType: type)) {
+//                 NavigationLink(destination: RecordingView(flow: type)) {
 //                     FlowRow(type: type)
 //                 }
 //             }

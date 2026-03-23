@@ -1,9 +1,9 @@
 //
 //  DestinationRouterClient.swift
-//  Download
+//  Basin
 //
-//  Routes completed Download sessions to configured destinations:
-//  Phase 1 — local JSON file + optional HTTP POST to CNS server.
+//  Routes completed captures to configured destinations:
+//  Phase 1 — local JSON file + optional HTTP POST to Basin server.
 //
 
 import ComposableArchitecture
@@ -54,7 +54,7 @@ struct DestinationRouterClient {
     var route: @Sendable (Session) async -> RoutingStatus = { _ in .savedOnly }
     /// Post analysis back to the server for a given session ID.
     var postAnalysis: @Sendable (String, SessionAnalysis) async -> Void = { _, _ in }
-    /// Fetch pre-session context (recent session summaries) for a download type.
+    /// Fetch pre-session context (recent session summaries) for a flow.
     var fetchContext: @Sendable (String) async -> [SessionContext] = { _ in [] }
 }
 
@@ -187,7 +187,7 @@ private func sessionsDirectory() throws -> URL {
         appropriateFor: nil,
         create: true
     )
-    let dir = appSupport.appendingPathComponent("Download/sessions", isDirectory: true)
+    let dir = appSupport.appendingPathComponent("Basin/captures", isDirectory: true)
     try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
     return dir
 }

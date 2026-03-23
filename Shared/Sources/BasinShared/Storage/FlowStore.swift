@@ -1,13 +1,12 @@
 import Foundation
 import Logging
 
-private let logger = Logger(label: "com.download.type-store")
+private let logger = Logger(label: "com.basin.flow-store")
 
-/// Loads Flow definitions from the bundled `download-types.json` file.
+/// Loads Flow definitions from the bundled `flows.json` file.
 ///
-/// The JSON file is generated from `context/download-types/*.md` in the jonas-pathways repo
-/// via an export script. No app update needed to change or add session types — re-export
-/// and the app picks up changes on next launch.
+/// The JSON file is generated from flow definitions in the Basin repo. No app update needed
+/// to change or add flow types — re-export and the app picks up changes on next launch.
 ///
 /// Fallback: if the file is missing or unreadable, returns `[.openDefault]` so the app
 /// always has at least one usable type.
@@ -26,15 +25,15 @@ extension FlowStore {
             // then fall back to the bundled copy.
             if let userFile = userFlowsURL(),
                let types = try? loadFromURL(userFile), !types.isEmpty {
-                logger.debug("Loaded \(types.count) download types from Application Support")
+                logger.debug("Loaded \(types.count) flows from Application Support")
                 return ensureOpenPresent(types)
             }
-            if let bundledURL = bundle.url(forResource: "download-types", withExtension: "json"),
+            if let bundledURL = bundle.url(forResource: "flows", withExtension: "json"),
                let types = try? loadFromURL(bundledURL), !types.isEmpty {
-                logger.debug("Loaded \(types.count) download types from bundle")
+                logger.debug("Loaded \(types.count) flows from bundle")
                 return ensureOpenPresent(types)
             }
-            logger.warning("No download-types.json found — falling back to Open only")
+            logger.warning("No flows.json found — falling back to Open only")
             return [.openDefault]
         })
     }
@@ -52,7 +51,7 @@ extension FlowStore {
             appropriateFor: nil,
             create: false
         ) else { return nil }
-        return appSupport.appendingPathComponent("Download/download-types.json")
+        return appSupport.appendingPathComponent("Basin/flows.json")
     }
 
     /// Guarantee "open" is always the first entry, even if the JSON omits it.

@@ -29,7 +29,7 @@
 //     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
 //
 //     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
-//         // iPhone sent updated download-types.json → save to shared container
+//         // iPhone sent updated flows.json → save to shared container
 //         // The NotificationScheduler reads from here to schedule reminders
 //     }
 //

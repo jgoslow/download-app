@@ -155,7 +155,7 @@ private enum HexSettingKey: String, CodingKey, CaseIterable {
 	case wordRemovalsEnabled
 	case wordRemovals
 	case wordRemappings
-	case basinSettings = "downloadSettings"
+	case basinSettings
 }
 
 private struct SettingsField<Value: Codable & Sendable> {
