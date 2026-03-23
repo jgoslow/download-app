@@ -1,41 +1,145 @@
-# Hex — Voice → Text
-
-Press-and-hold a hotkey to transcribe your voice and paste the result wherever you're typing.
-
-**[Download Hex for macOS](https://hex-updates.s3.us-east-1.amazonaws.com/hex-latest.dmg)**
-
-> **Note:** Hex is currently only available for **Apple Silicon** Macs.
-
-Or download via homebrew:
-```bash
-brew install --cask kitlangton-hex
+```
+                                                        /\
+                                                 /\    /  \
+                                          /\    /  \  /    \
+  .             B A S I N          .     /  \  /    \/      \
+ / \                              / \   /    \/              \
+/   \.                           /   \_/     /\               \
+     '==.                       /           /  \               \
+         '==.                  /     .====='    \               \
+             '==.             / .===' || ||      \               \
+                 '==.     .===' () ()=() ()       \               \
+=||====.=||==.=====||'===' ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ \~ ~ ~ ~ ~ ~ ~ ~
+ () ~ ~ ~() ~ ~ ~ ~() ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 ```
 
-I've opened-sourced the project in the hopes that others will find it useful! Hex supports both [Parakeet TDT v3](https://github.com/FluidInference/FluidAudio) via the awesome [FluidAudio](https://github.com/FluidInference/FluidAudio) (the default—it's frickin' unbelievable: fast, multilingual, and cloud-optimized) and the awesome [WhisperKit](https://github.com/argmaxinc/WhisperKit) for on-device transcription. We use the incredible [Swift Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) for structuring the app. Please open issues with any questions or feedback! ❤️
+# Basin
 
-## Instructions
+A personal AI-powered productivity app for macOS. Capture your thoughts by voice, let AI analyze them, and route actions to the tools you use.
 
-Once you open Hex, you'll need to grant it microphone and accessibility permissions—so it can record your voice and paste the transcribed text into any application, respectively.
+Built on [Parakeet TDT v3](https://github.com/FluidInference/FluidAudio) (default) and [WhisperKit](https://github.com/argmaxinc/WhisperKit) for on-device transcription, [Swift Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) for state management, and SwiftData + CloudKit for persistence and sync.
 
-Once you've configured a global hotkey, there are **two recording modes**:
+> **Note:** Basin requires an **Apple Silicon** Mac running macOS 14+.
 
-1. **Press-and-hold** the hotkey to begin recording, say whatever you want, and then release the hotkey to start the transcription process. 
-2. **Double-tap** the hotkey to *lock recording*, say whatever you want, and then **tap** the hotkey once more to start the transcription process.
+---
 
-## Contributing
+## The Waterworks
 
-**Issue reports are welcome!** If you encounter bugs or have feature requests, please [open an issue](https://github.com/kitlangton/Hex/issues).
+Basin is modeled after a Roman waterworks system. Each layer has a role:
 
-**Note on Pull Requests:** At this stage, I'm not actively reviewing code contributions for significant features or core logic changes. The project is evolving rapidly and it's easier for me to work directly from issue reports. Bug fixes and documentation improvements are still appreciated, but please open an issue first to discuss before investing time in a large PR. Thanks for understanding!
+```
+
+       .  *  .                              .  *  .
+    *  . ~~ .  *                         *  .    .  *
+   . ~~~~ ~~~~ .     THE BASIN            . ~~~~ .
+  ~~~~  MIND  ~~~~    WATERWORKS         ~~~~  ~~~~
+ ~~~~~~~~~~~~~~~~     ~~~~~~~~~~        ~~~~~~~~~~~
+/|||  ~~~~~~~~  |||\                   /|||  ~~~~  |||\
+/||||~~~~~~~~~~~~||||\   *   *   *    /||||~~~~~~~~||||\
+ ^^^^ MOUNTAINS ^^^^    ~ ~ ~ ~ ~     ^^^^^^^^^^^^ ^^^^
+        \   /          ~ springs ~           \   /
+         \ /            ~ ~ ~ ~               \ /
+          |               \ /                  |
+          v                v                   v
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ~ ~ ~
+        ~  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  ~
+       ~                                           ~
+      ~               THE  BASIN                    ~
+     ~        Water collects here by gravity.        ~
+      ~       No force. No friction. Just speak.    ~
+       ~                                           ~
+        ~ ~ ~ ~ ~ ~ ~ ~ ~|~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+                          |
+            .~~~~~~~~~~~~~|~~~~~~~~~~~~~~.
+           /    F   L   O   W   S         \
+          /  Guided rituals shape the      \
+         /   water into directed streams.   \
+        /  Morning Kickoff  |  Day's End     \
+       /   Backlog Clean    |  Vision         \
+      /_______________________________________ \
+                          |
+                    ______|______
+                   /              \
+                  | CASTELLUM     |    The distribution hub.
+                  | ~ ~ ~ ~ ~ ~  |    On-device AI receives the
+                  | (the brain)   |    water and decides: what is
+                  |  ~ ~ ~ ~ ~   |    it? Where should it go?
+                   \______________/    Who needs it?
+                          |
+        __________________|__________________
+       |         |         |        |        |
+       v         v         v        v        v
+    |==|==|   |==|==|   |==|==|  |==|==|  |==|==|
+    |card |   | msg |   |hours|  |issue|  |event|   CHANNELS
+    |==|==|   |==|==|   |==|==|  |==|==|  |==|==|   (aqueducts)
+       |         |         |        |        |
+       |         |         |        |        |       The paths that
+       |         |         |        |        |       carry water to
+       |         |         |        |        |       its destination.
+       v         v         v        v        v
+    [Jira]    [Slack]   [Toggl]  [ GH  ]  [ Cal ]
+     ~~~       ~~~       ~~~       ~~~      ~~~
+      ~         ~         ~         ~        ~       TOOLS
+
+    Like mechanisms along an aqueduct —
+    fountains, baths, water clocks. A single
+    channel may use many tools on its way.
+
+       ~    .    ~    .    ~    .    ~
+      . ~ evaporation ~ . ~ . ~ . ~        The water cycle completes.
+     ~  .  ~  .  ~  .  ~  .  ~  .  ~       Outputs become context for
+    .  ~  .  ~  .  ~  .  ~  .  ~  .  ~     the next capture. Closed
+     ~ . ~ . ~ . ~ . ~ . ~ . ~ . ~ .      Jira cards, logged hours,
+      .   rising back to the mountains     sent messages — all feed
+       ~    .    ~    .    ~    .    ~      back into tomorrow's flows.
+```
+
+---
+
+## Terminology
+
+| Term | Metaphor | Definition |
+|------|----------|------------|
+| **Basin** | The basin itself | The app. Voice capture that feels effortless. |
+| **Capture** | Water entering the basin | A single voice recording session with its transcript. |
+| **Flow** | A directed stream from the basin | A named capture ritual with guided prompts, schedule, and routing. E.g., "Morning Kickoff" or "Day's End". |
+| **Castellum** | The distribution hub | On-device AI orchestration. Receives water from the basin, analyzes it, and decides where it should go. In Roman waterworks, the castellum sat where the aqueduct entered the city and divided the water. |
+| **Channel** | An aqueduct | A specific automation path — the pipe that carries water to its destination. E.g., "Write an email", "Create a Jira card", "Log time". |
+| **Tool** | Mechanisms along the aqueduct | A connected external service (Jira, Slack, Toggl, etc.). Like fountains, baths, and water clocks — a single channel may use many tools along its path. |
+| **Evaporation** | The water cycle | Feedback loop. Outputs (closed cards, logged hours, sent messages) become pre-session context for the next capture. The cycle completes. |
+
+---
+
+## How It Works
+
+1. **Press-and-hold** a hotkey to record, release to transcribe
+2. **Double-tap** to lock recording, tap again to stop
+3. **Choose a flow** for guided prompts (or use Open for freeform)
+4. **AI analyzes** the capture: extracts tasks, routing, mood, delegations
+5. **Channels route** to tools: create Jira cards, log time, send messages
+
+---
+
+## Setup
+
+Once you open Basin, grant microphone and accessibility permissions so it can record your voice and paste transcribed text into any application.
+
+### Onboarding order:
+1. **Flows** — choose or create your capture rituals
+2. **Channels** — enable automation paths (Write an email, Create a card, Log time)
+3. **Tools** — connect the services those channels need (Jira, Slack, Toggl, etc.)
+
+---
+
+## Development
+
+See [CLAUDE.md](CLAUDE.md) for build commands, architecture details, and contribution guidelines.
 
 ### Changelog workflow
 
-- **For AI agents:** Run `bun run changeset:add-ai <type> "summary"` (e.g., `bun run changeset:add-ai patch "Fix clipboard timing"`) to create a changeset non-interactively.
-- **For humans:** Run `bunx changeset` when your PR needs release notes. Pick `patch`, `minor`, or `major` and write a short summary—this creates a `.changeset/*.md` fragment.
-- Check what will ship with `bunx changeset status --verbose`.
-- `npm run sync-changelog` (or `bun run tools/scripts/sync-changelog.ts`) mirrors the root `CHANGELOG.md` into `Hex/Resources/changelog.md` so the in-app sheet always matches GitHub releases.
-- The release tool consumes the pending fragments, bumps `package.json` + `Info.plist`, regenerates `CHANGELOG.md`, and feeds the resulting section to GitHub + Sparkle automatically. Releases fail fast if no changesets are queued, so you can't forget.
-- If you truly need to ship without pending Changesets (for example, re-running a failed publish), the release script will now prompt you to confirm and choose a `patch`/`minor`/`major` bump interactively before continuing.
+- **For AI agents:** Run `bun run changeset:add-ai <type> "summary"` to create a changeset non-interactively.
+- **For humans:** Run `bunx changeset` when your PR needs release notes.
+- The release tool consumes fragments, bumps versions, and publishes to GitHub + Sparkle.
 
 ## License
 

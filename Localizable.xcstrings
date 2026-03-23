@@ -20,7 +20,7 @@
     "•" : {
       "shouldTranslate" : false
     },
-    "~/Library/Application Support/Download/sessions/" : {
+    "~/Library/Application Support/Basin/captures/" : {
 
     },
     "50" : {
@@ -70,6 +70,9 @@
     "Add Removal" : {
 
     },
+    "Advanced" : {
+
+    },
     "Anthropic API Key" : {
 
     },
@@ -90,7 +93,22 @@
     "Audio Behavior while Recording" : {
 
     },
+    "Auth Method" : {
+
+    },
     "Auth Token" : {
+
+    },
+    "Auto" : {
+
+    },
+    "Auto-execute actions without confirmation" : {
+
+    },
+    "Basin" : {
+
+    },
+    "Basin will open your browser to authenticate. Your credentials are never stored in the app — only a revocable access token." : {
 
     },
     "Bearer token" : {
@@ -133,6 +151,9 @@
         }
       }
     },
+    "Channels" : {
+
+    },
     "Check for Updates" : {
       "comment" : "Check for updates button in About section of Settings",
       "localizations" : {
@@ -168,6 +189,24 @@
         }
       }
     },
+    "Connect" : {
+
+    },
+    "Connect %@" : {
+
+    },
+    "Connect %@ first" : {
+
+    },
+    "Connected" : {
+
+    },
+    "Connected via API key" : {
+
+    },
+    "Connected via OAuth" : {
+
+    },
     "Copied" : {
       "comment" : "Transcription from history copied.",
       "localizations" : {
@@ -193,7 +232,13 @@
     "Copy transcription text to clipboard in addition to pasting it" : {
 
     },
-    "Daily download reminders" : {
+    "Create a Personal Access Token at github.com/settings/tokens with repo scope." : {
+
+    },
+    "Create a Slack app at api.slack.com/apps, add chat:write scope, install to workspace." : {
+
+    },
+    "Create a token at id.atlassian.com > Security > API tokens. Enter as email:token." : {
 
     },
     "Delete" : {
@@ -243,6 +288,9 @@
           }
         }
       }
+    },
+    "Disconnect" : {
+
     },
     "Do Nothing" : {
 
@@ -303,7 +351,7 @@
     "Enable Word Removals" : {
 
     },
-    "Enables AI analysis after each session (summary, tasks, routing). Leave blank to skip." : {
+    "Enables AI analysis after each capture (summary, tasks, routing). Leave blank to skip." : {
 
     },
     "Ensure Hex can access your microphone and system accessibility features." : {
@@ -328,6 +376,9 @@
           }
         }
       }
+    },
+    "Find your API token at track.toggl.com/profile (bottom of the page)." : {
+
     },
     "General" : {
       "comment" : "General section in Settings Header.",
@@ -398,6 +449,9 @@
     "http://localhost:3000" : {
 
     },
+    "https://your-org.atlassian.net" : {
+
+    },
     "Ignore below %.1fs" : {
       "localizations" : {
         "de" : {
@@ -412,6 +466,9 @@
 
     },
     "Input Monitoring is required so Hex can listen for your hotkey." : {
+
+    },
+    "Instance URL" : {
 
     },
     "Integrations" : {
@@ -450,9 +507,6 @@
     "Modifier side" : {
 
     },
-    "Morning Kickoff (7:30), Mid-Day Touchstone (12:00), Day's End (5:30) — weekdays only." : {
-
-    },
     "Mute Volume" : {
 
     },
@@ -467,6 +521,9 @@
           }
         }
       }
+    },
+    "No tool required" : {
+
     },
     "No Transcriptions" : {
       "comment" : "Empty history headline.",
@@ -526,6 +583,9 @@
 
     },
     "Paste transcript to cursor" : {
+
+    },
+    "Paste your token" : {
 
     },
     "Pattern" : {
@@ -624,6 +684,9 @@
         }
       }
     },
+    "Save" : {
+
+    },
     "Save Transcription History" : {
 
     },
@@ -631,6 +694,9 @@
 
     },
     "Say something…" : {
+
+    },
+    "Scopes: %@" : {
 
     },
     "Scratchpad" : {
@@ -712,6 +778,12 @@
     "Show more" : {
 
     },
+    "Sign in with %@" : {
+
+    },
+    "Sign in with your %@ account." : {
+
+    },
     "sk-ant-..." : {
 
     },
@@ -752,6 +824,12 @@
       }
     },
     "Super Fast Mode" : {
+
+    },
+    "Token expires: %@" : {
+
+    },
+    "Tools" : {
 
     },
     "Transcript" : {
@@ -811,6 +889,9 @@
     "Use double-tap only" : {
 
     },
+    "Uses: %@" : {
+
+    },
     "Version" : {
       "comment" : "Label for version in About section.",
       "localizations" : {
@@ -835,6 +916,9 @@
       }
     },
     "Volume" : {
+
+    },
+    "Waiting for authorization..." : {
 
     },
     "When disabled, transcriptions will not be saved and audio files will be deleted immediately after transcription." : {

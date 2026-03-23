@@ -2,7 +2,7 @@
 //  BasinSectionView.swift
 //  Basin
 //
-//  Settings section for Basin-specific behavior: server endpoint, auth, routing mode.
+//  Settings section for Basin-specific behavior: AI key, paste mode, and advanced server config.
 //
 
 import ComposableArchitecture
@@ -14,41 +14,7 @@ struct BasinSectionView: View {
 
     var body: some View {
         Section {
-            // Server URL
-            Label {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Server URL")
-                    TextField(
-                        "http://localhost:3000",
-                        text: $store.hexSettings.basinSettings.serverURL
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.body, design: .monospaced))
-                    Text("POST /transcript endpoint. Leave blank to save locally only.")
-                        .settingsCaption()
-                }
-            } icon: {
-                Image(systemName: "server.rack")
-            }
-
-            // Auth token
-            Label {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Auth Token")
-                    SecureField(
-                        "Bearer token",
-                        text: $store.hexSettings.basinSettings.authToken
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.body, design: .monospaced))
-                    Text("Sent as Authorization: Bearer <token>. Leave blank for unauthenticated.")
-                        .settingsCaption()
-                }
-            } icon: {
-                Image(systemName: "key")
-            }
-
-            // Anthropic API key
+            // Anthropic API key (core Basin functionality)
             Label {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Anthropic API Key")
@@ -58,23 +24,11 @@ struct BasinSectionView: View {
                     )
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
-                    Text("Enables AI analysis after each session (summary, tasks, routing). Leave blank to skip.")
+                    Text("Enables AI analysis after each capture (summary, tasks, routing). Leave blank to skip.")
                         .settingsCaption()
                 }
             } icon: {
                 Image(systemName: "sparkles")
-            }
-
-            // Daily reminders toggle
-            Label {
-                Toggle(
-                    "Daily capture reminders",
-                    isOn: $store.hexSettings.basinSettings.notificationsEnabled
-                )
-                Text("Morning Kickoff (7:30), Mid-Day Touchstone (12:00), Day's End (5:30) — weekdays only.")
-                    .settingsCaption()
-            } icon: {
-                Image(systemName: "bell")
             }
 
             // Paste after session toggle
@@ -109,6 +63,43 @@ struct BasinSectionView: View {
                 Image(systemName: "folder")
             }
 
+            // Advanced: Server settings
+            DisclosureGroup {
+                Label {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Server URL")
+                        TextField(
+                            "http://localhost:3000",
+                            text: $store.hexSettings.basinSettings.serverURL
+                        )
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(.body, design: .monospaced))
+                        Text("POST /transcript endpoint. Leave blank to save locally only.")
+                            .settingsCaption()
+                    }
+                } icon: {
+                    Image(systemName: "server.rack")
+                }
+
+                Label {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Auth Token")
+                        SecureField(
+                            "Bearer token",
+                            text: $store.hexSettings.basinSettings.authToken
+                        )
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(.body, design: .monospaced))
+                        Text("Sent as Authorization: Bearer <token>. Leave blank for unauthenticated.")
+                            .settingsCaption()
+                    }
+                } icon: {
+                    Image(systemName: "key")
+                }
+            } label: {
+                Label("Advanced", systemImage: "gearshape.2")
+            }
+
         } header: {
             Text("Basin")
         }
@@ -122,7 +113,6 @@ struct BasinSectionView: View {
             create: false
         ) else { return }
         let sessionsFolder = appSupport.appendingPathComponent("Basin/captures")
-        // Create if needed, then reveal in Finder
         try? FileManager.default.createDirectory(at: sessionsFolder, withIntermediateDirectories: true)
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: sessionsFolder.path)
     }

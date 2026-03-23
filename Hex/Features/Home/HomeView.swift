@@ -9,11 +9,15 @@
 import ComposableArchitecture
 import HexCore
 import Inject
+import SwiftData
 import SwiftUI
 
 struct HomeView: View {
     @Bindable var store: StoreOf<AppFeature>
     @ObserveInjection var inject
+    @Query(filter: #Predicate<FlowDefinition> { !$0.isTemplate },
+           sort: \FlowDefinition.sortOrder)
+    private var flows: [FlowDefinition]
     @State private var showHistory = false
     @State private var selectedPromptID: Int? = nil
 
@@ -22,108 +26,10 @@ struct HomeView: View {
     var isModelReady: Bool { store.modelBootstrapState.isModelReady }
     var lastAnalysis: SessionAnalysis? { store.transcription.lastAnalysis }
     var history: [Transcript] { store.transcription.transcriptionHistory.history }
-    fileprivate var selectedType: FlowInfo {
-        Self.flows.first { $0.id == store.transcription.selectedFlowID }
-            ?? Self.flows[0]
+    fileprivate var selectedFlow: FlowDefinition? {
+        flows.first { $0.id == store.transcription.selectedFlowID }
+            ?? flows.first
     }
-
-    private static let flows: [FlowInfo] = [
-        FlowInfo(
-            id: "open",
-            name: "Open",
-            intro: "No structure. No prompts. Press record, speak, press stop.",
-            prompts: []
-        ),
-        FlowInfo(
-            id: "morning-kickoff",
-            name: "Morning Kickoff",
-            intro: "Before the day gets its hooks in you. Start with how you're actually doing, then build your day.",
-            prompts: [
-                PromptItem(id: 0, title: "Body check-in",
-                           detail: "How are you feeling right now? Not what you think — what you actually feel. Sensations in your body, energy level, tension."),
-                PromptItem(id: 1, title: "What's weighing on you",
-                           detail: "What's bigger than your work that you're carrying into today? Personal stuff, worries, things on your mind. Let it be named."),
-                PromptItem(id: 2, title: "What would make today good",
-                           detail: "Not productive — good. What would make you feel like today was a day well spent?"),
-                PromptItem(id: 3, title: "Yesterday's follow-ups",
-                           detail: "Any follow-ups from yesterday that need to happen before you start new work?"),
-                PromptItem(id: 4, title: "Today's work",
-                           detail: "What needs to get done today that isn't already captured? Say it now — tasks, calls, deliverables."),
-                PromptItem(id: 5, title: "Delegations",
-                           detail: "Anything you want to delegate to Diego or Josh today? Be specific about what they need to know."),
-                PromptItem(id: 6, title: "Drafts",
-                           detail: "Any emails or Slack messages you want to draft while you're thinking about it?"),
-            ]
-        ),
-        FlowInfo(
-            id: "mid-day-touchstone",
-            name: "Mid-Day Touchstone",
-            intro: "Meetings are done. Adjust the day's trajectory based on what's actually happened.",
-            prompts: [
-                PromptItem(id: 0, title: "Body check",
-                           detail: "Where are you holding tension right now? Neck, shoulders, jaw, gut? Water? Food?"),
-                PromptItem(id: 1, title: "What just happened",
-                           detail: "New priorities from this morning? Things that shifted or became urgent? Anything from a meeting you need to capture before you forget?"),
-                PromptItem(id: 2, title: "Delegation",
-                           detail: "From this morning and what just came up — what needs to go to Diego or Josh?"),
-                PromptItem(id: 3, title: "End-of-day target",
-                           detail: "What's the single most important thing to have done before you close your laptop? Anything to consciously drop?"),
-                PromptItem(id: 4, title: "Evening bridge",
-                           detail: "Need to check in about tonight? Dinner, family, coordination? What time do you want to stop working?"),
-            ]
-        ),
-        FlowInfo(
-            id: "days-end",
-            name: "Day's End",
-            intro: "Close the loop. What actually happened, what it felt like, what gets tracked.",
-            prompts: [
-                PromptItem(id: 0, title: "Hour accounting",
-                           detail: "Walk through the day in roughly the order it happened. What did you work on? What's not in Toggl?"),
-                PromptItem(id: 1, title: "Task close-out",
-                           detail: "What got done? What didn't? Anything you did that wasn't on the list? It counts."),
-                PromptItem(id: 2, title: "Emotional close",
-                           detail: "How did today feel? Not how productive — how did it feel? One thing you want to remember from today."),
-                PromptItem(id: 3, title: "Unfinished business",
-                           detail: "Anything unfinished that's going to pull at you tonight? Name it and set it down."),
-                PromptItem(id: 4, title: "Tomorrow's seed",
-                           detail: "Anything the morning capture should know about? Say it now and let it go."),
-            ]
-        ),
-        FlowInfo(
-            id: "backlog-clean",
-            name: "Backlog Clean",
-            intro: "You're not doing the work right now. You're making sure the work is visible and assigned.",
-            prompts: [
-                PromptItem(id: 0, title: "Project overview",
-                           detail: "Which projects need the most attention? Which is furthest behind on scope vs. contract?"),
-                PromptItem(id: 1, title: "Scope drift",
-                           detail: "Any projects where the scope has changed but the cards haven't caught up?"),
-                PromptItem(id: 2, title: "Stale cards",
-                           detail: "Cards that haven't moved in a while — still valid? Close, update, or deprioritize?"),
-                PromptItem(id: 3, title: "New cards",
-                           detail: "Any new work that needs a Jira card? Walk through each one: what, why, roughly how long."),
-                PromptItem(id: 4, title: "PM handoff",
-                           detail: "Who owns PM review today — Diego or Josh? Any cards that need a sync call?"),
-            ]
-        ),
-        FlowInfo(
-            id: "vision-alignment",
-            name: "Vision Alignment",
-            intro: "You don't have to have answers. You just have to be honest. Let's see what the quarter says.",
-            prompts: [
-                PromptItem(id: 0, title: "The mirror",
-                           detail: "Looking at the last quarter — what's the story? What were you actually doing with your time and attention?"),
-                PromptItem(id: 1, title: "Short-term goals",
-                           detail: "What's a concrete goal for the next 90 days? Be specific."),
-                PromptItem(id: 2, title: "Long-term vision",
-                           detail: "What's a longer-term goal (1-3 years) to keep in view?"),
-                PromptItem(id: 3, title: "Letting go",
-                           detail: "Any goal from 90 days ago you're ready to let go of? Personal life goals that belong on this list?"),
-                PromptItem(id: 4, title: "The real question",
-                           detail: "What do you actually want your life to look like? Not as a founder — as a person. What do you keep saying you'll do that never happens?"),
-            ]
-        ),
-    ]
 
     var body: some View {
         HStack(spacing: 0) {
@@ -137,12 +43,13 @@ struct HomeView: View {
                     Picker("Type", selection: Binding(
                         get: { store.transcription.selectedFlowID },
                         set: { newID in
-                        let type = Self.flows.first { $0.id == newID } ?? Self.flows[0]
-                        store.send(.transcription(.setFlow(newID, promptTitles: type.prompts.map(\.title))))
+                        let flow = flows.first { $0.id == newID }
+                        let promptTitles = flow?.prompts.map(\.title) ?? []
+                        store.send(.transcription(.setFlow(newID, promptTitles: promptTitles)))
                     }
                     )) {
-                        ForEach(Self.flows, id: \.id) { type in
-                            Text(type.name).tag(type.id)
+                        ForEach(flows) { flow in
+                            Text(flow.name).tag(flow.id)
                         }
                     }
                     .pickerStyle(.menu)
@@ -150,12 +57,14 @@ struct HomeView: View {
                     .padding(.bottom, 8)
 
                     // Intro text
-                    Text(selectedType.intro)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: 360)
-                        .padding(.bottom, 16)
+                    if let flow = selectedFlow {
+                        Text(flow.intro)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: 360)
+                            .padding(.bottom, 16)
+                    }
                 }
 
                 // Record button
@@ -195,7 +104,7 @@ struct HomeView: View {
 
                 // Prompt detail (when a prompt is selected from sidebar)
                 if let promptID = selectedPromptID,
-                   let prompt = selectedType.prompts.first(where: { $0.id == promptID }) {
+                   let prompt = selectedFlow?.prompts.first(where: { $0.id == promptID }) {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text(prompt.title)
@@ -280,10 +189,10 @@ struct HomeView: View {
         }
 
             // Prompt sidebar
-            if !selectedType.prompts.isEmpty {
+            if let flow = selectedFlow, !flow.prompts.isEmpty {
                 Divider()
                 PromptSidebar(
-                    prompts: selectedType.prompts,
+                    prompts: flow.prompts,
                     selectedID: $selectedPromptID,
                     addressedIDs: Set(lastAnalysis?.promptsAddressed ?? [])
                 )
@@ -335,7 +244,7 @@ struct HomeView: View {
 // MARK: - Prompt Sidebar
 
 private struct PromptSidebar: View {
-    let prompts: [PromptItem]
+    let prompts: [FlowPrompt]
     @Binding var selectedID: Int?
     let addressedIDs: Set<Int>
 
@@ -382,21 +291,6 @@ private struct PromptSidebar: View {
         }
         .background(.regularMaterial)
     }
-}
-
-// MARK: - Flow Info
-
-fileprivate struct FlowInfo: Identifiable {
-    let id: String
-    let name: String
-    let intro: String
-    let prompts: [PromptItem]
-}
-
-fileprivate struct PromptItem: Identifiable {
-    let id: Int
-    let title: String
-    let detail: String
 }
 
 // MARK: - Analysis Card

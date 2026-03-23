@@ -78,6 +78,7 @@ struct TranscriptionFeature {
   @Dependency(\.transcriptPersistence) var transcriptPersistence
   @Dependency(\.destinationRouter) var destinationRouter
   @Dependency(\.anthropic) var anthropic
+  @Dependency(\.modelContext) var basinDB
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
@@ -483,15 +484,18 @@ private extension TranscriptionFeature {
       }
 
       // Route capture to configured destinations
+      let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+      let wordCount = modifiedResult.split(separator: " ").count
+
       let session = Session(
         device: Host.current().localizedName ?? "mac",
         platform: .macos,
         flowID: flowID,
         rawText: modifiedResult,
         durationSeconds: duration,
-        wordCount: modifiedResult.split(separator: " ").count,
+        wordCount: wordCount,
         metadata: Session.Metadata(
-          appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
+          appVersion: appVersion,
           whisperModel: selectedModel,
           language: outputLanguage
         )
@@ -499,10 +503,38 @@ private extension TranscriptionFeature {
       let status = await router.route(session)
       routerLogger.info("Session routed: \(String(describing: status))")
 
+      // Save to SwiftData
+      let capture = CaptureRecord(
+        id: session.id,
+        device: Host.current().localizedName ?? "mac",
+        flowID: flowID,
+        rawText: modifiedResult,
+        durationSeconds: duration,
+        wordCount: wordCount,
+        sourceAppBundleID: sourceAppBundleID,
+        sourceAppName: sourceAppName,
+        appVersion: appVersion,
+        whisperModel: selectedModel,
+        language: outputLanguage
+      )
+      try? await basinDB.saveCapture(capture)
+
       let sessionContext = await router.fetchContext(flowID)
       if let analysis = await aiClient.analyze(session, basinSettings.anthropicAPIKey, promptTitlesForAI, sessionContext) {
         await send(.analysisReceived(analysis))
         await router.postAnalysis(session.id, analysis)
+
+        // Save analysis to SwiftData
+        let captureAnalysis = CaptureAnalysis(
+          summary: analysis.summary,
+          moodTag: analysis.moodTag,
+          tasks: analysis.tasks,
+          routing: analysis.routing.map(\.rawValue),
+          delegations: analysis.delegations,
+          integrations: analysis.integrations.map(\.rawValue),
+          promptsAddressed: analysis.promptsAddressed
+        )
+        try? await basinDB.saveAnalysis(captureAnalysis, capture)
       }
     }
     .cancellable(id: CancelID.transcription)

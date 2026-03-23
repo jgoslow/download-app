@@ -12,6 +12,29 @@
 	<string>0.7.1</string>
 	<key>CFBundleVersion</key>
 	<string>81</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.kitlangton.Hex.oauth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>basin</string>
+			</array>
+		</dict>
+	</array>
+	<key>GitHubClientID</key>
+	<string>$(GITHUB_CLIENT_ID)</string>
+	<key>GitHubClientSecret</key>
+	<string>$(GITHUB_CLIENT_SECRET)</string>
+	<key>GoogleClientID</key>
+	<string>$(GOOGLE_CLIENT_ID)</string>
+	<key>AtlassianClientID</key>
+	<string>$(ATLASSIAN_CLIENT_ID)</string>
+	<key>SlackClientID</key>
+	<string>$(SLACK_CLIENT_ID)</string>
+	<key>SlackClientSecret</key>
+	<string>$(SLACK_CLIENT_SECRET)</string>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>Hex needs accessibility access to monitor keyboard events for hotkey detection.</string>
 	<key>NSAppTransportSecurity</key>

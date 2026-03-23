@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import HexCore
+import SwiftData
 import SwiftUI
 
 private let appLogger = HexLog.app
@@ -19,6 +20,7 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 		DiagnosticsLogging.bootstrapIfNeeded()
 		// Ensure Parakeet/FluidAudio caches live under Application Support, not ~/.cache
 		configureLocalCaches()
+		seedDefaultData()
 		if isTesting {
 			appLogger.debug("Running in testing mode")
 			return
@@ -108,6 +110,7 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 		}
 
 		let settingsView = AppView(store: HexApp.appStore)
+			.modelContainer(HexApp.modelContainer)
 		let settingsWindow = NSWindow(
 			contentRect: .init(x: 0, y: 0, width: 700, height: 700),
 			styleMask: [.titled, .fullSizeContentView, .closable, .miniaturizable],
@@ -148,6 +151,56 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 	func applicationWillTerminate(_: Notification) {
 		Task {
 			await recording.cleanup()
+		}
+	}
+
+	/// Handle basin:// URL scheme callbacks (OAuth)
+	func application(_ application: NSApplication, open urls: [URL]) {
+		for url in urls {
+			guard url.scheme == "basin", url.host == "oauth" else { continue }
+			Task {
+				await OAuthClient.shared.handleCallback(url: url)
+			}
+		}
+	}
+
+	/// Seeds default data on first launch: one "Open" flow, all tools (disconnected), all channels (disabled).
+	private func seedDefaultData() {
+		let context = ModelContext(HexApp.modelContainer)
+
+		do {
+			let flowCount = try context.fetchCount(FetchDescriptor<FlowDefinition>())
+			if flowCount == 0 {
+				let openFlow = FlowDefinition(
+					id: "open",
+					name: "Open",
+					intro: "No structure. No prompts. Press record, speak, press stop.",
+					cadence: "on-demand",
+					sortOrder: 0
+				)
+				context.insert(openFlow)
+				appLogger.info("Seeded default Open flow")
+			}
+
+			let toolCount = try context.fetchCount(FetchDescriptor<Tool>())
+			if toolCount == 0 {
+				for tool in Tool.allDefaults {
+					context.insert(tool)
+				}
+				appLogger.info("Seeded \(Tool.allDefaults.count) default tools")
+			}
+
+			let channelCount = try context.fetchCount(FetchDescriptor<ChannelDefinition>())
+			if channelCount == 0 {
+				for channel in ChannelDefinition.allDefaults {
+					context.insert(channel)
+				}
+				appLogger.info("Seeded \(ChannelDefinition.allDefaults.count) default channels")
+			}
+
+			try context.save()
+		} catch {
+			appLogger.error("Failed to seed default data: \(error.localizedDescription)")
 		}
 	}
 }

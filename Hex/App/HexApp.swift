@@ -2,6 +2,7 @@ import ComposableArchitecture
 import Inject
 import Sparkle
 import AppKit
+import SwiftData
 import SwiftUI
 
 @main
@@ -9,6 +10,22 @@ struct HexApp: App {
 	static let appStore = Store(initialState: AppFeature.State()) {
 		AppFeature()
 	}
+
+	static let modelContainer: ModelContainer = {
+		let schema = Schema([
+			CaptureRecord.self,
+			CaptureAnalysis.self,
+			FlowDefinition.self,
+			Tool.self,
+			ChannelDefinition.self,
+		])
+		let config = ModelConfiguration(isStoredInMemoryOnly: false)
+		do {
+			return try ModelContainer(for: schema, configurations: [config])
+		} catch {
+			fatalError("Failed to create ModelContainer: \(error)")
+		}
+	}()
 
 	@NSApplicationDelegateAdaptor(HexAppDelegate.self) var appDelegate
   
@@ -40,6 +57,7 @@ struct HexApp: App {
 
 
 		WindowGroup {}.defaultLaunchBehavior(.suppressed)
+			.modelContainer(Self.modelContainer)
 			.commands {
 				CommandGroup(after: .appInfo) {
 					CheckForUpdatesView()

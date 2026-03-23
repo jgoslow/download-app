@@ -11,6 +11,7 @@ import Dependencies
 import DependenciesMacros
 import Foundation
 import HexCore
+import SwiftData
 import UserNotifications
 
 private let notifLogger = HexLog.app
@@ -42,42 +43,63 @@ extension NotificationClient: DependencyKey {
                 // Remove old scheduled notifications before re-scheduling
                 center.removeAllPendingNotificationRequests()
 
-                let schedules: [(id: String, title: String, body: String, hour: Int, minute: Int)] = [
-                    ("morning-kickoff", "Morning Kickoff", "Before the day gets its hooks in you.", 7, 30),
-                    ("mid-day-touchstone", "Mid-Day Touchstone", "Meetings done. How are you actually doing?", 12, 0),
-                    ("days-end", "Day's End", "Close the loop before you close the laptop.", 17, 30),
+                // Read flows with reminders enabled from SwiftData
+                let context = ModelContext(HexApp.modelContainer)
+                let descriptor = FetchDescriptor<FlowDefinition>(
+                    predicate: #Predicate { $0.scheduleReminderEnabled }
+                )
+                let flows = (try? context.fetch(descriptor)) ?? []
+
+                let weekdayMap: [String: Int] = [
+                    "mon": 2, "tue": 3, "wed": 4, "thu": 5, "fri": 6, "sat": 7, "sun": 1
                 ]
 
-                for schedule in schedules {
-                    let content = UNMutableNotificationContent()
-                    content.title = schedule.title
-                    content.body = schedule.body
-                    content.sound = .default
-                    content.userInfo = ["flow_id": schedule.id]
-                    content.categoryIdentifier = "basin-reminder"
+                for flow in flows {
+                    guard let timeStr = flow.scheduleReminderTime else { continue }
+                    let parts = timeStr.split(separator: ":").compactMap { Int($0) }
+                    guard parts.count == 2 else { continue }
+                    let hour = parts[0]
+                    let minute = parts[1]
 
-                    // Weekdays only (Mon-Fri)
-                    for weekday in 2...6 {
+                    let title = flow.scheduleNotificationTitle.isEmpty ? flow.name : flow.scheduleNotificationTitle
+                    let body = flow.scheduleNotificationBody
+
+                    let days = flow.scheduleDays.compactMap { weekdayMap[$0] }
+                    // Default to weekdays if no days specified
+                    let scheduleDays = days.isEmpty ? Array(2...6) : days
+
+                    for weekday in scheduleDays {
+                        let content = UNMutableNotificationContent()
+                        content.title = title
+                        content.body = body
+                        content.sound = .default
+                        content.userInfo = ["flow_id": flow.id]
+                        content.categoryIdentifier = "basin-reminder"
+
                         var dateComponents = DateComponents()
-                        dateComponents.hour = schedule.hour
-                        dateComponents.minute = schedule.minute
+                        dateComponents.hour = hour
+                        dateComponents.minute = minute
                         dateComponents.weekday = weekday
 
                         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
                         let request = UNNotificationRequest(
-                            identifier: "\(schedule.id)-\(weekday)",
+                            identifier: "\(flow.id)-\(weekday)",
                             content: content,
                             trigger: trigger
                         )
 
                         center.add(request) { error in
                             if let error {
-                                notifLogger.error("Failed to schedule \(schedule.id)-\(weekday): \(error.localizedDescription)")
+                                notifLogger.error("Failed to schedule \(flow.id)-\(weekday): \(error.localizedDescription)")
                             }
                         }
                     }
 
-                    notifLogger.info("Scheduled \(schedule.id) at \(schedule.hour):\(String(format: "%02d", schedule.minute)) weekdays")
+                    notifLogger.info("Scheduled \(flow.id) at \(hour):\(String(format: "%02d", minute))")
+                }
+
+                if flows.isEmpty {
+                    notifLogger.info("No flows with reminders enabled — no notifications scheduled")
                 }
             },
             cancelAll: {
