@@ -48,6 +48,9 @@ struct HomeView: View {
                         store.send(.transcription(.setFlow(newID, promptTitles: promptTitles)))
                     }
                     )) {
+                        if flows.isEmpty {
+                            Text("Open Flow").tag("open")
+                        }
                         ForEach(flows) { flow in
                             Text(flow.name).tag(flow.id)
                         }
@@ -153,6 +156,12 @@ struct HomeView: View {
                         if let analysis = lastAnalysis {
                             Divider()
                             AnalysisCard(analysis: analysis)
+
+                            // Castellum execution plan (appears when actions are identified)
+                            ExecutionPlanView(
+                                store: store.scope(state: \.castellum, action: \.castellum)
+                            )
+                            .padding(.top, 8)
                         }
                     }
                     .padding(14)

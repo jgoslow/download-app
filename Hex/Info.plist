@@ -31,6 +31,8 @@
 	<string>$(GOOGLE_CLIENT_ID)</string>
 	<key>AtlassianClientID</key>
 	<string>$(ATLASSIAN_CLIENT_ID)</string>
+	<key>AtlassianClientSecret</key>
+	<string>$(ATLASSIAN_CLIENT_SECRET)</string>
 	<key>SlackClientID</key>
 	<string>$(SLACK_CLIENT_ID)</string>
 	<key>SlackClientSecret</key>

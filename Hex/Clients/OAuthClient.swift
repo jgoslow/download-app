@@ -51,7 +51,7 @@ struct OAuthProviderConfig {
         authorizationURL: "https://auth.atlassian.com/authorize",
         tokenURL: "https://auth.atlassian.com/oauth/token",
         clientID: bundleString("AtlassianClientID"),
-        clientSecret: nil,
+        clientSecret: bundleString("AtlassianClientSecret"),
         scopes: ["read:jira-work", "write:jira-work", "read:jira-user", "offline_access"],
         usePKCE: true
     )

@@ -17,6 +17,26 @@
         }
       }
     },
+    "%lld done, %lld failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld done, %2$lld failed"
+          }
+        }
+      }
+    },
+    "%lld of %lld selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld selected"
+          }
+        }
+      }
+    },
     "•" : {
       "shouldTranslate" : false
     },
@@ -71,6 +91,9 @@
 
     },
     "Advanced" : {
+
+    },
+    "All actions completed" : {
 
     },
     "Anthropic API Key" : {
@@ -377,6 +400,12 @@
         }
       }
     },
+    "Execute" : {
+
+    },
+    "Executing..." : {
+
+    },
     "Find your API token at track.toggl.com/profile (bottom of the page)." : {
 
     },
@@ -548,6 +577,9 @@
     "Open" : {
 
     },
+    "Open Flow" : {
+
+    },
     "Open Input Monitoring Settings" : {
 
     },
@@ -617,6 +649,12 @@
         }
       }
     },
+    "Planning actions..." : {
+
+    },
+    "Planning failed" : {
+
+    },
     "Play audio" : {
       "comment" : "Help text for play button in history view.",
       "localizations" : {
@@ -651,6 +689,9 @@
     "Prompts" : {
 
     },
+    "Proposed Actions" : {
+
+    },
     "Quit" : {
 
     },
@@ -683,6 +724,9 @@
           }
         }
       }
+    },
+    "Retry this action" : {
+
     },
     "Save" : {
 

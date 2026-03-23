@@ -26,6 +26,7 @@ struct AppFeature {
 		var transcription: TranscriptionFeature.State = .init()
 		var settings: SettingsFeature.State = .init()
 		var history: HistoryFeature.State = .init()
+		var castellum: CastellumFeature.State = .init()
 		var activeTab: ActiveTab = .home
 		@Shared(.hexSettings) var hexSettings: HexSettings
 		@Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
@@ -41,6 +42,7 @@ struct AppFeature {
     case transcription(TranscriptionFeature.Action)
     case settings(SettingsFeature.Action)
     case history(HistoryFeature.Action)
+    case castellum(CastellumFeature.Action)
     case setActiveTab(ActiveTab)
     case task
     case pasteLastTranscript
@@ -74,6 +76,10 @@ struct AppFeature {
 
     Scope(state: \.history, action: \.history) {
       HistoryFeature()
+    }
+
+    Scope(state: \.castellum, action: \.castellum) {
+      CastellumFeature()
     }
 
     Reduce { state, action in
@@ -111,7 +117,14 @@ struct AppFeature {
           await send(.settings(.set(\.shouldFlashModelSection, false)))
         }
 
+      case let .transcription(.analysisReceived(analysis, captureID)):
+        // Forward analysis to Castellum for action planning
+        return .send(.castellum(.planExecution(analysis, captureID: captureID)))
+
       case .transcription:
+        return .none
+
+      case .castellum:
         return .none
 
       case .settings:

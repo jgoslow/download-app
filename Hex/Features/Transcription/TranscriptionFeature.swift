@@ -56,7 +56,7 @@ struct TranscriptionFeature {
     // Transcription result flow
     case transcriptionResult(String, URL)
     case transcriptionError(Error, URL?)
-    case analysisReceived(SessionAnalysis)
+    case analysisReceived(SessionAnalysis, captureID: String)
     case setFlow(String, promptTitles: [String])
 
     // Model availability
@@ -130,7 +130,7 @@ struct TranscriptionFeature {
       case let .transcriptionError(error, audioURL):
         return handleTranscriptionError(&state, error: error, audioURL: audioURL)
 
-      case let .analysisReceived(analysis):
+      case let .analysisReceived(analysis, _):
         state.lastAnalysis = analysis
         return .none
 
@@ -521,7 +521,7 @@ private extension TranscriptionFeature {
 
       let sessionContext = await router.fetchContext(flowID)
       if let analysis = await aiClient.analyze(session, basinSettings.anthropicAPIKey, promptTitlesForAI, sessionContext) {
-        await send(.analysisReceived(analysis))
+        await send(.analysisReceived(analysis, captureID: session.id))
         await router.postAnalysis(session.id, analysis)
 
         // Save analysis to SwiftData
