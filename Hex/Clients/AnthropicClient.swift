@@ -19,7 +19,7 @@ struct AnthropicClient {
     /// Analyze a completed session transcript. Returns nil if no API key is configured.
     /// promptTitles: ordered list of prompt titles for the download type, used to determine which were addressed.
     /// sessionContext: summaries of recent sessions of the same type, for continuity.
-    var analyze: @Sendable (DownloadSession, String, [String], [SessionContext]) async -> SessionAnalysis? = { _, _, _, _ in nil }
+    var analyze: @Sendable (Session, String, [String], [SessionContext]) async -> SessionAnalysis? = { _, _, _, _ in nil }
 }
 
 extension AnthropicClient: DependencyKey {
@@ -92,7 +92,7 @@ extension DependencyValues {
 
 private let systemPrompt = """
 You are a personal assistant for Jonas, a developer and founder of Lyra Designs. \
-You analyze voice transcripts from his Download app — a personal voice capture tool — \
+You analyze voice transcripts from his Basin app — a personal voice capture tool — \
 and return structured JSON.
 
 Return ONLY valid JSON with exactly these fields, no markdown, no explanation:
@@ -116,13 +116,13 @@ in their transcript. Only include prompts that were clearly covered. If no promp
 are provided, return an empty array.
 """
 
-private func buildPrompt(for session: DownloadSession, promptTitles: [String], context: [SessionContext]) -> String {
+private func buildPrompt(for session: Session, promptTitles: [String], context: [SessionContext]) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "EEEE, MMMM d 'at' h:mm a"
     let timeStr = formatter.string(from: session.timestamp)
 
     var prompt = """
-    Download type: \(session.downloadTypeID)
+    Flow: \(session.flowID)
     Recorded: \(timeStr)
     Duration: \(Int(session.durationSeconds))s
     """

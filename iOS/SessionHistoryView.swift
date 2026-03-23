@@ -1,6 +1,6 @@
 //
 //  SessionHistoryView.swift
-//  Download (iOS)
+//  Basin (iOS)
 //
 //  List of past sessions. Tap to review. Re-send button for failed deliveries.
 //
@@ -31,7 +31,7 @@
 //     var body: some View {
 //         VStack(alignment: .leading, spacing: 4) {
 //             HStack {
-//                 Text(session.downloadTypeID.capitalized)
+//                 Text(session.flowID.capitalized)
 //                     .font(.headline)
 //                 Spacer()
 //                 Text(session.timestamp, style: .time)

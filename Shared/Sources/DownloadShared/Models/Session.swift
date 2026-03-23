@@ -9,7 +9,7 @@ public struct Session: Codable, Sendable, Identifiable {
     public let timestamp: Date
     public let device: String
     public let platform: Platform
-    public let downloadTypeID: String
+    public let flowID: String
     public let rawText: String
     public let durationSeconds: Double
     public let wordCount: Int
@@ -52,7 +52,7 @@ public struct Session: Codable, Sendable, Identifiable {
         timestamp: Date = Date(),
         device: String,
         platform: Platform = .macos,
-        downloadTypeID: String = "open",
+        flowID: String = "open",
         rawText: String,
         durationSeconds: Double,
         wordCount: Int,
@@ -64,7 +64,7 @@ public struct Session: Codable, Sendable, Identifiable {
         self.timestamp = timestamp
         self.device = device
         self.platform = platform
-        self.downloadTypeID = downloadTypeID
+        self.flowID = flowID
         self.rawText = rawText
         self.durationSeconds = durationSeconds
         self.wordCount = wordCount
@@ -78,7 +78,7 @@ public struct Session: Codable, Sendable, Identifiable {
         case timestamp
         case device
         case platform
-        case downloadTypeID = "download_type_id"
+        case flowID = "flow_id"
         case rawText = "raw_text"
         case durationSeconds = "duration_seconds"
         case wordCount = "word_count"

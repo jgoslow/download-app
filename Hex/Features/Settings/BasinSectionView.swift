@@ -1,15 +1,15 @@
 //
-//  DownloadSectionView.swift
+//  BasinSectionView.swift
 //  Download
 //
-//  Settings section for Download-specific behavior: server endpoint, auth, routing mode.
+//  Settings section for Basin-specific behavior: server endpoint, auth, routing mode.
 //
 
 import ComposableArchitecture
 import HexCore
 import SwiftUI
 
-struct DownloadSectionView: View {
+struct BasinSectionView: View {
     @Bindable var store: StoreOf<SettingsFeature>
 
     var body: some View {
@@ -20,7 +20,7 @@ struct DownloadSectionView: View {
                     Text("Server URL")
                     TextField(
                         "http://localhost:3000",
-                        text: $store.hexSettings.downloadSettings.serverURL
+                        text: $store.hexSettings.basinSettings.serverURL
                     )
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
@@ -37,7 +37,7 @@ struct DownloadSectionView: View {
                     Text("Auth Token")
                     SecureField(
                         "Bearer token",
-                        text: $store.hexSettings.downloadSettings.authToken
+                        text: $store.hexSettings.basinSettings.authToken
                     )
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
@@ -54,7 +54,7 @@ struct DownloadSectionView: View {
                     Text("Anthropic API Key")
                     SecureField(
                         "sk-ant-...",
-                        text: $store.hexSettings.downloadSettings.anthropicAPIKey
+                        text: $store.hexSettings.basinSettings.anthropicAPIKey
                     )
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
@@ -69,7 +69,7 @@ struct DownloadSectionView: View {
             Label {
                 Toggle(
                     "Daily download reminders",
-                    isOn: $store.hexSettings.downloadSettings.notificationsEnabled
+                    isOn: $store.hexSettings.basinSettings.notificationsEnabled
                 )
                 Text("Morning Kickoff (7:30), Mid-Day Touchstone (12:00), Day's End (5:30) — weekdays only.")
                     .settingsCaption()
@@ -81,7 +81,7 @@ struct DownloadSectionView: View {
             Label {
                 Toggle(
                     "Paste transcript to cursor",
-                    isOn: $store.hexSettings.downloadSettings.pasteAfterSession
+                    isOn: $store.hexSettings.basinSettings.pasteAfterSession
                 )
                 Text("Enable to keep Hex's original paste-to-cursor behavior alongside session routing.")
                     .settingsCaption()
@@ -110,7 +110,7 @@ struct DownloadSectionView: View {
             }
 
         } header: {
-            Text("Download")
+            Text("Basin")
         }
     }
 

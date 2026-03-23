@@ -29,7 +29,7 @@ struct TranscriptionFeature {
     var sourceAppBundleID: String?
     var sourceAppName: String?
     var lastAnalysis: SessionAnalysis? = nil
-    var selectedDownloadTypeID: String = "open"
+    var selectedFlowID: String = "open"
     var promptTitles: [String] = []
     @Shared(.hexSettings) var hexSettings: HexSettings
     @Shared(.isRemappingScratchpadFocused) var isRemappingScratchpadFocused: Bool = false
@@ -57,7 +57,7 @@ struct TranscriptionFeature {
     case transcriptionResult(String, URL)
     case transcriptionError(Error, URL?)
     case analysisReceived(SessionAnalysis)
-    case setDownloadType(String, promptTitles: [String])
+    case setFlow(String, promptTitles: [String])
 
     // Model availability
     case modelMissing
@@ -133,8 +133,8 @@ struct TranscriptionFeature {
         state.lastAnalysis = analysis
         return .none
 
-      case let .setDownloadType(typeID, promptTitles):
-        state.selectedDownloadTypeID = typeID
+      case let .setFlow(typeID, promptTitles):
+        state.selectedFlowID = typeID
         state.promptTitles = promptTitles
         return .none
 
@@ -458,8 +458,8 @@ private extension TranscriptionFeature {
     let sourceAppBundleID = state.sourceAppBundleID
     let sourceAppName = state.sourceAppName
     let transcriptionHistory = state.$transcriptionHistory
-    let downloadSettings = state.hexSettings.downloadSettings
-    let downloadTypeID = state.selectedDownloadTypeID
+    let basinSettings = state.hexSettings.basinSettings
+    let flowID = state.selectedFlowID
     let promptTitlesForAI = state.promptTitles
     let selectedModel = state.hexSettings.selectedModel
     let outputLanguage = state.hexSettings.outputLanguage
@@ -475,7 +475,7 @@ private extension TranscriptionFeature {
           sourceAppName: sourceAppName,
           audioURL: audioURL,
           transcriptionHistory: transcriptionHistory,
-          shouldPaste: downloadSettings.pasteAfterSession
+          shouldPaste: basinSettings.pasteAfterSession
         )
       } catch {
         await send(.transcriptionError(error, audioURL))
@@ -483,14 +483,14 @@ private extension TranscriptionFeature {
       }
 
       // Route session to configured Download destinations
-      let session = DownloadSession(
+      let session = Session(
         device: Host.current().localizedName ?? "mac",
         platform: .macos,
-        downloadTypeID: downloadTypeID,
+        flowID: flowID,
         rawText: modifiedResult,
         durationSeconds: duration,
         wordCount: modifiedResult.split(separator: " ").count,
-        metadata: DownloadSession.Metadata(
+        metadata: Session.Metadata(
           appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
           whisperModel: selectedModel,
           language: outputLanguage
@@ -499,8 +499,8 @@ private extension TranscriptionFeature {
       let status = await router.route(session)
       routerLogger.info("Session routed: \(String(describing: status))")
 
-      let sessionContext = await router.fetchContext(downloadTypeID)
-      if let analysis = await aiClient.analyze(session, downloadSettings.anthropicAPIKey, promptTitlesForAI, sessionContext) {
+      let sessionContext = await router.fetchContext(flowID)
+      if let analysis = await aiClient.analyze(session, basinSettings.anthropicAPIKey, promptTitlesForAI, sessionContext) {
         await send(.analysisReceived(analysis))
         await router.postAnalysis(session.id, analysis)
       }

@@ -53,8 +53,8 @@ extension NotificationClient: DependencyKey {
                     content.title = schedule.title
                     content.body = schedule.body
                     content.sound = .default
-                    content.userInfo = ["download_type_id": schedule.id]
-                    content.categoryIdentifier = "download-reminder"
+                    content.userInfo = ["flow_id": schedule.id]
+                    content.categoryIdentifier = "basin-reminder"
 
                     // Weekdays only (Mon-Fri)
                     for weekday in 2...6 {

@@ -1,6 +1,6 @@
 import Foundation
 
-/// The notification and reminder schedule for a DownloadType.
+/// The notification and reminder schedule for a Flow.
 ///
 /// Drives the watchOS notification system and the NotificationScheduler service.
 /// All fields are optional/nullable to support the "Open" type which has no schedule.

@@ -1,6 +1,6 @@
 //
 //  RecordingView.swift
-//  Download (iOS)
+//  Basin (iOS)
 //
 //  Recording screen: shows ritual text + guided prompts while recording.
 //  Tap to start/stop. Shows transcript and routing status on completion.
@@ -14,7 +14,7 @@
 // import SwiftUI
 //
 // struct RecordingView: View {
-//     let downloadType: DownloadType
+//     let downloadType: Flow
 //     @State private var isRecording = false
 //     @State private var transcript: String = ""
 //
@@ -24,7 +24,7 @@
 //             if !isRecording && transcript.isEmpty {
 //                 Text(downloadType.name)
 //                     .font(.largeTitle.bold())
-//                 // Ritual / guided prompts would appear here from DownloadType definition
+//                 // Ritual / guided prompts would appear here from Flow definition
 //             }
 //
 //             Spacer()

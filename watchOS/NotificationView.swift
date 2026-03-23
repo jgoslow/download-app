@@ -1,12 +1,12 @@
 //
 //  NotificationView.swift
-//  Download (watchOS)
+//  Basin (watchOS)
 //
 //  Shown when a scheduled reminder fires on Apple Watch.
-//  Displays the DownloadType name and notification body, with 5 action buttons:
+//  Displays the Flow name and notification body, with 5 action buttons:
 //  Start / +5m / +10m / +1h / Skip
 //
-//  Tapping "Start" opens the iPhone app to the selected DownloadType via deep link.
+//  Tapping "Start" opens the iPhone app to the selected Flow via deep link.
 //  Snooze buttons reschedule the notification after the selected delay.
 //  Skip dismisses and logs the session as skipped.
 //
@@ -37,7 +37,7 @@
 // // MARK: - Notification category registration
 // //
 // // Call this on app launch to register the action buttons.
-// // The "download-reminder" category must match the category ID set by NotificationScheduler.
+// // The "basin-reminder" category must match the category ID set by NotificationScheduler.
 // //
 // // func registerNotificationCategory() {
 // //     let start = UNNotificationAction(identifier: "start", title: "Start", options: .foreground)
@@ -47,7 +47,7 @@
 // //     let skip = UNNotificationAction(identifier: "skip", title: "Skip", options: .destructive)
 // //
 // //     let category = UNNotificationCategory(
-// //         identifier: "download-reminder",
+// //         identifier: "basin-reminder",
 // //         actions: [start, snooze5, snooze10, snooze60, skip],
 // //         intentIdentifiers: []
 // //     )

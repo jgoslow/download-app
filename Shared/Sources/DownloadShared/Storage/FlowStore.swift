@@ -3,7 +3,7 @@ import Logging
 
 private let logger = Logger(label: "com.download.type-store")
 
-/// Loads DownloadType definitions from the bundled `download-types.json` file.
+/// Loads Flow definitions from the bundled `download-types.json` file.
 ///
 /// The JSON file is generated from `context/download-types/*.md` in the jonas-pathways repo
 /// via an export script. No app update needed to change or add session types — re-export
@@ -11,20 +11,20 @@ private let logger = Logger(label: "com.download.type-store")
 ///
 /// Fallback: if the file is missing or unreadable, returns `[.openDefault]` so the app
 /// always has at least one usable type.
-public struct DownloadTypeStore: Sendable {
-    public var loadAll: @Sendable () async -> [DownloadType]
+public struct FlowStore: Sendable {
+    public var loadAll: @Sendable () async -> [Flow]
 
-    public init(loadAll: @escaping @Sendable () async -> [DownloadType]) {
+    public init(loadAll: @escaping @Sendable () async -> [Flow]) {
         self.loadAll = loadAll
     }
 }
 
-extension DownloadTypeStore {
-    public static func live(bundle: Bundle = .main) -> DownloadTypeStore {
+extension FlowStore {
+    public static func live(bundle: Bundle = .main) -> FlowStore {
         .init(loadAll: {
             // Look for the JSON file in Application Support first (user-updated copy),
             // then fall back to the bundled copy.
-            if let userFile = userDownloadTypesURL(),
+            if let userFile = userFlowsURL(),
                let types = try? loadFromURL(userFile), !types.isEmpty {
                 logger.debug("Loaded \(types.count) download types from Application Support")
                 return ensureOpenPresent(types)
@@ -39,13 +39,13 @@ extension DownloadTypeStore {
         })
     }
 
-    private static func loadFromURL(_ url: URL) throws -> [DownloadType] {
+    private static func loadFromURL(_ url: URL) throws -> [Flow] {
         let data = try Data(contentsOf: url)
         let decoder = JSONDecoder()
-        return try decoder.decode([DownloadType].self, from: data)
+        return try decoder.decode([Flow].self, from: data)
     }
 
-    private static func userDownloadTypesURL() -> URL? {
+    private static func userFlowsURL() -> URL? {
         guard let appSupport = try? FileManager.default.url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,
@@ -56,8 +56,8 @@ extension DownloadTypeStore {
     }
 
     /// Guarantee "open" is always the first entry, even if the JSON omits it.
-    private static func ensureOpenPresent(_ types: [DownloadType]) -> [DownloadType] {
-        if types.contains(where: { $0.id == DownloadType.openID }) { return types }
+    private static func ensureOpenPresent(_ types: [Flow]) -> [Flow] {
+        if types.contains(where: { $0.id == Flow.openID }) { return types }
         return [.openDefault] + types
     }
 }

@@ -244,13 +244,13 @@ struct AppFeature {
   private func syncNotificationSchedule() -> Effect<Action> {
     .run { _ in
       @Shared(.hexSettings) var hexSettings: HexSettings
-      if hexSettings.downloadSettings.notificationsEnabled {
+      if hexSettings.basinSettings.notificationsEnabled {
         let granted = await notifications.requestPermission()
         if granted {
           await notifications.scheduleDaily()
         } else {
           // Permission denied — turn off the toggle
-          $hexSettings.withLock { $0.downloadSettings.notificationsEnabled = false }
+          $hexSettings.withLock { $0.basinSettings.notificationsEnabled = false }
         }
       } else {
         await notifications.cancelAll()
@@ -285,7 +285,7 @@ struct AppView: View {
         Button {
           store.send(.setActiveTab(.home))
         } label: {
-          Label("Download", systemImage: "arrow.down.circle")
+          Label("Basin", systemImage: "drop.circle")
         }
         .buttonStyle(.plain)
         .tag(AppFeature.ActiveTab.home)
@@ -328,7 +328,7 @@ struct AppView: View {
       switch store.state.activeTab {
       case .home:
         HomeView(store: store)
-          .navigationTitle("Download")
+          .navigationTitle("Basin")
       case .settings:
         SettingsView(
           store: store.scope(state: \.settings, action: \.settings),

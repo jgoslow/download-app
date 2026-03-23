@@ -1,8 +1,8 @@
 //
 //  HomeView.swift
-//  Download (iOS)
+//  Basin (iOS)
 //
-//  Home screen: list of DownloadTypes with schedule context.
+//  Home screen: list of Flows with schedule context.
 //  Tap a type to enter the ritual screen and begin recording.
 //
 //  STATUS: Stub — iOS target not yet added to Xcode project.
@@ -14,22 +14,22 @@
 // import SwiftUI
 //
 // struct HomeView: View {
-//     let types: [DownloadType]
+//     let types: [Flow]
 //
 //     var body: some View {
 //         NavigationStack {
 //             List(types) { type in
 //                 NavigationLink(destination: RecordingView(downloadType: type)) {
-//                     DownloadTypeRow(type: type)
+//                     FlowRow(type: type)
 //                 }
 //             }
-//             .navigationTitle("Download")
+//             .navigationTitle("Basin")
 //         }
 //     }
 // }
 //
-// struct DownloadTypeRow: View {
-//     let type: DownloadType
+// struct FlowRow: View {
+//     let type: Flow
 //
 //     var body: some View {
 //         HStack {

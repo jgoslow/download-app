@@ -51,7 +51,7 @@ public enum RoutingStatus: Sendable, Equatable {
 @DependencyClient
 struct DestinationRouterClient {
     /// Route a session to all configured destinations and return the result.
-    var route: @Sendable (DownloadSession) async -> RoutingStatus = { _ in .savedOnly }
+    var route: @Sendable (Session) async -> RoutingStatus = { _ in .savedOnly }
     /// Post analysis back to the server for a given session ID.
     var postAnalysis: @Sendable (String, SessionAnalysis) async -> Void = { _, _ in }
     /// Fetch pre-session context (recent session summaries) for a download type.
@@ -62,7 +62,7 @@ extension DestinationRouterClient: DependencyKey {
     static var liveValue: Self {
         .init(route: { session in
             @Shared(.hexSettings) var hexSettings: HexSettings
-            let config = hexSettings.downloadSettings
+            let config = hexSettings.basinSettings
 
             // 1. Save locally — always
             do {
@@ -107,7 +107,7 @@ extension DestinationRouterClient: DependencyKey {
             }
         }, postAnalysis: { sessionID, analysis in
             @Shared(.hexSettings) var hexSettings: HexSettings
-            let config = hexSettings.downloadSettings
+            let config = hexSettings.basinSettings
             guard !config.serverURL.isEmpty,
                   let serverURL = URL(string: config.serverURL) else { return }
 
@@ -132,7 +132,7 @@ extension DestinationRouterClient: DependencyKey {
             }
         }, fetchContext: { typeID in
             @Shared(.hexSettings) var hexSettings: HexSettings
-            let config = hexSettings.downloadSettings
+            let config = hexSettings.basinSettings
             guard !config.serverURL.isEmpty,
                   let serverURL = URL(string: config.serverURL) else { return [] }
 
@@ -170,7 +170,7 @@ extension DependencyValues {
 
 // MARK: - Local storage
 
-private func saveSessionLocally(_ session: DownloadSession) async throws {
+private func saveSessionLocally(_ session: Session) async throws {
     let dir = try sessionsDirectory()
     let fileURL = dir.appendingPathComponent("\(session.id).json")
     let encoder = JSONEncoder()

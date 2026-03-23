@@ -26,7 +26,7 @@ public struct SessionAnalysis: Codable, Sendable, Equatable {
         case notes
         case slack
         case email
-        case cns  // Full Pathways system
+        case castellum  // Full Pathways system
     }
 
     public enum Integration: String, Codable, Sendable, CaseIterable {

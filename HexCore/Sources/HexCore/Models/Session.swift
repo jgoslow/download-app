@@ -6,12 +6,12 @@ import Foundation
 /// can use it without requiring the Shared package to be linked first.
 /// When iOS/watchOS targets are added, the Shared package's Session becomes authoritative
 /// and this type can be removed.
-public struct DownloadSession: Codable, Sendable {
+public struct Session: Codable, Sendable {
     public let id: String
     public let timestamp: Date
     public let device: String
     public let platform: Platform
-    public let downloadTypeID: String
+    public let flowID: String
     public let rawText: String
     public let durationSeconds: Double
     public let wordCount: Int
@@ -48,7 +48,7 @@ public struct DownloadSession: Codable, Sendable {
         timestamp: Date = Date(),
         device: String,
         platform: Platform = .macos,
-        downloadTypeID: String = "open",
+        flowID: String = "open",
         rawText: String,
         durationSeconds: Double,
         wordCount: Int,
@@ -60,7 +60,7 @@ public struct DownloadSession: Codable, Sendable {
         self.timestamp = timestamp
         self.device = device
         self.platform = platform
-        self.downloadTypeID = downloadTypeID
+        self.flowID = flowID
         self.rawText = rawText
         self.durationSeconds = durationSeconds
         self.wordCount = wordCount
@@ -74,7 +74,7 @@ public struct DownloadSession: Codable, Sendable {
         case timestamp
         case device
         case platform
-        case downloadTypeID = "download_type_id"
+        case flowID = "flow_id"
         case rawText = "raw_text"
         case durationSeconds = "duration_seconds"
         case wordCount = "word_count"

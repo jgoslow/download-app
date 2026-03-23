@@ -5,7 +5,7 @@ import Foundation
 /// Loaded from `download-types.json` (generated from `context/download-types/*.md` in the
 /// jonas-pathways repo). The app bundles the JSON file and re-reads it on launch so changes
 /// take effect without an app update.
-public struct DownloadType: Codable, Sendable, Identifiable, Equatable {
+public struct Flow: Codable, Sendable, Identifiable, Equatable {
     public let id: String
     public let name: String
     public let cadence: Cadence
@@ -38,9 +38,9 @@ public struct DownloadType: Codable, Sendable, Identifiable, Equatable {
     }
 }
 
-extension DownloadType {
+extension Flow {
     /// Fallback used when no types have been loaded from disk yet.
-    public static let openDefault = DownloadType(
+    public static let openDefault = Flow(
         id: openID,
         name: "Open",
         cadence: .onDemand,

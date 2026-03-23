@@ -47,7 +47,7 @@ public struct HexSettings: Codable, Equatable, Sendable {
 	public var wordRemovalsEnabled: Bool
 	public var wordRemovals: [WordRemoval]
 	public var wordRemappings: [WordRemapping]
-	public var downloadSettings: DownloadSettings
+	public var basinSettings: BasinSettings
 
 	private mutating func normalizeDoubleTapSettings() {
 		if !doubleTapLockEnabled {
@@ -80,7 +80,7 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		wordRemovalsEnabled: Bool = false,
 		wordRemovals: [WordRemoval] = HexSettings.defaultWordRemovals,
 		wordRemappings: [WordRemapping] = [],
-		downloadSettings: DownloadSettings = DownloadSettings()
+		basinSettings: BasinSettings = BasinSettings()
 	) {
 		self.soundEffectsEnabled = soundEffectsEnabled
 		self.soundEffectsVolume = soundEffectsVolume
@@ -106,7 +106,7 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		self.wordRemovalsEnabled = wordRemovalsEnabled
 		self.wordRemovals = wordRemovals
 		self.wordRemappings = wordRemappings
-		self.downloadSettings = downloadSettings
+		self.basinSettings = basinSettings
 		normalizeDoubleTapSettings()
 	}
 
@@ -155,7 +155,7 @@ private enum HexSettingKey: String, CodingKey, CaseIterable {
 	case wordRemovalsEnabled
 	case wordRemovals
 	case wordRemappings
-	case downloadSettings
+	case basinSettings = "downloadSettings"
 }
 
 private struct SettingsField<Value: Codable & Sendable> {
@@ -290,9 +290,9 @@ private enum HexSettingsSchema {
 			default: defaults.wordRemappings
 		).eraseToAny(),
 		SettingsField(
-			.downloadSettings,
-			keyPath: \.downloadSettings,
-			default: defaults.downloadSettings
+			.basinSettings,
+			keyPath: \.basinSettings,
+			default: defaults.basinSettings
 		).eraseToAny()
 	]
 }

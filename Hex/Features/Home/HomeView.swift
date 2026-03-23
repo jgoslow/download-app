@@ -1,6 +1,6 @@
 //
 //  HomeView.swift
-//  Download (macOS)
+//  Basin (macOS)
 //
 //  The app's home screen. One big button. Click to record, click to stop.
 //  The hotkey still works alongside this — both paths hit the same TCA actions.
@@ -22,19 +22,19 @@ struct HomeView: View {
     var isModelReady: Bool { store.modelBootstrapState.isModelReady }
     var lastAnalysis: SessionAnalysis? { store.transcription.lastAnalysis }
     var history: [Transcript] { store.transcription.transcriptionHistory.history }
-    fileprivate var selectedType: DownloadTypeInfo {
-        Self.downloadTypes.first { $0.id == store.transcription.selectedDownloadTypeID }
-            ?? Self.downloadTypes[0]
+    fileprivate var selectedType: FlowInfo {
+        Self.flows.first { $0.id == store.transcription.selectedFlowID }
+            ?? Self.flows[0]
     }
 
-    private static let downloadTypes: [DownloadTypeInfo] = [
-        DownloadTypeInfo(
+    private static let flows: [FlowInfo] = [
+        FlowInfo(
             id: "open",
             name: "Open",
             intro: "No structure. No prompts. Press record, speak, press stop.",
             prompts: []
         ),
-        DownloadTypeInfo(
+        FlowInfo(
             id: "morning-kickoff",
             name: "Morning Kickoff",
             intro: "Before the day gets its hooks in you. Start with how you're actually doing, then build your day.",
@@ -55,7 +55,7 @@ struct HomeView: View {
                            detail: "Any emails or Slack messages you want to draft while you're thinking about it?"),
             ]
         ),
-        DownloadTypeInfo(
+        FlowInfo(
             id: "mid-day-touchstone",
             name: "Mid-Day Touchstone",
             intro: "Meetings are done. Adjust the day's trajectory based on what's actually happened.",
@@ -72,7 +72,7 @@ struct HomeView: View {
                            detail: "Need to check in about tonight? Dinner, family, coordination? What time do you want to stop working?"),
             ]
         ),
-        DownloadTypeInfo(
+        FlowInfo(
             id: "days-end",
             name: "Day's End",
             intro: "Close the loop. What actually happened, what it felt like, what gets tracked.",
@@ -89,7 +89,7 @@ struct HomeView: View {
                            detail: "Anything the morning download should know about? Say it now and let it go."),
             ]
         ),
-        DownloadTypeInfo(
+        FlowInfo(
             id: "backlog-clean",
             name: "Backlog Clean",
             intro: "You're not doing the work right now. You're making sure the work is visible and assigned.",
@@ -106,7 +106,7 @@ struct HomeView: View {
                            detail: "Who owns PM review today — Diego or Josh? Any cards that need a sync call?"),
             ]
         ),
-        DownloadTypeInfo(
+        FlowInfo(
             id: "vision-alignment",
             name: "Vision Alignment",
             intro: "You don't have to have answers. You just have to be honest. Let's see what the quarter says.",
@@ -135,13 +135,13 @@ struct HomeView: View {
                 // Download type picker
                 if !isRecording && !isTranscribing {
                     Picker("Type", selection: Binding(
-                        get: { store.transcription.selectedDownloadTypeID },
+                        get: { store.transcription.selectedFlowID },
                         set: { newID in
-                        let type = Self.downloadTypes.first { $0.id == newID } ?? Self.downloadTypes[0]
-                        store.send(.transcription(.setDownloadType(newID, promptTitles: type.prompts.map(\.title))))
+                        let type = Self.flows.first { $0.id == newID } ?? Self.flows[0]
+                        store.send(.transcription(.setFlow(newID, promptTitles: type.prompts.map(\.title))))
                     }
                     )) {
-                        ForEach(Self.downloadTypes, id: \.id) { type in
+                        ForEach(Self.flows, id: \.id) { type in
                             Text(type.name).tag(type.id)
                         }
                     }
@@ -386,7 +386,7 @@ private struct PromptSidebar: View {
 
 // MARK: - Download Type Info
 
-fileprivate struct DownloadTypeInfo: Identifiable {
+fileprivate struct FlowInfo: Identifiable {
     let id: String
     let name: String
     let intro: String

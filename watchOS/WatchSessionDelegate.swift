@@ -1,10 +1,10 @@
 //
 //  WatchSessionDelegate.swift
-//  Download (watchOS)
+//  Basin (watchOS)
 //
 //  WatchConnectivity bridge between the iPhone app and the Watch.
 //  Responsibilities:
-//  - Receive DownloadType schedule from iPhone → write to shared container
+//  - Receive Flow schedule from iPhone → write to shared container
 //  - Forward "Start" taps from Watch to iPhone via WatchConnectivity message
 //  - Relay snooze/skip actions back to iPhone for logging
 //
