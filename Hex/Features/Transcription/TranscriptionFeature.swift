@@ -31,6 +31,8 @@ struct TranscriptionFeature {
     var lastAnalysis: SessionAnalysis? = nil
     var selectedFlowID: String = "open"
     var promptTitles: [String] = []
+    var livePromptsAddressed: Set<Int> = []
+    var partialTranscript: String? = nil
     @Shared(.hexSettings) var hexSettings: HexSettings
     @Shared(.isRemappingScratchpadFocused) var isRemappingScratchpadFocused: Bool = false
     @Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
@@ -58,6 +60,7 @@ struct TranscriptionFeature {
     case transcriptionError(Error, URL?)
     case analysisReceived(SessionAnalysis, captureID: String)
     case submitTextCapture(String)
+    case periodicParseUpdate(partialText: String, promptsAddressed: [Int])
     case setFlow(String, promptTitles: [String])
 
     // Model availability
@@ -195,9 +198,16 @@ struct TranscriptionFeature {
         }
 
 
+      case let .periodicParseUpdate(partialText, promptsAddressed):
+        state.partialTranscript = partialText
+        state.livePromptsAddressed = Set(promptsAddressed)
+        return .none
+
       case let .setFlow(typeID, promptTitles):
         state.selectedFlowID = typeID
         state.promptTitles = promptTitles
+        state.livePromptsAddressed = []
+        state.partialTranscript = nil
         return .none
 
       case .modelMissing:
@@ -388,6 +398,8 @@ private extension TranscriptionFeature {
 
   func handleStopRecording(_ state: inout State) -> Effect<Action> {
     state.isRecording = false
+    state.livePromptsAddressed = []
+    state.partialTranscript = nil
     
     let stopTime = now
     let startTime = state.recordingStartTime

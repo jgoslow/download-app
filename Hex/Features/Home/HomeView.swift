@@ -251,7 +251,10 @@ struct HomeView: View {
                 PromptSidebar(
                     prompts: flow.prompts,
                     selectedID: $selectedPromptID,
-                    addressedIDs: Set(lastAnalysis?.promptsAddressed ?? [])
+                    addressedIDs: isRecording
+                        ? store.transcription.livePromptsAddressed
+                        : Set(lastAnalysis?.promptsAddressed ?? []),
+                    isLive: isRecording
                 )
                 .frame(width: 200)
             }
@@ -324,17 +327,29 @@ private struct PromptSidebar: View {
     let prompts: [FlowPrompt]
     @Binding var selectedID: Int?
     let addressedIDs: Set<Int>
+    var isLive: Bool = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Prompts")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .textCase(.uppercase)
-                    .padding(.horizontal, 12)
-                    .padding(.top, 12)
-                    .padding(.bottom, 4)
+                HStack {
+                    Text("Prompts")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .textCase(.uppercase)
+
+                    if isLive && !addressedIDs.isEmpty {
+                        Text("LIVE")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(.red))
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
 
                 ForEach(prompts) { prompt in
                     Button {
