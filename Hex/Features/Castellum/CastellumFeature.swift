@@ -38,12 +38,25 @@ struct ToolExecutionClient {
 }
 
 extension CastellumPlannerClient: DependencyKey {
-    static let liveValue = CastellumPlannerClient()
+    static let liveValue = CastellumPlannerClient.live()
     static let testValue = CastellumPlannerClient()
 }
 
 extension ToolExecutionClient: DependencyKey {
-    static let liveValue = ToolExecutionClient()
+    static let liveValue = ToolExecutionClient(
+        execute: { action, tool in
+            switch action.toolID {
+            case "jira":
+                return await JiraActionClient.execute(action: action, tool: tool)
+            case "slack":
+                return await SlackActionClient.execute(action: action, tool: tool)
+            case "toggl":
+                return await TogglActionClient.execute(action: action, tool: tool)
+            default:
+                return ActionResult(actionID: action.id, success: false, error: "Tool '\(action.toolID)' not yet implemented")
+            }
+        }
+    )
     static let testValue = ToolExecutionClient()
 }
 
