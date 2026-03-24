@@ -57,6 +57,7 @@ struct TranscriptionFeature {
     case transcriptionResult(String, URL)
     case transcriptionError(Error, URL?)
     case analysisReceived(SessionAnalysis, captureID: String)
+    case submitTextCapture(String)
     case setFlow(String, promptTitles: [String])
 
     // Model availability
@@ -133,6 +134,66 @@ struct TranscriptionFeature {
       case let .analysisReceived(analysis, _):
         state.lastAnalysis = analysis
         return .none
+
+      case let .submitTextCapture(text):
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return .none }
+
+        let flowID = state.selectedFlowID
+        let promptTitles = state.promptTitles
+
+        return .run { [basinDB = self.basinDB, router = self.destinationRouter, aiClient = self.anthropic] send in
+          @Shared(.hexSettings) var hexSettings: HexSettings
+          let basinSettings = hexSettings.basinSettings
+
+          let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+          let selectedModel = hexSettings.selectedModel
+
+          let session = Session(
+            device: Host.current().localizedName ?? "mac",
+            platform: .macos,
+            flowID: flowID,
+            rawText: trimmed,
+            durationSeconds: 0,
+            wordCount: trimmed.split(separator: " ").count,
+            metadata: .init(appVersion: appVersion, whisperModel: "text-input", language: nil)
+          )
+
+          // Save to SwiftData
+          let capture = CaptureRecord(
+            id: session.id,
+            device: Host.current().localizedName ?? "mac",
+            flowID: flowID,
+            rawText: trimmed,
+            durationSeconds: 0,
+            wordCount: trimmed.split(separator: " ").count,
+            appVersion: appVersion,
+            whisperModel: "text-input"
+          )
+          try? await basinDB.saveCapture(capture)
+
+          // Route to server if configured
+          _ = await router.route(session)
+
+          // AI analysis
+          let sessionContext = await router.fetchContext(flowID)
+          if let analysis = await aiClient.analyze(session, basinSettings.anthropicAPIKey, promptTitles, sessionContext) {
+            await send(.analysisReceived(analysis, captureID: session.id))
+            await router.postAnalysis(session.id, analysis)
+
+            let captureAnalysis = CaptureAnalysis(
+              summary: analysis.summary,
+              moodTag: analysis.moodTag,
+              tasks: analysis.tasks,
+              routing: analysis.routing.map(\.rawValue),
+              delegations: analysis.delegations,
+              integrations: analysis.integrations.map(\.rawValue),
+              promptsAddressed: analysis.promptsAddressed
+            )
+            try? await basinDB.saveAnalysis(captureAnalysis, capture)
+          }
+        }
+
 
       case let .setFlow(typeID, promptTitles):
         state.selectedFlowID = typeID

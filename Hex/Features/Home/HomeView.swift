@@ -20,6 +20,8 @@ struct HomeView: View {
     private var flows: [FlowDefinition]
     @State private var showHistory = false
     @State private var selectedPromptID: Int? = nil
+    @State private var showTextInput = false
+    @State private var textInputContent = ""
 
     var isRecording: Bool { store.transcription.isRecording }
     var isTranscribing: Bool { store.transcription.isTranscribing }
@@ -97,12 +99,58 @@ struct HomeView: View {
                     .animation(.easeInOut, value: isRecording)
                     .animation(.easeInOut, value: isTranscribing)
 
-                // Shortcut hint
+                // Text input option
                 if !isRecording && !isTranscribing {
-                    Text("or use the keyboard shortcut")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
+                    if showTextInput {
+                        VStack(spacing: 8) {
+                            TextField("Type your flow...", text: $textInputContent, axis: .vertical)
+                                .textFieldStyle(.plain)
+                                .font(.body)
+                                .lineLimit(1...10)
+                                .padding(10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color(.textBackgroundColor))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
+                                        )
+                                )
+                                .frame(maxWidth: 360)
+
+                            HStack(spacing: 12) {
+                                Button("Cancel") {
+                                    withAnimation {
+                                        showTextInput = false
+                                        textInputContent = ""
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.secondary)
+
+                                Button("Submit") {
+                                    submitTextFlow()
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.small)
+                                .disabled(textInputContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            }
+                        }
                         .padding(.top, 4)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    } else {
+                        Button {
+                            withAnimation {
+                                showTextInput = true
+                            }
+                        } label: {
+                            Text("or type your flow")
+                                .font(.caption)
+                                .foregroundStyle(.blue)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, 4)
+                    }
                 }
 
                 // Prompt detail (when a prompt is selected from sidebar)
@@ -238,7 +286,27 @@ struct HomeView: View {
         if isTranscribing { return "Transcribing…" }
         if isRecording { return "Recording — click to stop" }
         if !isModelReady { return "Loading model…" }
-        return "Click to record"
+        return "Click to record (\(hotkeyDisplayString))"
+    }
+
+    private var hotkeyDisplayString: String {
+        @Shared(.hexSettings) var hexSettings: HexSettings
+        let hotkey = hexSettings.hotkey
+        let modSymbols = hotkey.modifiers.kinds.map(\.symbol).joined()
+        if let key = hotkey.key {
+            return modSymbols + key.toString
+        }
+        return modSymbols.isEmpty ? "set hotkey in settings" : modSymbols
+    }
+
+    private func submitTextFlow() {
+        let text = textInputContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        store.send(.transcription(.submitTextCapture(text)))
+        withAnimation {
+            showTextInput = false
+            textInputContent = ""
+        }
     }
 
     private func handleRecordButton() {

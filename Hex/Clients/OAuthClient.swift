@@ -23,6 +23,8 @@ struct OAuthProviderConfig {
     let clientSecret: String?
     let scopes: [String]
     let usePKCE: Bool
+    /// Slack requires HTTPS redirect URIs — use the Cloudflare passthrough page
+    let requiresHTTPSRedirect: Bool
 
     /// Read a string from Info.plist (populated from Secrets.xcconfig at build time)
     private static func bundleString(_ key: String) -> String {
@@ -35,7 +37,8 @@ struct OAuthProviderConfig {
         clientID: bundleString("GitHubClientID"),
         clientSecret: bundleString("GitHubClientSecret"),
         scopes: ["repo", "read:user"],
-        usePKCE: false
+        usePKCE: false,
+        requiresHTTPSRedirect: false
     )
 
     static let google = OAuthProviderConfig(
@@ -44,7 +47,8 @@ struct OAuthProviderConfig {
         clientID: bundleString("GoogleClientID"),
         clientSecret: nil,
         scopes: ["https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/gmail.send"],
-        usePKCE: true
+        usePKCE: true,
+        requiresHTTPSRedirect: false
     )
 
     static let atlassian = OAuthProviderConfig(
@@ -53,7 +57,8 @@ struct OAuthProviderConfig {
         clientID: bundleString("AtlassianClientID"),
         clientSecret: bundleString("AtlassianClientSecret"),
         scopes: ["read:jira-work", "write:jira-work", "read:jira-user", "offline_access"],
-        usePKCE: true
+        usePKCE: true,
+        requiresHTTPSRedirect: false
     )
 
     static let slack = OAuthProviderConfig(
@@ -62,7 +67,8 @@ struct OAuthProviderConfig {
         clientID: bundleString("SlackClientID"),
         clientSecret: bundleString("SlackClientSecret"),
         scopes: ["chat:write", "channels:read", "users:read"],
-        usePKCE: false
+        usePKCE: false,
+        requiresHTTPSRedirect: true
     )
 
     static func config(for provider: String) -> OAuthProviderConfig? {
@@ -110,6 +116,9 @@ actor OAuthClient {
     static let shared = OAuthClient()
 
     private let redirectURI = "basin://oauth/callback"
+    /// HTTPS redirect for providers that don't support custom schemes (e.g., Slack).
+    /// Cloudflare page at this URL passes query params through to basin://oauth/callback.
+    private let httpsRedirectURI = "https://getbasin.ai/oauth/callback"
     private var pendingFlows: [String: PendingFlow] = [:]
 
     struct PendingFlow {
@@ -158,10 +167,13 @@ actor OAuthClient {
         let state = UUID().uuidString
         let pkce = config.usePKCE ? PKCEChallenge.generate() : nil
 
+        // Slack requires HTTPS redirect — use the Cloudflare passthrough page
+        let effectiveRedirectURI = config.requiresHTTPSRedirect ? httpsRedirectURI : redirectURI
+
         var components = URLComponents(string: config.authorizationURL)!
         components.queryItems = [
             URLQueryItem(name: "client_id", value: config.clientID),
-            URLQueryItem(name: "redirect_uri", value: redirectURI),
+            URLQueryItem(name: "redirect_uri", value: effectiveRedirectURI),
             URLQueryItem(name: "state", value: state),
             URLQueryItem(name: "response_type", value: "code"),
             URLQueryItem(name: "scope", value: config.scopes.joined(separator: " ")),
@@ -246,10 +258,12 @@ actor OAuthClient {
             throw OAuthError.noConfig(provider)
         }
 
+        let effectiveRedirectURI = config.requiresHTTPSRedirect ? httpsRedirectURI : redirectURI
+
         var body: [String: String] = [
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": redirectURI,
+            "redirect_uri": effectiveRedirectURI,
             "client_id": config.clientID,
         ]
 

@@ -4,6 +4,7 @@ import ComposableArchitecture
 import Dependencies
 import HexCore
 import Inject
+import SwiftData
 import SwiftUI
 
 private let historyLogger = HexLog.history
@@ -14,7 +15,7 @@ extension Date {
 	func relativeFormatted() -> String {
 		let calendar = Calendar.current
 		let now = Date()
-		
+
 		if calendar.isDateInToday(self) {
 			return "Today"
 		} else if calendar.isDateInYesterday(self) {
@@ -32,7 +33,7 @@ extension Date {
 	}
 }
 
-// MARK: - Models
+// MARK: - Legacy Storage (kept for migration reads)
 
 extension SharedReaderKey
 	where Self == FileStorageKey<TranscriptionHistory>.Default
@@ -45,8 +46,6 @@ extension SharedReaderKey
 	}
 }
 
-// MARK: - Storage Migration
-
 extension URL {
 	static var transcriptionHistoryURL: URL {
 		get {
@@ -54,6 +53,8 @@ extension URL {
 		}
 	}
 }
+
+// MARK: - Audio Player
 
 class AudioPlayerController: NSObject, AVAudioPlayerDelegate {
 	private var player: AVAudioPlayer?
@@ -72,7 +73,6 @@ class AudioPlayerController: NSObject, AVAudioPlayerDelegate {
 		player = nil
 	}
 
-	// AVAudioPlayerDelegate method
 	func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
 		self.player = nil
 		Task { @MainActor in
@@ -87,8 +87,9 @@ class AudioPlayerController: NSObject, AVAudioPlayerDelegate {
 struct HistoryFeature {
 	@ObservableState
 	struct State: Equatable {
+		// Legacy — kept for backward compat during transition
 		@Shared(.transcriptionHistory) var transcriptionHistory: TranscriptionHistory
-		var playingTranscriptID: UUID?
+		var playingCaptureID: String?
 		var audioPlayer: AVAudioPlayer?
 		var audioPlayerController: AudioPlayerController?
 
@@ -96,65 +97,50 @@ struct HistoryFeature {
 			audioPlayerController?.stop()
 			audioPlayer = nil
 			audioPlayerController = nil
-			playingTranscriptID = nil
+			playingCaptureID = nil
 		}
 	}
 
 	enum Action {
-		case playTranscript(UUID)
+		case playCapture(String, audioPath: String?)
 		case stopPlayback
 		case copyToClipboard(String)
-		case deleteTranscript(UUID)
-		case deleteAllTranscripts
+		case deleteCapture(String)
+		case deleteAllCaptures
 		case confirmDeleteAll
 		case playbackFinished
 		case navigateToSettings
 	}
 
 	@Dependency(\.pasteboard) var pasteboard
-	@Dependency(\.transcriptPersistence) var transcriptPersistence
-
-	private func deleteAudioEffect(for transcripts: [Transcript]) -> Effect<Action> {
-		.run { [transcriptPersistence] _ in
-			for transcript in transcripts {
-				try? await transcriptPersistence.deleteAudio(transcript)
-			}
-		}
-	}
+	@Dependency(\.modelContext) var basinDB
 
 	var body: some ReducerOf<Self> {
 		Reduce { state, action in
 			switch action {
-			case let .playTranscript(id):
-				if state.playingTranscriptID == id {
-					// Stop playback if tapping the same transcript
+			case let .playCapture(id, audioPath):
+				if state.playingCaptureID == id {
 					state.stopAudioPlayback()
 					return .none
 				}
 
-				// Stop any existing playback
 				state.stopAudioPlayback()
 
-				// Find the transcript and play its audio
-				guard let transcript = state.transcriptionHistory.history.first(where: { $0.id == id }) else {
-					return .none
-				}
+				guard let audioPath else { return .none }
+				let url = URL(fileURLWithPath: audioPath)
 
 				do {
 					let controller = AudioPlayerController()
-					let player = try controller.play(url: transcript.audioPath)
+					let player = try controller.play(url: url)
 
 					state.audioPlayer = player
 					state.audioPlayerController = controller
-					state.playingTranscriptID = id
+					state.playingCaptureID = id
 
 					return .run { send in
-						// Using non-throwing continuation since we don't need to throw errors
 						await withCheckedContinuation { continuation in
 							controller.onPlaybackFinished = {
 								continuation.resume()
-
-								// Use Task to switch to MainActor for sending the action
 								Task { @MainActor in
 									send(.playbackFinished)
 								}
@@ -175,46 +161,41 @@ struct HistoryFeature {
 					await pasteboard.copy(text)
 				}
 
-			case let .deleteTranscript(id):
-				guard let index = state.transcriptionHistory.history.firstIndex(where: { $0.id == id }) else {
-					return .none
-				}
-
-				let transcript = state.transcriptionHistory.history[index]
-
-				if state.playingTranscriptID == id {
+			case let .deleteCapture(id):
+				if state.playingCaptureID == id {
 					state.stopAudioPlayback()
 				}
 
-				_ = state.$transcriptionHistory.withLock { history in
-					history.history.remove(at: index)
+				return .run { _ in
+					try await basinDB.deleteCapture(id)
+					historyLogger.info("Deleted capture \(id)")
 				}
 
-				return deleteAudioEffect(for: [transcript])
-
-			case .deleteAllTranscripts:
+			case .deleteAllCaptures:
 				return .send(.confirmDeleteAll)
 
 			case .confirmDeleteAll:
-				let transcripts = state.transcriptionHistory.history
 				state.stopAudioPlayback()
 
-				state.$transcriptionHistory.withLock { history in
-					history.history.removeAll()
+				return .run { _ in
+					let captures = try await basinDB.fetchCaptures(nil)
+					for capture in captures {
+						try await basinDB.deleteCapture(capture.id)
+					}
+					historyLogger.info("Deleted all captures")
 				}
 
-				return deleteAudioEffect(for: transcripts)
-				
 			case .navigateToSettings:
-				// This will be handled by the parent reducer
 				return .none
 			}
 		}
 	}
 }
 
-struct TranscriptView: View {
-	let transcript: Transcript
+// MARK: - Capture Row View
+
+struct CaptureRowView: View {
+	let capture: CaptureRecord
 	let isPlaying: Bool
 	let onPlay: () -> Void
 	let onCopy: () -> Void
@@ -222,35 +203,34 @@ struct TranscriptView: View {
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
-			Text(transcript.text)
+			Text(capture.rawText)
 				.font(.body)
 				.lineLimit(nil)
 				.fixedSize(horizontal: false, vertical: true)
-				.padding(.trailing, 40) // Space for buttons
+				.padding(.trailing, 40)
 				.padding(12)
 
 			Divider()
 
 			HStack {
 				HStack(spacing: 6) {
-					// App icon and name
-					if let bundleID = transcript.sourceAppBundleID,
+					if let bundleID = capture.sourceAppBundleID,
 					   let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
 						Image(nsImage: NSWorkspace.shared.icon(forFile: appURL.path))
 							.resizable()
 							.frame(width: 14, height: 14)
-						if let appName = transcript.sourceAppName {
+						if let appName = capture.sourceAppName {
 							Text(appName)
 						}
 						Text("•")
 					}
-					
+
 					Image(systemName: "clock")
-					Text(transcript.timestamp.relativeFormatted())
+					Text(capture.timestamp.relativeFormatted())
 					Text("•")
-					Text(transcript.timestamp.formatted(date: .omitted, time: .shortened))
+					Text(capture.timestamp.formatted(date: .omitted, time: .shortened))
 					Text("•")
-					Text(String(format: "%.1fs", transcript.duration))
+					Text(String(format: "%.1fs", capture.durationSeconds))
 				}
 				.font(.subheadline)
 				.foregroundStyle(.secondary)
@@ -273,25 +253,42 @@ struct TranscriptView: View {
 					.foregroundStyle(showCopied ? .green : .secondary)
 					.help("Copy to clipboard")
 
-					Button(action: onPlay) {
-						Image(systemName: isPlaying ? "stop.fill" : "play.fill")
+					if capture.audioPath != nil {
+						Button(action: onPlay) {
+							Image(systemName: isPlaying ? "stop.fill" : "play.fill")
+						}
+						.buttonStyle(.plain)
+						.foregroundStyle(isPlaying ? .blue : .secondary)
+						.help(isPlaying ? "Stop playback" : "Play audio")
 					}
-					.buttonStyle(.plain)
-					.foregroundStyle(isPlaying ? .blue : .secondary)
-					.help(isPlaying ? "Stop playback" : "Play audio")
 
 					Button(action: onDelete) {
 						Image(systemName: "trash.fill")
 					}
 					.buttonStyle(.plain)
 					.foregroundStyle(.secondary)
-					.help("Delete transcript")
+					.help("Delete capture")
 				}
 				.font(.subheadline)
 			}
 			.frame(height: 20)
 			.padding(.horizontal, 12)
 			.padding(.vertical, 6)
+
+			// Analysis summary if available
+			if let analysis = capture.analysis {
+				Divider()
+				HStack(spacing: 6) {
+					Image(systemName: "sparkles")
+						.foregroundStyle(.blue)
+					Text(analysis.summary)
+						.font(.caption)
+						.foregroundStyle(.secondary)
+						.lineLimit(1)
+				}
+				.padding(.horizontal, 12)
+				.padding(.vertical, 6)
+			}
 		}
 		.background(
 			RoundedRectangle(cornerRadius: 8)
@@ -302,7 +299,6 @@ struct TranscriptView: View {
 				)
 		)
 		.onDisappear {
-			// Clean up any running task when view disappears
 			copyTask?.cancel()
 		}
 	}
@@ -327,69 +323,63 @@ struct TranscriptView: View {
 	}
 }
 
-#Preview {
-	TranscriptView(
-		transcript: Transcript(timestamp: Date(), text: "Hello, world!", audioPath: URL(fileURLWithPath: "/Users/langton/Downloads/test.m4a"), duration: 1.0),
-		isPlaying: false,
-		onPlay: {},
-		onCopy: {},
-		onDelete: {}
-	)
-}
+// MARK: - History View
 
 struct HistoryView: View {
 	@ObserveInjection var inject
 	let store: StoreOf<HistoryFeature>
+	@Query(sort: \CaptureRecord.timestamp, order: .reverse)
+	private var captures: [CaptureRecord]
 	@State private var showingDeleteConfirmation = false
 	@Shared(.hexSettings) var hexSettings: HexSettings
 
 	var body: some View {
-      Group {
-        if !hexSettings.saveTranscriptionHistory {
-          ContentUnavailableView {
-            Label("History Disabled", systemImage: "clock.arrow.circlepath")
-          } description: {
-            Text("Transcription history is currently disabled.")
-          } actions: {
-            Button("Enable in Settings") {
-              store.send(.navigateToSettings)
-            }
-          }
-        } else if store.transcriptionHistory.history.isEmpty {
-          ContentUnavailableView {
-            Label("No Transcriptions", systemImage: "text.bubble")
-          } description: {
-            Text("Your transcription history will appear here.")
-          }
-        } else {
-          ScrollView {
-            LazyVStack(spacing: 12) {
-              ForEach(store.transcriptionHistory.history) { transcript in
-                TranscriptView(
-                  transcript: transcript,
-                  isPlaying: store.playingTranscriptID == transcript.id,
-                  onPlay: { store.send(.playTranscript(transcript.id)) },
-                  onCopy: { store.send(.copyToClipboard(transcript.text)) },
-                  onDelete: { store.send(.deleteTranscript(transcript.id)) }
-                )
-              }
-            }
-            .padding()
-          }
-          .toolbar {
-            Button(role: .destructive, action: { showingDeleteConfirmation = true }) {
-              Label("Delete All", systemImage: "trash")
-            }
-          }
-          .alert("Delete All Transcripts", isPresented: $showingDeleteConfirmation) {
-            Button("Delete All", role: .destructive) {
-              store.send(.confirmDeleteAll)
-            }
-            Button("Cancel", role: .cancel) {}
-          } message: {
-            Text("Are you sure you want to delete all transcripts? This action cannot be undone.")
-          }
-        }
-      }.enableInjection()
+		Group {
+			if !hexSettings.saveTranscriptionHistory {
+				ContentUnavailableView {
+					Label("History Disabled", systemImage: "clock.arrow.circlepath")
+				} description: {
+					Text("Transcription history is currently disabled.")
+				} actions: {
+					Button("Enable in Settings") {
+						store.send(.navigateToSettings)
+					}
+				}
+			} else if captures.isEmpty {
+				ContentUnavailableView {
+					Label("No Captures", systemImage: "waveform")
+				} description: {
+					Text("Your capture history will appear here.")
+				}
+			} else {
+				ScrollView {
+					LazyVStack(spacing: 12) {
+						ForEach(captures) { capture in
+							CaptureRowView(
+								capture: capture,
+								isPlaying: store.playingCaptureID == capture.id,
+								onPlay: { store.send(.playCapture(capture.id, audioPath: capture.audioPath)) },
+								onCopy: { store.send(.copyToClipboard(capture.rawText)) },
+								onDelete: { store.send(.deleteCapture(capture.id)) }
+							)
+						}
+					}
+					.padding()
+				}
+				.toolbar {
+					Button(role: .destructive, action: { showingDeleteConfirmation = true }) {
+						Label("Delete All", systemImage: "trash")
+					}
+				}
+				.alert("Delete All Captures", isPresented: $showingDeleteConfirmation) {
+					Button("Delete All", role: .destructive) {
+						store.send(.confirmDeleteAll)
+					}
+					Button("Cancel", role: .cancel) {}
+				} message: {
+					Text("Are you sure you want to delete all captures? This action cannot be undone.")
+				}
+			}
+		}.enableInjection()
 	}
 }

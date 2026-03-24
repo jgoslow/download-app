@@ -99,8 +99,12 @@
     "Anthropic API Key" : {
 
     },
+    "Are you sure you want to delete all captures? This action cannot be undone." : {
+
+    },
     "Are you sure you want to delete all transcripts? This action cannot be undone." : {
       "comment" : "Delete transcript history confirm",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -278,8 +282,12 @@
         }
       }
     },
+    "Delete All Captures" : {
+
+    },
     "Delete All Transcripts" : {
       "comment" : "\"Delete all transcriptions from history\" pop up headline",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -288,6 +296,9 @@
           }
         }
       }
+    },
+    "Delete capture" : {
+
     },
     "Delete Selected Model" : {
       "comment" : "Delete the selected model in settings.",
@@ -303,6 +314,7 @@
     },
     "Delete transcript" : {
       "comment" : "Delete individual transcript button. Help text.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -539,6 +551,9 @@
     "Mute Volume" : {
 
     },
+    "No Captures" : {
+
+    },
     "No models found." : {
       "comment" : "Replacement text in transcription model section when no available models are found",
       "extractionState" : "stale",
@@ -556,6 +571,7 @@
     },
     "No Transcriptions" : {
       "comment" : "Empty history headline.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -594,7 +610,7 @@
         }
       }
     },
-    "or use the keyboard shortcut" : {
+    "or type your flow" : {
 
     },
     "Output Language" : {
@@ -867,6 +883,9 @@
         }
       }
     },
+    "Submit" : {
+
+    },
     "Super Fast Mode" : {
 
     },
@@ -900,6 +919,9 @@
 
     },
     "Type" : {
+
+    },
+    "Type your flow..." : {
 
     },
     "Unlimited" : {
@@ -974,8 +996,12 @@
     "Word Removals" : {
 
     },
+    "Your capture history will appear here." : {
+
+    },
     "Your transcription history will appear here." : {
       "comment" : "Empty history subtitle.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
