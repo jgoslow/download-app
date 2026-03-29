@@ -1,0 +1,113 @@
+{
+  "id": "google",
+  "name": "Google",
+  "icon": "globe",
+  "auth": {
+    "methods": ["oauth"],
+    "oauth_provider": "google",
+    "scopes_selectable": true,
+    "available_scopes": {
+      "calendar": {
+        "label": "Calendar access",
+        "scope": "https://www.googleapis.com/auth/calendar",
+        "default": true
+      },
+      "gmail": {
+        "label": "Email (Gmail) access",
+        "scope": "https://www.googleapis.com/auth/gmail.send",
+        "default": true
+      }
+    }
+  },
+  "base_url": {
+    "oauth": "https://www.googleapis.com"
+  },
+  "discovery": {
+    "calendars": {
+      "endpoint": "{base_url}/calendar/v3/users/me/calendarList",
+      "method": "GET",
+      "extract": "$.items[*].{id, summary}",
+      "description": "User's calendars",
+      "refresh_interval_hours": 168
+    }
+  },
+  "actions": {
+    "create_event": {
+      "display_name": "Create calendar event",
+      "description": "Create an event in Google Calendar",
+      "endpoint": "{base_url}/calendar/v3/calendars/primary/events",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body_template": {
+        "summary": "{summary}",
+        "description": "{description}",
+        "start": {
+          "dateTime": "{start_time}"
+        },
+        "end": {
+          "dateTime": "{end_time}"
+        }
+      },
+      "parameters": {
+        "summary": {
+          "type": "string",
+          "required": true,
+          "description": "Event title"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Event description"
+        },
+        "start_time": {
+          "type": "string",
+          "required": true,
+          "description": "Start time in ISO 8601 format"
+        },
+        "end_time": {
+          "type": "string",
+          "required": true,
+          "description": "End time in ISO 8601 format"
+        }
+      },
+      "success_extract": "$.id",
+      "success_message": "Event created"
+    },
+    "send_email": {
+      "display_name": "Send email",
+      "description": "Send an email via Gmail",
+      "endpoint": "{base_url}/gmail/v1/users/me/messages/send",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body_template": {
+        "raw": "{raw_message}"
+      },
+      "parameters": {
+        "to": {
+          "type": "string",
+          "required": true,
+          "description": "Recipient email address"
+        },
+        "subject": {
+          "type": "string",
+          "required": true,
+          "description": "Email subject line"
+        },
+        "body": {
+          "type": "string",
+          "required": true,
+          "description": "Email body text"
+        }
+      },
+      "success_extract": "$.id",
+      "success_message": "Email sent"
+    }
+  },
+  "claude_context": {
+    "defaults": {}
+  }
+}

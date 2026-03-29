@@ -294,6 +294,10 @@ private struct ToolConnectSheet: View {
                 if tool.id == "jira" {
                     await JiraActionClient.fetchAndCacheProjects(tool: tool)
                 }
+
+                // Auto-dismiss after a brief success display
+                try? await Task.sleep(for: .seconds(1))
+                await MainActor.run { onDismiss() }
             } catch {
                 await MainActor.run {
                     authError = error.localizedDescription

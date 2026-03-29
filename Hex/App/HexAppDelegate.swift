@@ -162,6 +162,11 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 				await OAuthClient.shared.handleCallback(url: url)
 			}
 		}
+
+		// Bring Basin to front after OAuth redirect
+		if urls.contains(where: { $0.scheme == "basin" }) {
+			NSApplication.shared.activate(ignoringOtherApps: true)
+		}
 	}
 
 	/// Seeds default data on first launch: one "Open" flow, all tools (disconnected), all channels (disabled).

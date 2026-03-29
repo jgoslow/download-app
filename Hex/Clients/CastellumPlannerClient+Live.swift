@@ -21,17 +21,23 @@ extension CastellumPlannerClient {
             }
 
             // 1. Match analysis integrations to connected tools
+            //    Map integration names to tool IDs (calendar/email → google)
+            let integrationToToolID: [String: String] = [
+                "calendar": "google", "email": "google",
+                "jira": "jira", "slack": "slack", "toggl": "toggl",
+                "github": "github", "wave": "wave"
+            ]
             let connectedIDs = Set(connectedTools.filter(\.isConnected).map(\.id))
-            let matchedIntegrations = analysis.integrations.filter { connectedIDs.contains($0.rawValue) }
+            let requestedToolIDs = Set(analysis.integrations.compactMap { integrationToToolID[$0.rawValue] })
+            let matchedToolIDs = requestedToolIDs.intersection(connectedIDs)
 
-            guard !matchedIntegrations.isEmpty else {
+            guard !matchedToolIDs.isEmpty else {
                 plannerLogger.info("Castellum: no connected tools match integrations \(analysis.integrations.map(\.rawValue))")
                 return ExecutionPlan(captureID: captureID, actions: [])
             }
 
             // 2. Build tool schemas for matched integrations
             //    Try JSON definitions first, fall back to hardcoded registry
-            let matchedToolIDs = Set(matchedIntegrations.map(\.rawValue))
             var toolSchemas: [[String: Any]] = []
             for toolID in matchedToolIDs {
                 if let spec = ToolDefinitionLoader.load(toolID) {

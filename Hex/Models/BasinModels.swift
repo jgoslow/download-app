@@ -277,7 +277,7 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
         switch id {
         case "github": return "github"
         case "jira": return "atlassian"
-        case "calendar", "email": return "google"
+        case "google", "calendar", "email": return "google"
         case "slack": return "slack"
         default: return nil
         }
@@ -296,9 +296,7 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
         Tool(id: "toggl", name: "Toggl", iconSystemName: "clock",
              activeAuthMethod: "api_key", supportsOAuth: false, supportsAPIKey: true,
              apiKeyLabel: "API Token"),
-        Tool(id: "calendar", name: "Google Calendar", iconSystemName: "calendar",
-             supportsOAuth: true, supportsAPIKey: false),
-        Tool(id: "email", name: "Email (Gmail)", iconSystemName: "envelope",
+        Tool(id: "google", name: "Google", iconSystemName: "globe",
              supportsOAuth: true, supportsAPIKey: false),
         Tool(id: "wave", name: "Wave", iconSystemName: "dollarsign.circle",
              supportsOAuth: true, supportsAPIKey: false),
@@ -341,7 +339,7 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
         ChannelDefinition(
             id: "write-email", name: "Write an email",
             channelDescription: "Draft and send an email based on capture content",
-            iconSystemName: "envelope.open", requiredToolIDs: ["email"], sortOrder: 0),
+            iconSystemName: "envelope.open", requiredToolIDs: ["google"], sortOrder: 0),
         ChannelDefinition(
             id: "create-jira-card", name: "Create a Jira card",
             channelDescription: "Create a Jira issue from tasks extracted in the capture",
@@ -353,7 +351,7 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
         ChannelDefinition(
             id: "create-event", name: "Create a calendar event",
             channelDescription: "Add events to Google Calendar from capture content",
-            iconSystemName: "calendar.badge.plus", requiredToolIDs: ["calendar"], sortOrder: 3),
+            iconSystemName: "calendar.badge.plus", requiredToolIDs: ["google"], sortOrder: 3),
         ChannelDefinition(
             id: "send-slack", name: "Send a Slack message",
             channelDescription: "Send messages or delegation notes to Slack channels",
