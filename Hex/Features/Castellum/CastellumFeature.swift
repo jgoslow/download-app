@@ -45,6 +45,12 @@ extension CastellumPlannerClient: DependencyKey {
 extension ToolExecutionClient: DependencyKey {
     static let liveValue = ToolExecutionClient(
         execute: { action, tool in
+            // Try generic data-driven executor first (reads from JSON definitions)
+            if let result = await GenericToolExecutor.execute(action: action, tool: tool) {
+                return result
+            }
+
+            // Fall back to legacy per-tool Swift clients
             switch action.toolID {
             case "jira":
                 return await JiraActionClient.execute(action: action, tool: tool)

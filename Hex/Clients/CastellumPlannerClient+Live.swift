@@ -30,8 +30,17 @@ extension CastellumPlannerClient {
             }
 
             // 2. Build tool schemas for matched integrations
+            //    Try JSON definitions first, fall back to hardcoded registry
             let matchedToolIDs = Set(matchedIntegrations.map(\.rawValue))
-            let toolSchemas = ToolActionRegistry.claudeToolSchemas(for: matchedToolIDs)
+            var toolSchemas: [[String: Any]] = []
+            for toolID in matchedToolIDs {
+                if let spec = ToolDefinitionLoader.load(toolID) {
+                    toolSchemas.append(contentsOf: ToolDefinitionLoader.claudeSchemas(for: spec))
+                }
+            }
+            if toolSchemas.isEmpty {
+                toolSchemas = ToolActionRegistry.claudeToolSchemas(for: matchedToolIDs)
+            }
 
             guard !toolSchemas.isEmpty else {
                 return ExecutionPlan(captureID: captureID, actions: [])
