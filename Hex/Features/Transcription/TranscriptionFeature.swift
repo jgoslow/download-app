@@ -385,6 +385,10 @@ private extension TranscriptionFeature {
     transcriptionFeatureLogger.notice("Recording started at \(startTime.ISO8601Format())")
 
     // Prevent system sleep during recording
+    let promptTitles = state.promptTitles
+    let apiKey = state.hexSettings.basinSettings.anthropicAPIKey
+    let model = state.hexSettings.selectedModel
+
     return .run { [sleepManagement, preventSleep = state.hexSettings.preventSystemSleep] send in
       // Play sound immediately for instant feedback
       soundEffect.play(.startRecording)
@@ -393,6 +397,27 @@ private extension TranscriptionFeature {
         await sleepManagement.preventSleep(reason: "Hex Voice Recording")
       }
       await recording.startRecording()
+
+      // Start periodic parsing if this flow has prompts
+      if !promptTitles.isEmpty, !apiKey.isEmpty {
+        // Small delay to let the recording URL be established
+        try? await Task.sleep(for: .seconds(1))
+        if let audioURL = await recording.getCurrentRecordingURL() {
+          await PeriodicParsingController.shared.start(
+            audioURL: audioURL,
+            promptTitles: promptTitles,
+            apiKey: apiKey,
+            transcribe: { url in
+              try await transcription.transcribe(url, model, DecodingOptions(chunkingStrategy: .vad)) { _ in }
+            },
+            onUpdate: { update in
+              Task { @MainActor in
+                send(.periodicParseUpdate(partialText: update.partialText, promptsAddressed: update.promptsAddressed))
+              }
+            }
+          )
+        }
+      }
     }
   }
 
@@ -400,6 +425,9 @@ private extension TranscriptionFeature {
     state.isRecording = false
     state.livePromptsAddressed = []
     state.partialTranscript = nil
+
+    // Stop periodic parsing
+    Task { await PeriodicParsingController.shared.stop() }
     
     let stopTime = now
     let startTime = state.recordingStartTime

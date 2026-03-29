@@ -28,6 +28,7 @@ struct AudioInputDevice: Identifiable, Equatable {
 struct RecordingClient {
   var startRecording: @Sendable () async -> Void = {}
   var stopRecording: @Sendable () async -> URL = { URL(fileURLWithPath: "") }
+  var getCurrentRecordingURL: @Sendable () async -> URL? = { nil }
   var requestMicrophoneAccess: @Sendable () async -> Bool = { false }
   var observeAudioLevel: @Sendable () async -> AsyncStream<Meter> = { AsyncStream { _ in } }
   var getAvailableInputDevices: @Sendable () async -> [AudioInputDevice] = { [] }
@@ -45,6 +46,7 @@ extension RecordingClient: DependencyKey {
     return Self(
       startRecording: { await live.startRecording() },
       stopRecording: { await live.stopRecording() },
+      getCurrentRecordingURL: { await live.getCurrentRecordingURL() },
       requestMicrophoneAccess: { await live.requestMicrophoneAccess() },
       observeAudioLevel: { await live.observeAudioLevel() },
       getAvailableInputDevices: { await live.getAvailableInputDevices() },
@@ -318,6 +320,7 @@ actor RecordingClientLive {
 
   private var recorder: AVAudioRecorder?
   private let recordingURL = FileManager.default.temporaryDirectory.appendingPathComponent("recording.wav")
+  private var currentSuperFastRecordingURL: URL?
   private var isRecorderPrimedForNextSession = false
   private var lastPrimedDeviceID: AudioDeviceID?
   private var recordingSessionID: UUID?
@@ -1072,6 +1075,7 @@ actor RecordingClientLive {
       do {
         try ensureSuperFastCaptureReady(for: activeInputDevice, reason: "startRecording")
         let recordingURL = makeSuperFastRecordingURL()
+        currentSuperFastRecordingURL = recordingURL
         try superFastCapture.beginRecording(to: recordingURL, requestedAt: startRequestAt)
         currentRecordingStartedAt = Date()
         recordingLogger.notice(
@@ -1103,6 +1107,13 @@ actor RecordingClientLive {
     }
   }
 
+  func getCurrentRecordingURL() async -> URL? {
+    if hexSettings.superFastModeEnabled {
+      return currentSuperFastRecordingURL
+    }
+    return recorder?.isRecording == true ? recordingURL : nil
+  }
+
   func stopRecording() async -> URL {
     if let superFastURL = superFastCapture.finishRecording() {
       let stoppedAt = Date()
@@ -1110,6 +1121,7 @@ actor RecordingClientLive {
       stopMeterTask()
       endRecordingSession()
       currentRecordingStartedAt = nil
+      currentSuperFastRecordingURL = nil
       lastRecordingEndedAt = stoppedAt
       recordingLogger.notice(
         "Super fast recording stopped duration=\(self.formatDuration(recordingDuration))"

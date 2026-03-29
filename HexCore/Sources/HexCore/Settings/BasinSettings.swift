@@ -19,6 +19,8 @@ public struct BasinSettings: Codable, Equatable, Sendable {
     public var anthropicAPIKey: String
     /// Whether daily capture reminders are enabled.
     public var notificationsEnabled: Bool
+    /// Opt-in: send error/usage diagnostics to help improve Basin.
+    public var diagnosticsEnabled: Bool
 
     public init(
         serverURL: String = "",
@@ -26,7 +28,8 @@ public struct BasinSettings: Codable, Equatable, Sendable {
         defaultFlowID: String = "open",
         pasteAfterSession: Bool = false,
         anthropicAPIKey: String = "",
-        notificationsEnabled: Bool = false
+        notificationsEnabled: Bool = false,
+        diagnosticsEnabled: Bool = false
     ) {
         self.serverURL = serverURL
         self.authToken = authToken
@@ -34,6 +37,7 @@ public struct BasinSettings: Codable, Equatable, Sendable {
         self.pasteAfterSession = pasteAfterSession
         self.anthropicAPIKey = anthropicAPIKey
         self.notificationsEnabled = notificationsEnabled
+        self.diagnosticsEnabled = diagnosticsEnabled
     }
 
     public init(from decoder: Decoder) throws {
@@ -44,10 +48,11 @@ public struct BasinSettings: Codable, Equatable, Sendable {
         pasteAfterSession = try container.decodeIfPresent(Bool.self, forKey: .pasteAfterSession) ?? false
         anthropicAPIKey = try container.decodeIfPresent(String.self, forKey: .anthropicAPIKey) ?? ""
         notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? false
+        diagnosticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .diagnosticsEnabled) ?? false
     }
 
     private enum CodingKeys: String, CodingKey {
         case serverURL, authToken, pasteAfterSession, anthropicAPIKey, notificationsEnabled
-        case defaultFlowID
+        case defaultFlowID, diagnosticsEnabled
     }
 }

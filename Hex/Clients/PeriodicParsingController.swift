@@ -18,6 +18,8 @@ typealias PeriodicParseUpdate = (partialText: String, promptsAddressed: [Int])
 
 actor PeriodicParsingController {
 
+    static let shared = PeriodicParsingController()
+
     // Configuration
     private let intervalSeconds: TimeInterval = 5.0
     private let minimumAudioSeconds: TimeInterval = 2.0
