@@ -1,0 +1,60 @@
+{
+  "id": "slack",
+  "name": "Slack",
+  "icon": "bubble.left.fill",
+  "auth": {
+    "methods": ["oauth", "api_key"],
+    "oauth_provider": "slack",
+    "api_key_label": "Bot Token",
+    "api_key_format": "bearer",
+    "api_key_help": "Bot token (xoxb-...) from https://api.slack.com/apps > OAuth Tokens"
+  },
+  "base_url": {
+    "oauth": "https://slack.com/api",
+    "api_key": "https://slack.com/api"
+  },
+  "discovery": {
+    "channels": {
+      "endpoint": "{base_url}/conversations.list?types=public_channel&limit=200",
+      "method": "GET",
+      "extract": "$.channels[*].{id, name}",
+      "description": "Available Slack channels for message routing",
+      "refresh_interval_hours": 24
+    }
+  },
+  "actions": {
+    "send_message": {
+      "display_name": "Send Slack message",
+      "description": "Send a message to a Slack channel or user",
+      "endpoint": "{base_url}/chat.postMessage",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body_template": {
+        "channel": "{channel}",
+        "text": "{text}"
+      },
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel name (e.g., #general) or user ID. Match against discovery.channels list.",
+          "source": "discovery.channels"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Message text to send"
+        }
+      },
+      "success_extract": "$.ts",
+      "success_message": "Message sent"
+    }
+  },
+  "claude_context": {
+    "defaults": {
+      "channel": "#general"
+    }
+  }
+}

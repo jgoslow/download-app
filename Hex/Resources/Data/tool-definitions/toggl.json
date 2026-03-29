@@ -1,0 +1,80 @@
+{
+  "id": "toggl",
+  "name": "Toggl",
+  "icon": "clock.fill",
+  "auth": {
+    "methods": ["api_key"],
+    "api_key_label": "API Token",
+    "api_key_format": "basic_token_only",
+    "api_key_help": "Find your API token at https://track.toggl.com/profile (bottom of page)"
+  },
+  "base_url": {
+    "api_key": "https://api.track.toggl.com/api/v9"
+  },
+  "discovery": {
+    "workspaces": {
+      "endpoint": "{base_url}/workspaces",
+      "method": "GET",
+      "extract": "$[*].{id, name}",
+      "description": "Available Toggl workspaces",
+      "refresh_interval_hours": 168
+    },
+    "projects": {
+      "endpoint": "{base_url}/workspaces/{workspace_id}/projects",
+      "method": "GET",
+      "extract": "$[*].{id, name}",
+      "description": "Projects within the primary workspace",
+      "depends_on": "workspaces",
+      "refresh_interval_hours": 24
+    }
+  },
+  "actions": {
+    "create_time_entry": {
+      "display_name": "Log time in Toggl",
+      "description": "Create a time entry in Toggl Track",
+      "endpoint": "{base_url}/workspaces/{workspace_id}/time_entries",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body_template": {
+        "description": "{description}",
+        "start": "{start_time}",
+        "duration": "{duration_seconds}",
+        "project_id": "{project_id}",
+        "tags": "{tags}",
+        "created_with": "Basin"
+      },
+      "parameters": {
+        "description": {
+          "type": "string",
+          "required": true,
+          "description": "What was worked on"
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "required": true,
+          "description": "Duration in minutes. Estimate from context (default 30 if unclear)."
+        },
+        "project_name": {
+          "type": "string",
+          "required": false,
+          "description": "Toggl project name. Match against discovery.projects list.",
+          "source": "discovery.projects"
+        },
+        "tags": {
+          "type": "array",
+          "required": false,
+          "description": "Tags for the time entry"
+        }
+      },
+      "success_extract": "$.id",
+      "success_message": "Logged {duration_minutes}m"
+    }
+  },
+  "claude_context": {
+    "defaults": {
+      "duration_minutes": 30
+    }
+  }
+}

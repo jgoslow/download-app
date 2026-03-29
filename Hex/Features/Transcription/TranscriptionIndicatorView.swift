@@ -5,7 +5,6 @@
 //  Created by Kit Langton on 1/25/25.
 
 import Inject
-import Pow
 import SwiftUI
 
 struct TranscriptionIndicatorView: View {
@@ -117,8 +116,7 @@ struct TranscriptionIndicatorView: View {
         .scaleEffect(status == .hidden ? 0.0 : 1)
         .blur(radius: status == .hidden ? 4 : 0)
         .animation(.bouncy(duration: 0.3), value: status)
-        .changeEffect(.glow(color: .red.opacity(0.5), radius: 8), value: status)
-        .changeEffect(.shine(angle: .degrees(0), duration: 0.6), value: transcribeEffect)
+        // Glow and shine effects removed (previously Pow)
         .compositingGroup()
         .task(id: status == .transcribing) {
           while status == .transcribing, !Task.isCancelled {

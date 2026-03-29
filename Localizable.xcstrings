@@ -518,6 +518,9 @@
     "Keep the microphone warm and prepend a short in-memory buffer for near-instant capture. macOS will keep showing the microphone indicator while this mode is armed." : {
 
     },
+    "LIVE" : {
+
+    },
     "Match" : {
 
     },

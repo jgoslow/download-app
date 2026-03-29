@@ -17,7 +17,10 @@ struct MicrophoneSelectionSectionView: View {
 						}
 						return "System Default"
 					}()
-					Picker("Input Device", selection: $store.hexSettings.selectedMicrophoneID) {
+					Picker("Input Device", selection: Binding(
+						get: { store.hexSettings.selectedMicrophoneID },
+						set: { newValue in store.$hexSettings.withLock { $0.selectedMicrophoneID = newValue } }
+					)) {
 						Text(systemLabel).tag(nil as String?)
 						ForEach(store.availableInputDevices) { device in
 							Text(device.name).tag(device.id as String?)

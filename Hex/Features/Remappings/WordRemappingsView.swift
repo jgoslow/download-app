@@ -81,7 +81,10 @@ struct WordRemappingsView: View {
 	private var removalsSection: some View {
 		GroupBox {
 			VStack(alignment: .leading, spacing: 10) {
-				Toggle("Enable Word Removals", isOn: $store.hexSettings.wordRemovalsEnabled)
+				Toggle("Enable Word Removals", isOn: Binding(
+			get: { store.hexSettings.wordRemovalsEnabled },
+			set: { newValue in store.$hexSettings.withLock { $0.wordRemovalsEnabled = newValue } }
+		))
 					.toggleStyle(.checkbox)
 
 				removalsColumnHeaders
@@ -187,14 +190,20 @@ struct WordRemappingsView: View {
 		guard let index = store.hexSettings.wordRemovals.firstIndex(where: { $0.id == id }) else {
 			return nil
 		}
-		return $store.hexSettings.wordRemovals[index]
+		return Binding(
+			get: { store.hexSettings.wordRemovals[index] },
+			set: { newValue in store.$hexSettings.withLock { $0.wordRemovals[index] = newValue } }
+		)
 	}
 
 	private func remappingBinding(for id: UUID) -> Binding<WordRemapping>? {
 		guard let index = store.hexSettings.wordRemappings.firstIndex(where: { $0.id == id }) else {
 			return nil
 		}
-		return $store.hexSettings.wordRemappings[index]
+		return Binding(
+			get: { store.hexSettings.wordRemappings[index] },
+			set: { newValue in store.$hexSettings.withLock { $0.wordRemappings[index] = newValue } }
+		)
 	}
 
 	private var previewText: String {

@@ -55,9 +55,11 @@ actor PeriodicParsingController {
         isActive = true
         lastTranscriptLength = 0
 
-        parseTask = Task { [weak self, intervalSeconds, minimumAudioSeconds] in
+        let interval = intervalSeconds
+        let minAudio = minimumAudioSeconds
+        parseTask = Task { [weak self] in
             // Wait for initial audio to accumulate
-            try? await Task.sleep(for: .seconds(intervalSeconds))
+            try? await Task.sleep(for: .seconds(interval))
 
             while !Task.isCancelled {
                 guard let self, await self.isActive else { break }
@@ -67,7 +69,7 @@ actor PeriodicParsingController {
                     let attrs = try FileManager.default.attributesOfItem(atPath: audioURL.path)
                     let fileSize = attrs[.size] as? UInt64 ?? 0
                     // Rough check: 16kHz * 4 bytes * minimumAudioSeconds
-                    let minimumSize = UInt64(16_000 * 4 * minimumAudioSeconds)
+                    let minimumSize = UInt64(16_000 * 4 * minAudio)
 
                     if fileSize >= minimumSize {
                         // Copy the audio file to a temp location for transcription
@@ -82,7 +84,8 @@ actor PeriodicParsingController {
                         let partialText = try await transcribe(tempURL)
 
                         // Only analyze if we got new text
-                        if partialText.count > await self.lastTranscriptLength + 10 {
+                        let lastLength = await self.lastTranscriptLength
+                        if partialText.count > lastLength + 10 {
                             await self.setLastTranscriptLength(partialText.count)
 
                             // Lightweight prompt analysis
@@ -100,11 +103,11 @@ actor PeriodicParsingController {
                     parseLogger.error("Periodic parse error: \(error.localizedDescription)")
                 }
 
-                try? await Task.sleep(for: .seconds(intervalSeconds))
+                try? await Task.sleep(for: .seconds(interval))
             }
         }
 
-        parseLogger.info("Periodic parsing started (interval: \(intervalSeconds)s)")
+        parseLogger.info("Periodic parsing started (interval: \(interval)s)")
     }
 
     func stop() {

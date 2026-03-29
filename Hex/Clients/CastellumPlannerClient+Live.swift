@@ -37,10 +37,13 @@ extension CastellumPlannerClient {
                 return ExecutionPlan(captureID: captureID, actions: [])
             }
 
-            // 3. Build the planning prompt
-            let planningPrompt = buildPlanningPrompt(analysis: analysis)
+            // 3. Gather service context from connected tools (e.g., Jira projects)
+            let serviceContext = buildServiceContext(tools: connectedTools, matchedIDs: matchedToolIDs)
 
-            // 4. Call Claude with tool_use
+            // 4. Build the planning prompt
+            let planningPrompt = buildPlanningPrompt(analysis: analysis, serviceContext: serviceContext)
+
+            // 5. Call Claude with tool_use
             let actions = try await callClaudeWithTools(
                 prompt: planningPrompt,
                 tools: toolSchemas,
@@ -178,14 +181,36 @@ Rules:
 - Only call tools that are directly relevant to the tasks and integrations identified.
 - Fill in parameters as specifically as possible based on the analysis.
 - If a task mentions a person (e.g., "Diego"), set them as the assignee.
-- For Jira, default project_key to "LYRA" unless another project is mentioned.
+- Use the service context provided to select the correct project, channel, etc.
+- For Jira, match the task to the most relevant project from the project list. \
+  Use fuzzy matching — voice transcription may misspell project names \
+  (e.g., "Taka" likely means project "TACA").
 - For Slack, use #general unless a specific channel is mentioned.
 - For Toggl, estimate duration from context (default 30 minutes if unclear).
 - Do NOT call tools speculatively — only when the analysis clearly indicates the action.
 - You may call multiple tools in a single response.
 """
 
-private func buildPlanningPrompt(analysis: SessionAnalysis) -> String {
+/// Build service context string from cached tool metadata (projects, channels, etc.)
+private func buildServiceContext(tools: [Tool], matchedIDs: Set<String>) -> String {
+    var context = ""
+
+    if matchedIDs.contains("jira"), let jiraTool = tools.first(where: { $0.id == "jira" }) {
+        let projects = JiraActionClient.cachedProjects(tool: jiraTool)
+        if !projects.isEmpty {
+            context += "\nJira projects available:\n"
+            for proj in projects {
+                context += "- \(proj.key): \(proj.name)\n"
+            }
+        }
+    }
+
+    // TODO: Add Slack channels, Toggl projects, etc. as we cache them
+
+    return context
+}
+
+private func buildPlanningPrompt(analysis: SessionAnalysis, serviceContext: String = "") -> String {
     var prompt = "Voice capture analysis:\n"
     prompt += "Summary: \(analysis.summary)\n"
 
@@ -213,6 +238,10 @@ private func buildPlanningPrompt(analysis: SessionAnalysis) -> String {
 
     if let mood = analysis.moodTag {
         prompt += "Mood: \(mood)\n"
+    }
+
+    if !serviceContext.isEmpty {
+        prompt += "\nService context:\(serviceContext)"
     }
 
     prompt += "\nPlease create the appropriate actions using the available tools."

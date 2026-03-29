@@ -12,6 +12,13 @@ import SwiftUI
 struct BasinSectionView: View {
     @Bindable var store: StoreOf<SettingsFeature>
 
+    private func basinBinding<T>(_ keyPath: WritableKeyPath<BasinSettings, T>) -> Binding<T> {
+        Binding(
+            get: { store.hexSettings.basinSettings[keyPath: keyPath] },
+            set: { newValue in store.$hexSettings.withLock { $0.basinSettings[keyPath: keyPath] = newValue } }
+        )
+    }
+
     var body: some View {
         Section {
             // Anthropic API key (core Basin functionality)
@@ -20,7 +27,7 @@ struct BasinSectionView: View {
                     Text("Anthropic API Key")
                     SecureField(
                         "sk-ant-...",
-                        text: $store.hexSettings.basinSettings.anthropicAPIKey
+                        text: basinBinding(\.anthropicAPIKey)
                     )
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
@@ -35,7 +42,7 @@ struct BasinSectionView: View {
             Label {
                 Toggle(
                     "Paste transcript to cursor",
-                    isOn: $store.hexSettings.basinSettings.pasteAfterSession
+                    isOn: basinBinding(\.pasteAfterSession)
                 )
                 Text("Enable to keep Hex's original paste-to-cursor behavior alongside session routing.")
                     .settingsCaption()
@@ -70,7 +77,7 @@ struct BasinSectionView: View {
                         Text("Server URL")
                         TextField(
                             "http://localhost:3000",
-                            text: $store.hexSettings.basinSettings.serverURL
+                            text: basinBinding(\.serverURL)
                         )
                         .textFieldStyle(.roundedBorder)
                         .font(.system(.body, design: .monospaced))
@@ -86,7 +93,7 @@ struct BasinSectionView: View {
                         Text("Auth Token")
                         SecureField(
                             "Bearer token",
-                            text: $store.hexSettings.basinSettings.authToken
+                            text: basinBinding(\.authToken)
                         )
                         .textFieldStyle(.roundedBorder)
                         .font(.system(.body, design: .monospaced))

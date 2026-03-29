@@ -223,6 +223,10 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     var apiKeyLabel: String?
     var baseURL: String?
 
+    /// Cached service metadata (e.g., Jira project list, Slack channels).
+    /// Stored as JSON. Fetched after OAuth connect and refreshed periodically.
+    var serviceMetadata: Data?
+
     /// Legacy field — migration only
     var authType: String
     var authToken: String?

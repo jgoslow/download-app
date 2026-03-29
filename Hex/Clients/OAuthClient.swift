@@ -311,11 +311,16 @@ actor OAuthClient {
             throw OAuthError.noConfig(provider)
         }
 
-        let body: [String: String] = [
+        var body: [String: String] = [
             "grant_type": "refresh_token",
             "refresh_token": refreshToken,
             "client_id": clientID,
         ]
+
+        // Include client_secret if the provider requires it
+        if let secret = config.clientSecret, !secret.isEmpty {
+            body["client_secret"] = secret
+        }
 
         var request = URLRequest(url: URL(string: config.tokenURL)!)
         request.httpMethod = "POST"

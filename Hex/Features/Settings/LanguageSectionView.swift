@@ -10,7 +10,10 @@ struct LanguageSectionView: View {
 
 	var body: some View {
 		Label {
-			Picker("Output Language", selection: $store.hexSettings.outputLanguage) {
+			Picker("Output Language", selection: Binding(
+				get: { store.hexSettings.outputLanguage },
+				set: { newValue in store.$hexSettings.withLock { $0.outputLanguage = newValue } }
+			)) {
 				ForEach(store.languages, id: \.id) { language in
 					Text(language.name).tag(language.code)
 				}

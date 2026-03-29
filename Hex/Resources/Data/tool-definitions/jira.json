@@ -1,0 +1,96 @@
+{
+  "id": "jira",
+  "name": "Jira",
+  "icon": "list.clipboard",
+  "auth": {
+    "methods": ["oauth", "api_key"],
+    "oauth_provider": "atlassian",
+    "api_key_label": "Email:API Token",
+    "api_key_format": "basic",
+    "api_key_help": "Create at https://id.atlassian.com/manage/api-tokens. Format: email@example.com:your-token"
+  },
+  "base_url": {
+    "oauth": "https://api.atlassian.com/ex/jira/{cloud_id}",
+    "api_key": "{user_provided}",
+    "requires_discovery": true
+  },
+  "discovery": {
+    "cloud_id": {
+      "endpoint": "https://api.atlassian.com/oauth/token/accessible-resources",
+      "method": "GET",
+      "extract": "$[0].id",
+      "description": "Fetches the Atlassian cloud ID for the user's site"
+    },
+    "projects": {
+      "endpoint": "{base_url}/rest/api/3/project/search?maxResults=50&orderBy=name",
+      "method": "GET",
+      "extract": "$.values[*].{key, name}",
+      "description": "Available Jira projects for routing tickets",
+      "refresh_interval_hours": 24
+    }
+  },
+  "actions": {
+    "create_issue": {
+      "display_name": "Create Jira issue",
+      "description": "Create a new issue in a Jira project",
+      "endpoint": "{base_url}/rest/api/3/issue",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      "body_template": {
+        "fields": {
+          "project": { "key": "{project_key}" },
+          "summary": "{summary}",
+          "issuetype": { "name": "{issue_type}" },
+          "description": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "{description}" }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "parameters": {
+        "project_key": {
+          "type": "string",
+          "required": true,
+          "description": "The Jira project key (e.g., TACA, LYRA). Match to the most relevant project from the discovery list. Use fuzzy matching for voice transcription errors.",
+          "source": "discovery.projects"
+        },
+        "summary": {
+          "type": "string",
+          "required": true,
+          "description": "One-line issue summary"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Detailed description of the issue"
+        },
+        "issue_type": {
+          "type": "string",
+          "required": false,
+          "default": "Task",
+          "enum": ["Task", "Bug", "Story", "Epic"],
+          "description": "The type of Jira issue"
+        }
+      },
+      "success_extract": "$.key",
+      "success_message": "Created {result}"
+    }
+  },
+  "claude_context": {
+    "project_matching": "Voice transcription may misspell project names. Use fuzzy matching against the discovery.projects list. For example, 'Taka' likely means project 'TACA'.",
+    "defaults": {
+      "issue_type": "Task"
+    }
+  }
+}

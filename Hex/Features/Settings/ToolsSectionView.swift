@@ -289,6 +289,11 @@ private struct ToolConnectSheet: View {
                     tool.isConnected = true
                     isAuthenticating = false
                 }
+
+                // Post-connect: fetch service metadata (projects, channels, etc.)
+                if tool.id == "jira" {
+                    await JiraActionClient.fetchAndCacheProjects(tool: tool)
+                }
             } catch {
                 await MainActor.run {
                     authError = error.localizedDescription
