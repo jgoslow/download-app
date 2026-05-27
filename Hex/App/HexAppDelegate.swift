@@ -163,8 +163,10 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 			}
 		}
 
-		// Bring Basin to front after OAuth redirect
-		if urls.contains(where: { $0.scheme == "basin" }) {
+		// Bring the settings window to front after OAuth redirect (not the app generally,
+		// which would surface the invisible transcription window instead).
+		if urls.contains(where: { $0.scheme == "basin" }), let settingsWindow {
+			settingsWindow.makeKeyAndOrderFront(nil)
 			NSApplication.shared.activate(ignoringOtherApps: true)
 		}
 	}
@@ -187,23 +189,21 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 				appLogger.info("Seeded default Open flow")
 			}
 
-			let toolCount = try context.fetchCount(FetchDescriptor<Tool>())
-			if toolCount == 0 {
-				for tool in Tool.allDefaults {
-					context.insert(tool)
-				}
-				appLogger.info("Seeded \(Tool.allDefaults.count) default tools")
+			// Upsert default tools so new tools added to allDefaults appear in existing installs.
+			let existingTools = try context.fetch(FetchDescriptor<Tool>())
+			let existingToolIDs = Set(existingTools.map(\.id))
+			var inserted = 0
+			for tool in Tool.allDefaults where !existingToolIDs.contains(tool.id) {
+				context.insert(tool)
+				inserted += 1
+			}
+			if inserted > 0 {
+				appLogger.info("Seeded \(inserted) new default tool(s)")
 			}
 
-			let channelCount = try context.fetchCount(FetchDescriptor<ChannelDefinition>())
-			if channelCount == 0 {
-				for channel in ChannelDefinition.allDefaults {
-					context.insert(channel)
-				}
-				appLogger.info("Seeded \(ChannelDefinition.allDefaults.count) default channels")
-			}
+			// Workflows are created organically (onboarding, Castellum patterns) — no seeding here.
 
-			try context.save()
+try context.save()
 		} catch {
 			appLogger.error("Failed to seed default data: \(error.localizedDescription)")
 		}

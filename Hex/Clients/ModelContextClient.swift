@@ -32,9 +32,10 @@ struct ModelContextClient {
     var fetchTools: @Sendable () async throws -> [Tool]
     var updateTool: @Sendable (Tool) async throws -> Void
 
-    // Channels
-    var fetchChannels: @Sendable () async throws -> [ChannelDefinition]
-    var updateChannel: @Sendable (ChannelDefinition) async throws -> Void
+    // Workflows (formerly Channels)
+    var fetchWorkflows: @Sendable () async throws -> [Workflow]
+    var saveWorkflow: @Sendable (Workflow) async throws -> Void
+    var deleteWorkflow: @Sendable (_ id: String) async throws -> Void
 }
 
 extension ModelContextClient: DependencyKey {
@@ -128,18 +129,32 @@ extension ModelContextClient: DependencyKey {
                     dbLogger.info("Updated tool")
                 }
             },
-            fetchChannels: {
+            fetchWorkflows: {
                 try await MainActor.run {
-                    let descriptor = FetchDescriptor<ChannelDefinition>(
+                    let descriptor = FetchDescriptor<Workflow>(
                         sortBy: [SortDescriptor(\.sortOrder)]
                     )
                     return try context.fetch(descriptor)
                 }
             },
-            updateChannel: { _ in
+            saveWorkflow: { workflow in
                 await MainActor.run {
+                    context.insert(workflow)
                     try? context.save()
-                    dbLogger.info("Updated channel")
+                    dbLogger.info("Saved workflow \(workflow.id)")
+                }
+            },
+            deleteWorkflow: { id in
+                try await MainActor.run {
+                    var descriptor = FetchDescriptor<Workflow>(
+                        predicate: #Predicate { $0.id == id }
+                    )
+                    descriptor.fetchLimit = 1
+                    if let workflow = try context.fetch(descriptor).first {
+                        context.delete(workflow)
+                        try context.save()
+                        dbLogger.info("Deleted workflow \(id)")
+                    }
                 }
             }
         )

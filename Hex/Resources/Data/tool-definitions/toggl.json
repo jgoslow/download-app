@@ -72,6 +72,9 @@
       "success_message": "Logged {duration_minutes}m"
     }
   },
+  "workflows": {
+    "log-time": "create_time_entry"
+  },
   "claude_context": {
     "defaults": {
       "duration_minutes": 30

@@ -29,6 +29,16 @@ struct ToolsSectionView: View {
         }
     }
 
+    private func disconnectTool(_ tool: Tool) {
+        tool.isConnected = false
+        tool.oauthAccessToken = nil
+        tool.oauthRefreshToken = nil
+        tool.oauthExpiresAt = nil
+        tool.oauthScopes = nil
+        tool.apiKey = nil
+        tool.activeAuthMethod = tool.effectiveSupportsOAuth ? "oauth" : "api_key"
+    }
+
     @ViewBuilder
     private func toolRow(_ tool: Tool) -> some View {
         Label {
@@ -36,9 +46,17 @@ struct ToolsSectionView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(tool.name)
                     if tool.isConnected {
-                        Text(tool.effectiveAuthMethod == "oauth" ? "Connected via OAuth" : "Connected via API key")
+                        HStack(spacing: 6) {
+                            Text(tool.effectiveAuthMethod == "oauth" ? "Connected via OAuth" : "Connected via API key")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                            Button("Disconnect") {
+                                disconnectTool(tool)
+                            }
                             .font(.caption2)
-                            .foregroundStyle(.tertiary)
+                            .buttonStyle(.borderless)
+                            .foregroundStyle(.red.opacity(0.7))
+                        }
                     }
                 }
                 Spacer()
@@ -80,6 +98,13 @@ private struct ToolConnectSheet: View {
     @State private var baseURLInput = ""
     @State private var isAuthenticating = false
     @State private var authError: String?
+    @State private var enabledScopeKeys: Set<String> = []
+
+    private var toolSpec: ToolDefinitionSpec? { ToolDefinitionLoader.load(tool.id) }
+    private var availableScopes: [(key: String, spec: ToolDefinitionSpec.AuthSpec.ScopeSpec)] {
+        guard let scopes = toolSpec?.auth.availableScopes else { return [] }
+        return scopes.sorted { $0.key < $1.key }.map { (key: $0.key, spec: $0.value) }
+    }
 
     enum AuthTab: String, CaseIterable {
         case oauth = "OAuth"
@@ -149,6 +174,13 @@ private struct ToolConnectSheet: View {
             }
             apiKeyInput = tool.apiKey ?? ""
             baseURLInput = tool.baseURL ?? ""
+
+            // Initialize scope toggles from saved selection, or default to all "default: true" scopes
+            if let saved = tool.selectedScopeKeys {
+                enabledScopeKeys = Set(saved)
+            } else if let scopes = toolSpec?.auth.availableScopes {
+                enabledScopeKeys = Set(scopes.compactMap { key, spec in spec.default == true ? key : nil })
+            }
         }
     }
 
@@ -176,7 +208,7 @@ private struct ToolConnectSheet: View {
                     }
                 }
             } else {
-                // Not connected — sign in button
+                // Not connected — scope picker + sign in button
                 VStack(spacing: 12) {
                     Image(systemName: "lock.shield")
                         .font(.system(size: 32))
@@ -185,6 +217,30 @@ private struct ToolConnectSheet: View {
                     Text("Sign in with your \(tool.name) account.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    // Scope toggles (shown when the tool has selectable scopes)
+                    if !availableScopes.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Access")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            ForEach(availableScopes, id: \.key) { key, spec in
+                                Toggle(spec.label, isOn: Binding(
+                                    get: { enabledScopeKeys.contains(key) },
+                                    set: { enabled in
+                                        if enabled { enabledScopeKeys.insert(key) }
+                                        else { enabledScopeKeys.remove(key) }
+                                    }
+                                ))
+                                .toggleStyle(.switch)
+                                .controlSize(.small)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 12)
+                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+                    }
 
                     Text("Basin will open your browser to authenticate. Your credentials are never stored in the app — only a revocable access token.")
                         .font(.caption)
@@ -206,6 +262,7 @@ private struct ToolConnectSheet: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
+                        .disabled(availableScopes.isEmpty ? false : enabledScopeKeys.isEmpty)
                     }
 
                     if let authError {
@@ -272,11 +329,16 @@ private struct ToolConnectSheet: View {
         isAuthenticating = true
         authError = nil
 
+        // Build the scopes to request from the enabled keys
+        let selectedScopeURLs: [String]? = availableScopes.isEmpty ? nil :
+            availableScopes.compactMap { key, spec in enabledScopeKeys.contains(key) ? spec.scope : nil }
+
         Task {
             do {
                 let tokens = try await OAuthClient.shared.startFlow(
                     provider: provider,
-                    toolID: tool.id
+                    toolID: tool.id,
+                    scopes: selectedScopeURLs
                 )
                 await MainActor.run {
                     tool.oauthAccessToken = tokens.accessToken
@@ -287,6 +349,7 @@ private struct ToolConnectSheet: View {
                     }
                     tool.activeAuthMethod = "oauth"
                     tool.isConnected = true
+                    tool.selectedScopeKeys = Array(enabledScopeKeys)
                     isAuthenticating = false
                 }
 

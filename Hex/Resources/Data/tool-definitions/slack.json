@@ -14,7 +14,7 @@
     "api_key": "https://slack.com/api"
   },
   "discovery": {
-    "channels": {
+    "workflows": {
       "endpoint": "{base_url}/conversations.list?types=public_channel&limit=200",
       "method": "GET",
       "extract": "$.channels[*].{id, name}",
@@ -51,6 +51,9 @@
       "success_extract": "$.ts",
       "success_message": "Message sent"
     }
+  },
+  "workflows": {
+    "send-slack": "send_message"
   },
   "claude_context": {
     "defaults": {

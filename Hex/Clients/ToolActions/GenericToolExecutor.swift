@@ -52,8 +52,19 @@ enum GenericToolExecutor {
             request.setValue(value, forHTTPHeaderField: key)
         }
 
-        // Build body from template
-        if let bodyTemplate = actionSpec.bodyTemplate, actionSpec.method != "GET" {
+        // Special handlers for actions that can't be expressed as simple templates
+        if let handler = actionSpec.specialHandler {
+            switch handler {
+            case "gmail_send":
+                guard let mimeRequest = buildGmailSendRequest(baseRequest: request, params: action.parameters) else {
+                    return ActionResult(actionID: action.id, success: false, error: "Gmail send: missing required parameter (to, subject, or body)")
+                }
+                request = mimeRequest
+            default:
+                break
+            }
+        } else if let bodyTemplate = actionSpec.bodyTemplate, actionSpec.method != "GET" {
+            // Build body from template
             let bodyDict = interpolateTemplate(bodyTemplate.value, params: action.parameters)
             if let bodyData = try? JSONSerialization.data(withJSONObject: bodyDict) {
                 request.httpBody = bodyData
@@ -82,9 +93,10 @@ enum GenericToolExecutor {
                 executorLogger.info("\(spec.name) \(action.actionType) succeeded: \(resultMessage)")
                 return ActionResult(actionID: action.id, success: true, message: resultMessage)
             } else {
-                let errorBody = String(data: data.prefix(300), encoding: .utf8) ?? "unknown"
+                let errorBody = String(data: data.prefix(500), encoding: .utf8) ?? "unknown"
                 executorLogger.error("\(spec.name) \(action.actionType) failed (\(httpStatus)): \(errorBody)")
-                return ActionResult(actionID: action.id, success: false, error: "\(spec.name) error (\(httpStatus)): \(errorBody)")
+                let friendlyError = friendlyErrorMessage(toolName: spec.name, status: httpStatus, body: errorBody)
+                return ActionResult(actionID: action.id, success: false, error: friendlyError)
             }
         } catch {
             return ActionResult(actionID: action.id, success: false, error: error.localizedDescription)
@@ -171,5 +183,66 @@ enum GenericToolExecutor {
         }
 
         return template
+    }
+
+    // MARK: - Error Messages
+
+    private static func friendlyErrorMessage(toolName: String, status: Int, body: String) -> String {
+        let json = (try? JSONSerialization.jsonObject(with: Data(body.utf8))) as? [String: Any]
+        let errorObj = json?["error"] as? [String: Any]
+        let reason = (errorObj?["errors"] as? [[String: Any]])?.first?["reason"] as? String
+        let status_str = errorObj?["status"] as? String
+
+        switch status {
+        case 401:
+            return "\(toolName): Authentication expired. Reconnect in Settings → Tools."
+        case 403:
+            if reason == "insufficientPermissions" || status_str == "PERMISSION_DENIED" {
+                return "\(toolName): Missing permission for this action. Disconnect and reconnect in Settings → Tools, making sure the required access is enabled."
+            }
+            return "\(toolName): Access denied (\(status))."
+        case 404:
+            return "\(toolName): Resource not found. Check your configuration."
+        case 429:
+            return "\(toolName): Rate limit reached. Try again in a moment."
+        case 500...599:
+            return "\(toolName): Server error (\(status)). Try again later."
+        default:
+            let message = errorObj?["message"] as? String ?? body.prefix(120).description
+            return "\(toolName) error (\(status)): \(message)"
+        }
+    }
+
+    // MARK: - Gmail Special Handler
+
+    /// Builds the Gmail send request by constructing a base64url-encoded RFC 2822 MIME message.
+    /// Gmail's API requires {"raw": "<base64url>"} rather than plain field interpolation.
+    private static func buildGmailSendRequest(baseRequest: URLRequest, params: [String: String]) -> URLRequest? {
+        guard let to = params["to"], let subject = params["subject"], let body = params["body"] else {
+            return nil
+        }
+
+        let mimeMessage = [
+            "To: \(to)",
+            "Subject: \(subject)",
+            "Content-Type: text/plain; charset=UTF-8",
+            "",
+            body
+        ].joined(separator: "\r\n")
+
+        let encoded = Data(mimeMessage.utf8)
+            .base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: ["raw": encoded]) else {
+            return nil
+        }
+
+        var request = baseRequest
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = bodyData
+        return request
     }
 }

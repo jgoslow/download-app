@@ -20,10 +20,10 @@ struct CastellumPlannerClient {
     /// Build an execution plan from a session analysis.
     var createPlan: @Sendable (
         SessionAnalysis,
-        String,                   // captureID
-        [Tool],                   // connected tools
-        [ChannelDefinition],      // enabled channels
-        String                    // Anthropic API key
+        String,        // captureID
+        [Tool],        // connected tools
+        [Workflow],    // enabled workflows (formerly channels)
+        String         // Anthropic API key
     ) async throws -> ExecutionPlan = { _, captureID, _, _, _ in
         ExecutionPlan(captureID: captureID, actions: [])
     }
@@ -133,11 +133,11 @@ struct CastellumFeature {
                     @Shared(.hexSettings) var hexSettings: HexSettings
                     let apiKey = hexSettings.basinSettings.anthropicAPIKey
 
-                    // Fetch connected tools and enabled channels from SwiftData
+                    // Fetch connected tools and enabled workflows from SwiftData
                     let tools = try await basinDB.fetchTools()
                     let connectedTools = tools.filter { $0.isConnected }
-                    let channels = try await basinDB.fetchChannels()
-                    let enabledChannels = channels.filter { $0.isEnabled }
+                    let workflows = try await basinDB.fetchWorkflows()
+                    let enabledWorkflows = workflows.filter { $0.isEnabled }
 
                     guard !connectedTools.isEmpty else {
                         await send(.planningFailed("No tools connected. Connect tools in Settings."))
@@ -149,7 +149,7 @@ struct CastellumFeature {
                             analysis,
                             captureID,
                             connectedTools,
-                            enabledChannels,
+                            enabledWorkflows,
                             apiKey
                         )
 

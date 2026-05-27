@@ -45,10 +45,15 @@ struct OAuthProviderConfig {
         authorizationURL: "https://accounts.google.com/o/oauth2/v2/auth",
         tokenURL: "https://oauth2.googleapis.com/token",
         clientID: bundleString("GoogleClientID"),
-        clientSecret: nil,
-        scopes: ["https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/gmail.send"],
+        clientSecret: bundleString("GoogleClientSecret"),
+        scopes: [
+            "https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/gmail.send",
+            "https://www.googleapis.com/auth/documents",
+            "https://www.googleapis.com/auth/drive.file",
+        ],
         usePKCE: true,
-        requiresHTTPSRedirect: false
+        requiresHTTPSRedirect: true
     )
 
     static let atlassian = OAuthProviderConfig(
@@ -155,7 +160,8 @@ actor OAuthClient {
     }
 
     /// Start an OAuth flow: opens the browser and returns tokens when complete.
-    func startFlow(provider: String, toolID: String) async throws -> OAuthTokenResponse {
+    /// Pass `scopes` to override the provider's default scopes (e.g. user-selected subset).
+    func startFlow(provider: String, toolID: String, scopes: [String]? = nil) async throws -> OAuthTokenResponse {
         guard let config = OAuthProviderConfig.config(for: provider) else {
             throw OAuthError.noConfig(provider)
         }
@@ -169,6 +175,7 @@ actor OAuthClient {
 
         // Slack requires HTTPS redirect — use the Cloudflare passthrough page
         let effectiveRedirectURI = config.requiresHTTPSRedirect ? httpsRedirectURI : redirectURI
+        let effectiveScopes = scopes ?? config.scopes
 
         var components = URLComponents(string: config.authorizationURL)!
         components.queryItems = [
@@ -176,7 +183,7 @@ actor OAuthClient {
             URLQueryItem(name: "redirect_uri", value: effectiveRedirectURI),
             URLQueryItem(name: "state", value: state),
             URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "scope", value: config.scopes.joined(separator: " ")),
+            URLQueryItem(name: "scope", value: effectiveScopes.joined(separator: " ")),
         ]
 
         if let pkce {
@@ -187,6 +194,12 @@ actor OAuthClient {
         // Atlassian requires audience parameter
         if provider == "atlassian" {
             components.queryItems?.append(URLQueryItem(name: "audience", value: "api.atlassian.com"))
+            components.queryItems?.append(URLQueryItem(name: "prompt", value: "consent"))
+        }
+
+        // Google requires offline access to receive a refresh_token
+        if provider == "google" {
+            components.queryItems?.append(URLQueryItem(name: "access_type", value: "offline"))
             components.queryItems?.append(URLQueryItem(name: "prompt", value: "consent"))
         }
 

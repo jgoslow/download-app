@@ -223,6 +223,10 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     var apiKeyLabel: String?
     var baseURL: String?
 
+    /// Scope keys the user has enabled for this tool (e.g. ["calendar", "docs"]).
+    /// Nil means use the tool definition's defaults.
+    var selectedScopeKeys: [String]?
+
     /// Cached service metadata (e.g., Jira project list, Slack channels).
     /// Stored as JSON. Fetched after OAuth connect and refreshed periodically.
     var serviceMetadata: Data?
@@ -303,66 +307,38 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     ]
 }
 
-// MARK: - Channels (aqueducts)
+// MARK: - Workflows
 
-/// An automation path that carries capture output to a destination.
-/// In the waterworks metaphor, channels are the aqueducts — the pipes that route water.
-/// Each channel requires zero or more tools (mechanisms) to function.
-@Model final class ChannelDefinition {
+/// A named automation with an English-language instruction that guides Castellum.
+/// Workflows are not predefined — they emerge from connected tools and capture context,
+/// or are created during onboarding. The instruction is what makes each workflow unique.
+@Model final class Workflow {
     @Attribute(.unique) var id: String
     var name: String
-    var channelDescription: String
     var iconSystemName: String
-    var requiredToolIDs: [String]
     var isEnabled: Bool
     var sortOrder: Int
+    /// Plain-English instruction fed to Castellum alongside the capture transcript.
+    /// e.g. "When tasks are mentioned, create a Jira card in the most relevant project."
+    var instruction: String
+    /// Optional: scope this workflow to a specific Flow ID. Nil = active in all flows.
+    var flowID: String?
 
     init(
         id: String,
         name: String,
-        channelDescription: String,
         iconSystemName: String,
-        requiredToolIDs: [String] = [],
-        isEnabled: Bool = false,
-        sortOrder: Int = 0
+        isEnabled: Bool = true,
+        sortOrder: Int = 0,
+        instruction: String,
+        flowID: String? = nil
     ) {
         self.id = id
         self.name = name
-        self.channelDescription = channelDescription
         self.iconSystemName = iconSystemName
-        self.requiredToolIDs = requiredToolIDs
         self.isEnabled = isEnabled
         self.sortOrder = sortOrder
+        self.instruction = instruction
+        self.flowID = flowID
     }
-
-    static let allDefaults: [ChannelDefinition] = [
-        ChannelDefinition(
-            id: "write-email", name: "Write an email",
-            channelDescription: "Draft and send an email based on capture content",
-            iconSystemName: "envelope.open", requiredToolIDs: ["google"], sortOrder: 0),
-        ChannelDefinition(
-            id: "create-jira-card", name: "Create a Jira card",
-            channelDescription: "Create a Jira issue from tasks extracted in the capture",
-            iconSystemName: "ticket", requiredToolIDs: ["jira"], sortOrder: 1),
-        ChannelDefinition(
-            id: "log-time", name: "Log time in Toggl",
-            channelDescription: "Create Toggl time entries from the capture's hour accounting",
-            iconSystemName: "clock.arrow.circlepath", requiredToolIDs: ["toggl"], sortOrder: 2),
-        ChannelDefinition(
-            id: "create-event", name: "Create a calendar event",
-            channelDescription: "Add events to Google Calendar from capture content",
-            iconSystemName: "calendar.badge.plus", requiredToolIDs: ["google"], sortOrder: 3),
-        ChannelDefinition(
-            id: "send-slack", name: "Send a Slack message",
-            channelDescription: "Send messages or delegation notes to Slack channels",
-            iconSystemName: "bubble.left", requiredToolIDs: ["slack"], sortOrder: 4),
-        ChannelDefinition(
-            id: "record-journal", name: "Record a journal entry",
-            channelDescription: "Save the capture as a local journal entry",
-            iconSystemName: "book", requiredToolIDs: [], sortOrder: 5),
-        ChannelDefinition(
-            id: "create-gh-issue", name: "Create a GitHub issue",
-            channelDescription: "Create GitHub issues from tasks in the capture",
-            iconSystemName: "exclamationmark.triangle", requiredToolIDs: ["github"], sortOrder: 6),
-    ]
 }

@@ -22,6 +22,17 @@ xcodebuild test -scheme Hex
 open Hex.xcodeproj
 ```
 
+## System Model
+
+Basin has three layers. See `docs/plans/architecture-system-model.md` for the full design doc.
+
+- **Flows** — *when* you capture. Named contexts (Morning Kickoff, Day's End) that frame what Castellum should pay attention to.
+- **Channels / Workflows** — *what happened*. Emergent outcomes produced by Castellum for a given capture — a Jira card, a calendar event, a Slack message. NOT predefined or user-configured; they arise from the capture content + connected tools. Nomenclature still evolving ("channel" and "workflow" used interchangeably).
+- **Tools** — *what's possible*. Authenticated integrations (Google, Jira, Slack, Toggl). Each tool has declarative actions in `Hex/Resources/Data/tool-definitions/*.json`. Tools are the only layer users configure ahead of time.
+- **Castellum** — the AI orchestration layer. Reads the capture, plans tool actions, executes them. The channel/workflow is what emerges from Castellum's plan.
+
+Key rule: **never build a pre-configured channel list that users must maintain**. Channels are outcomes, not settings.
+
 ## Architecture
 
 The app uses **The Composable Architecture (TCA)** for state management. Key architectural components:

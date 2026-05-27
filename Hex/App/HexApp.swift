@@ -17,7 +17,7 @@ struct HexApp: App {
 			CaptureAnalysis.self,
 			FlowDefinition.self,
 			Tool.self,
-			ChannelDefinition.self,
+			Workflow.self,
 		])
 		let config = ModelConfiguration(isStoredInMemoryOnly: false)
 		do {

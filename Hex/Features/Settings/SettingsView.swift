@@ -39,7 +39,7 @@ struct SettingsView: View {
 			GeneralSectionView(store: store)
 			BasinSectionView(store: store)
 			ToolsSectionView(store: store)
-			ChannelsSectionView(store: store)
+			WorkflowsSectionView(store: store)
 			HistorySectionView(store: store)
 		}
 		.formStyle(.grouped)

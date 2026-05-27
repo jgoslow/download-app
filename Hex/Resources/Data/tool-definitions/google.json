@@ -16,6 +16,16 @@
         "label": "Email (Gmail) access",
         "scope": "https://www.googleapis.com/auth/gmail.send",
         "default": true
+      },
+      "docs": {
+        "label": "Docs access",
+        "scope": "https://www.googleapis.com/auth/documents",
+        "default": true
+      },
+      "drive_file": {
+        "label": "Drive file access",
+        "scope": "https://www.googleapis.com/auth/drive.file",
+        "default": true
       }
     }
   },
@@ -80,12 +90,7 @@
       "description": "Send an email via Gmail",
       "endpoint": "{base_url}/gmail/v1/users/me/messages/send",
       "method": "POST",
-      "headers": {
-        "Content-Type": "application/json"
-      },
-      "body_template": {
-        "raw": "{raw_message}"
-      },
+      "special_handler": "gmail_send",
       "parameters": {
         "to": {
           "type": "string",
@@ -105,7 +110,81 @@
       },
       "success_extract": "$.id",
       "success_message": "Email sent"
+    },
+    "create_document": {
+      "display_name": "Create Google Doc",
+      "description": "Create a new Google Docs document",
+      "endpoint": "https://docs.googleapis.com/v1/documents",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body_template": {
+        "title": "{title}"
+      },
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Document title"
+        }
+      },
+      "success_extract": "$.documentId",
+      "success_message": "Document created: {result}"
+    },
+    "append_text": {
+      "display_name": "Append text to Doc",
+      "description": "Insert text at the beginning of an existing Google Docs document",
+      "endpoint": "https://docs.googleapis.com/v1/documents/{document_id}:batchUpdate",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body_template": {
+        "requests": [
+          {
+            "insertText": {
+              "location": {
+                "index": 1
+              },
+              "text": "{text}"
+            }
+          }
+        ]
+      },
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "The Google Docs document ID"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to insert into the document"
+        }
+      },
+      "success_message": "Text appended to document"
+    },
+    "read_document": {
+      "display_name": "Read Google Doc",
+      "description": "Read the title and content of a Google Docs document",
+      "endpoint": "https://docs.googleapis.com/v1/documents/{document_id}",
+      "method": "GET",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "The Google Docs document ID"
+        }
+      },
+      "success_extract": "$.title",
+      "success_message": "Document: {result}"
     }
+  },
+  "workflows": {
+    "create-event": "create_event",
+    "write-email": "send_email"
   },
   "claude_context": {
     "defaults": {}

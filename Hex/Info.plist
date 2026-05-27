@@ -29,6 +29,8 @@
 	<string>$(GITHUB_CLIENT_SECRET)</string>
 	<key>GoogleClientID</key>
 	<string>$(GOOGLE_CLIENT_ID)</string>
+	<key>GoogleClientSecret</key>
+	<string>$(GOOGLE_CLIENT_SECRET)</string>
 	<key>AtlassianClientID</key>
 	<string>$(ATLASSIAN_CLIENT_ID)</string>
 	<key>AtlassianClientSecret</key>

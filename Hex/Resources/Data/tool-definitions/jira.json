@@ -87,6 +87,9 @@
       "success_message": "Created {result}"
     }
   },
+  "workflows": {
+    "create-jira-card": "create_issue"
+  },
   "claude_context": {
     "project_matching": "Voice transcription may misspell project names. Use fuzzy matching against the discovery.projects list. For example, 'Taka' likely means project 'TACA'.",
     "defaults": {

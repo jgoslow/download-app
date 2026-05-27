@@ -21,10 +21,13 @@ struct ToolDefinitionSpec: Codable {
     let baseUrl: BaseURLSpec?
     let discovery: [String: DiscoverySpec]?
     let actions: [String: ActionSpec]
+    /// Maps workflow IDs to the action this tool uses to execute them.
+    /// e.g. {"create-event": "create_event", "write-email": "send_email"}
+    let workflows: [String: String]?
     let claudeContext: ClaudeContextSpec?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, icon, auth, discovery, actions
+        case id, name, icon, auth, discovery, actions, workflows
         case baseUrl = "base_url"
         case claudeContext = "claude_context"
     }
@@ -35,6 +38,8 @@ struct ToolDefinitionSpec: Codable {
         let apiKeyLabel: String?
         let apiKeyFormat: String?
         let apiKeyHelp: String?
+        let scopesSelectable: Bool?
+        let availableScopes: [String: ScopeSpec]?
 
         enum CodingKeys: String, CodingKey {
             case methods
@@ -42,6 +47,14 @@ struct ToolDefinitionSpec: Codable {
             case apiKeyLabel = "api_key_label"
             case apiKeyFormat = "api_key_format"
             case apiKeyHelp = "api_key_help"
+            case scopesSelectable = "scopes_selectable"
+            case availableScopes = "available_scopes"
+        }
+
+        struct ScopeSpec: Codable {
+            let label: String
+            let scope: String
+            let `default`: Bool?
         }
     }
 
@@ -79,6 +92,7 @@ struct ToolDefinitionSpec: Codable {
         let method: String
         let headers: [String: String]?
         let bodyTemplate: AnyCodable?
+        let specialHandler: String?
         let parameters: [String: ParameterSpec]
         let successExtract: String?
         let successMessage: String?
@@ -87,6 +101,7 @@ struct ToolDefinitionSpec: Codable {
             case displayName = "display_name"
             case description, endpoint, method, headers, parameters
             case bodyTemplate = "body_template"
+            case specialHandler = "special_handler"
             case successExtract = "success_extract"
             case successMessage = "success_message"
         }
