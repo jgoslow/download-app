@@ -1,5 +1,7 @@
 import Foundation
 
+// TODO: Add .lowerVolume case — reduce system volume to ~30% while recording, restore after.
+// RecordingClient already has getSystemVolume/setSystemVolume (CoreAudio). Same pattern as .mute.
 public enum RecordingAudioBehavior: String, Codable, CaseIterable, Equatable, Sendable {
 	case pauseMedia
 	case mute
@@ -8,7 +10,6 @@ public enum RecordingAudioBehavior: String, Codable, CaseIterable, Equatable, Se
 
 /// User-configurable settings saved to disk.
 public struct HexSettings: Codable, Equatable, Sendable {
-	public static let defaultPasteLastTranscriptHotkey = HotKey(key: .v, modifiers: [.option, .shift])
 	public static let baseSoundEffectsVolume: Double = HexCoreConstants.baseSoundEffectsVolume
 	public static let defaultWordRemovals: [WordRemoval] = [
 		.init(pattern: "uh+"),
@@ -17,31 +18,21 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		.init(pattern: "hm+")
 	]
 
-	public static var defaultPasteLastTranscriptHotkeyDescription: String {
-		let modifiers = defaultPasteLastTranscriptHotkey.modifiers.sorted.map { $0.stringValue }.joined()
-		let key = defaultPasteLastTranscriptHotkey.key?.toString ?? ""
-		return modifiers + key
-	}
-
 	public var soundEffectsEnabled: Bool
 	public var soundEffectsVolume: Double
 	public var hotkey: HotKey
 	public var openOnLogin: Bool
 	public var showDockIcon: Bool
 	public var selectedModel: String
-	public var useClipboardPaste: Bool
 	public var preventSystemSleep: Bool
 	public var recordingAudioBehavior: RecordingAudioBehavior
 	public var minimumKeyTime: Double
-	public var copyToClipboard: Bool
-	public var superFastModeEnabled: Bool
 	public var useDoubleTapOnly: Bool
 	public var doubleTapLockEnabled: Bool
 	public var outputLanguage: String?
 	public var selectedMicrophoneID: String?
 	public var saveTranscriptionHistory: Bool
 	public var maxHistoryEntries: Int?
-	public var pasteLastTranscriptHotkey: HotKey?
 	public var hasCompletedModelBootstrap: Bool
 	public var hasCompletedStorageMigration: Bool
 	public var wordRemovalsEnabled: Bool
@@ -62,19 +53,15 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		openOnLogin: Bool = false,
 		showDockIcon: Bool = true,
 		selectedModel: String = ParakeetModel.multilingualV3.identifier,
-		useClipboardPaste: Bool = true,
 		preventSystemSleep: Bool = true,
 		recordingAudioBehavior: RecordingAudioBehavior = .doNothing,
 		minimumKeyTime: Double = HexCoreConstants.defaultMinimumKeyTime,
-		copyToClipboard: Bool = false,
-		superFastModeEnabled: Bool = false,
 		useDoubleTapOnly: Bool = false,
 		doubleTapLockEnabled: Bool = true,
 		outputLanguage: String? = nil,
 		selectedMicrophoneID: String? = nil,
 		saveTranscriptionHistory: Bool = true,
 		maxHistoryEntries: Int? = nil,
-		pasteLastTranscriptHotkey: HotKey? = HexSettings.defaultPasteLastTranscriptHotkey,
 		hasCompletedModelBootstrap: Bool = false,
 		hasCompletedStorageMigration: Bool = false,
 		wordRemovalsEnabled: Bool = false,
@@ -88,19 +75,15 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		self.openOnLogin = openOnLogin
 		self.showDockIcon = showDockIcon
 		self.selectedModel = selectedModel
-		self.useClipboardPaste = useClipboardPaste
 		self.preventSystemSleep = preventSystemSleep
 		self.recordingAudioBehavior = recordingAudioBehavior
 		self.minimumKeyTime = minimumKeyTime
-		self.copyToClipboard = copyToClipboard
-		self.superFastModeEnabled = superFastModeEnabled
 		self.useDoubleTapOnly = useDoubleTapOnly
 		self.doubleTapLockEnabled = doubleTapLockEnabled
 		self.outputLanguage = outputLanguage
 		self.selectedMicrophoneID = selectedMicrophoneID
 		self.saveTranscriptionHistory = saveTranscriptionHistory
 		self.maxHistoryEntries = maxHistoryEntries
-		self.pasteLastTranscriptHotkey = pasteLastTranscriptHotkey
 		self.hasCompletedModelBootstrap = hasCompletedModelBootstrap
 		self.hasCompletedStorageMigration = hasCompletedStorageMigration
 		self.wordRemovalsEnabled = wordRemovalsEnabled
@@ -136,20 +119,16 @@ private enum HexSettingKey: String, CodingKey, CaseIterable {
 	case openOnLogin
 	case showDockIcon
 	case selectedModel
-	case useClipboardPaste
 	case preventSystemSleep
 	case recordingAudioBehavior
 	case pauseMediaOnRecord // Legacy
 	case minimumKeyTime
-	case copyToClipboard
-	case superFastModeEnabled
 	case useDoubleTapOnly
 	case doubleTapLockEnabled
 	case outputLanguage
 	case selectedMicrophoneID
 	case saveTranscriptionHistory
 	case maxHistoryEntries
-	case pasteLastTranscriptHotkey
 	case hasCompletedModelBootstrap
 	case hasCompletedStorageMigration
 	case wordRemovalsEnabled
@@ -222,7 +201,6 @@ private enum HexSettingsSchema {
 		SettingsField(.openOnLogin, keyPath: \.openOnLogin, default: defaults.openOnLogin).eraseToAny(),
 		SettingsField(.showDockIcon, keyPath: \.showDockIcon, default: defaults.showDockIcon).eraseToAny(),
 		SettingsField(.selectedModel, keyPath: \.selectedModel, default: defaults.selectedModel).eraseToAny(),
-		SettingsField(.useClipboardPaste, keyPath: \.useClipboardPaste, default: defaults.useClipboardPaste).eraseToAny(),
 		SettingsField(.preventSystemSleep, keyPath: \.preventSystemSleep, default: defaults.preventSystemSleep).eraseToAny(),
 		SettingsField(
 			.recordingAudioBehavior,
@@ -239,8 +217,6 @@ private enum HexSettingsSchema {
 			}
 		).eraseToAny(),
 		SettingsField(.minimumKeyTime, keyPath: \.minimumKeyTime, default: defaults.minimumKeyTime).eraseToAny(),
-		SettingsField(.copyToClipboard, keyPath: \.copyToClipboard, default: defaults.copyToClipboard).eraseToAny(),
-		SettingsField(.superFastModeEnabled, keyPath: \.superFastModeEnabled, default: defaults.superFastModeEnabled).eraseToAny(),
 		SettingsField(.useDoubleTapOnly, keyPath: \.useDoubleTapOnly, default: defaults.useDoubleTapOnly).eraseToAny(),
 		SettingsField(.doubleTapLockEnabled, keyPath: \.doubleTapLockEnabled, default: defaults.doubleTapLockEnabled).eraseToAny(),
 		SettingsField(
@@ -268,31 +244,11 @@ private enum HexSettingsSchema {
 				try container.encodeIfPresent(value, forKey: key)
 			}
 		).eraseToAny(),
-		SettingsField(
-			.pasteLastTranscriptHotkey,
-			keyPath: \.pasteLastTranscriptHotkey,
-			default: defaults.pasteLastTranscriptHotkey,
-			encode: { container, key, value in
-				try container.encodeIfPresent(value, forKey: key)
-			}
-		).eraseToAny(),
 		SettingsField(.hasCompletedModelBootstrap, keyPath: \.hasCompletedModelBootstrap, default: defaults.hasCompletedModelBootstrap).eraseToAny(),
 		SettingsField(.hasCompletedStorageMigration, keyPath: \.hasCompletedStorageMigration, default: defaults.hasCompletedStorageMigration).eraseToAny(),
 		SettingsField(.wordRemovalsEnabled, keyPath: \.wordRemovalsEnabled, default: defaults.wordRemovalsEnabled).eraseToAny(),
-		SettingsField(
-			.wordRemovals,
-			keyPath: \.wordRemovals,
-			default: defaults.wordRemovals
-		).eraseToAny(),
-		SettingsField(
-			.wordRemappings,
-			keyPath: \.wordRemappings,
-			default: defaults.wordRemappings
-		).eraseToAny(),
-		SettingsField(
-			.basinSettings,
-			keyPath: \.basinSettings,
-			default: defaults.basinSettings
-		).eraseToAny()
+		SettingsField(.wordRemovals, keyPath: \.wordRemovals, default: defaults.wordRemovals).eraseToAny(),
+		SettingsField(.wordRemappings, keyPath: \.wordRemappings, default: defaults.wordRemappings).eraseToAny(),
+		SettingsField(.basinSettings, keyPath: \.basinSettings, default: defaults.basinSettings).eraseToAny(),
 	]
 }

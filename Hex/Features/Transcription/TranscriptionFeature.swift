@@ -96,8 +96,7 @@ struct TranscriptionFeature {
         // 3) Priming the recorder for instant startup
         return .merge(
           startMeteringEffect(),
-          startHotKeyMonitoringEffect(),
-          warmUpRecorderEffect()
+          startHotKeyMonitoringEffect()
         )
 
       // MARK: - Metering
@@ -340,11 +339,6 @@ private extension TranscriptionFeature {
     }
   }
 
-  func warmUpRecorderEffect() -> Effect<Action> {
-    .run { _ in
-      await recording.warmUpRecorder()
-    }
-  }
 }
 
 // MARK: - HotKey Press/Release Handlers
@@ -577,7 +571,7 @@ private extension TranscriptionFeature {
           sourceAppName: sourceAppName,
           audioURL: audioURL,
           transcriptionHistory: transcriptionHistory,
-          shouldPaste: basinSettings.pasteAfterSession
+          shouldPaste: false
         )
       } catch {
         await send(.transcriptionError(error, audioURL))

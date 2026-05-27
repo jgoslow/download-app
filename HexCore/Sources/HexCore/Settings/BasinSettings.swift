@@ -11,10 +11,6 @@ public struct BasinSettings: Codable, Equatable, Sendable {
     public var authToken: String
     /// The Flow ID to use when no type has been explicitly selected. Defaults to "open".
     public var defaultFlowID: String
-    /// If true, also paste the transcript to the cursor after routing.
-    /// Keep this on if you want Hex's original behavior alongside session routing.
-    /// Default is false — the app routes to destinations, not your cursor.
-    public var pasteAfterSession: Bool
     /// Anthropic API key for Phase 2+ AI routing. Empty = Phase 1 (local save only).
     public var anthropicAPIKey: String
     /// Whether daily capture reminders are enabled.
@@ -26,7 +22,6 @@ public struct BasinSettings: Codable, Equatable, Sendable {
         serverURL: String = "",
         authToken: String = "",
         defaultFlowID: String = "open",
-        pasteAfterSession: Bool = false,
         anthropicAPIKey: String = "",
         notificationsEnabled: Bool = false,
         diagnosticsEnabled: Bool = false
@@ -34,7 +29,6 @@ public struct BasinSettings: Codable, Equatable, Sendable {
         self.serverURL = serverURL
         self.authToken = authToken
         self.defaultFlowID = defaultFlowID
-        self.pasteAfterSession = pasteAfterSession
         self.anthropicAPIKey = anthropicAPIKey
         self.notificationsEnabled = notificationsEnabled
         self.diagnosticsEnabled = diagnosticsEnabled
@@ -45,14 +39,13 @@ public struct BasinSettings: Codable, Equatable, Sendable {
         serverURL = try container.decodeIfPresent(String.self, forKey: .serverURL) ?? ""
         authToken = try container.decodeIfPresent(String.self, forKey: .authToken) ?? ""
         defaultFlowID = try container.decodeIfPresent(String.self, forKey: .defaultFlowID) ?? "open"
-        pasteAfterSession = try container.decodeIfPresent(Bool.self, forKey: .pasteAfterSession) ?? false
         anthropicAPIKey = try container.decodeIfPresent(String.self, forKey: .anthropicAPIKey) ?? ""
         notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? false
         diagnosticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .diagnosticsEnabled) ?? false
     }
 
     private enum CodingKeys: String, CodingKey {
-        case serverURL, authToken, pasteAfterSession, anthropicAPIKey, notificationsEnabled
+        case serverURL, authToken, anthropicAPIKey, notificationsEnabled
         case defaultFlowID, diagnosticsEnabled
     }
 }

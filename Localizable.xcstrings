@@ -4,9 +4,6 @@
     "" : {
       "shouldTranslate" : false
     },
-    "(%@)" : {
-
-    },
     "%@ %@" : {
       "localizations" : {
         "en" : {
@@ -117,9 +114,6 @@
         }
       }
     },
-    "Assign a shortcut (modifier + key) to instantly paste your last transcription." : {
-
-    },
     "Audio Behavior while Recording" : {
 
     },
@@ -203,9 +197,6 @@
         }
       }
     },
-    "Clear shortcut" : {
-
-    },
     "Close" : {
       "localizations" : {
         "de" : {
@@ -252,9 +243,6 @@
           }
         }
       }
-    },
-    "Copy transcription text to clipboard in addition to pasting it" : {
-
     },
     "Create a Personal Access Token at github.com/settings/tokens with repo scope." : {
 
@@ -377,9 +365,6 @@
     "Enable in Settings" : {
 
     },
-    "Enable to keep Hex's original paste-to-cursor behavior alongside session routing." : {
-
-    },
     "Enable Word Removals" : {
 
     },
@@ -416,6 +401,12 @@
 
     },
     "Find your API token at track.toggl.com/profile (bottom of the page)." : {
+
+    },
+    "Flows" : {
+
+    },
+    "Flows set the context for each capture — what Castellum pays attention to and how it routes your words." : {
 
     },
     "General" : {
@@ -512,9 +503,6 @@
     "Integrations" : {
 
     },
-    "Keep the microphone warm and prepend a short in-memory buffer for near-instant capture. macOS will keep showing the microphone indicator while this mode is armed." : {
-
-    },
     "LIVE" : {
 
     },
@@ -554,6 +542,9 @@
     "No Captures" : {
 
     },
+    "No flows yet" : {
+
+    },
     "No models found." : {
       "comment" : "Replacement text in transcription model section when no available models are found",
       "extractionState" : "stale",
@@ -579,9 +570,6 @@
       }
     },
     "No workflows yet" : {
-
-    },
-    "Not set" : {
 
     },
     "Oldest entries will be automatically deleted when limit is reached" : {
@@ -625,12 +613,6 @@
       }
     },
     "Override the system default microphone with a specific input device. This setting will persist across sessions." : {
-
-    },
-    "Paste Last Transcript" : {
-
-    },
-    "Paste transcript to cursor" : {
 
     },
     "Paste your token" : {
@@ -886,9 +868,6 @@
     "Submit" : {
 
     },
-    "Super Fast Mode" : {
-
-    },
     "Token expires: %@" : {
 
     },
@@ -915,9 +894,6 @@
         }
       }
     },
-    "Transforms" : {
-
-    },
     "Type" : {
 
     },
@@ -927,11 +903,9 @@
     "Unlimited" : {
 
     },
-    "Use at least one modifier (⌘, ⌥, ⇧, ⌃) plus a key." : {
-
-    },
     "Use clipboard to insert" : {
       "comment" : "Label for toggle in general section.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -943,6 +917,7 @@
     },
     "Use clipboard to insert text. Fast but may not restore all clipboard content.\nTurn off to use simulated keypresses. Slower, but doesn't need to restore clipboard" : {
       "comment" : "More info on \"use clipboard to insert\" toggle in general section.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

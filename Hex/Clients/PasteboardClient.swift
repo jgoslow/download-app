@@ -82,11 +82,7 @@ struct PasteboardClientLive {
 
     @MainActor
     func paste(text: String) async {
-        if hexSettings.useClipboardPaste {
-            await pasteWithClipboard(text)
-        } else {
-            simulateTypingWithAppleScript(text)
-        }
+        await pasteWithClipboard(text)
     }
     
     @MainActor
@@ -208,28 +204,15 @@ struct PasteboardClientLive {
         _ = await waitForPasteboardCommit(targetChangeCount: targetChangeCount)
         let pasteSucceeded = await performPaste(text)
         
-        // Only restore original pasteboard contents if:
-        // 1. Copying to clipboard is disabled AND
-        // 2. The paste operation succeeded
-        if !hexSettings.copyToClipboard && pasteSucceeded {
+        if pasteSucceeded {
             let savedSnapshot = snapshot
             Task { @MainActor in
-                // Give slower apps a short window to read the plain-text entry
-                // before we repopulate the clipboard with the user's previous rich data.
                 try? await Task.sleep(for: .milliseconds(500))
                 pasteboard.clearContents()
                 savedSnapshot.restore(to: pasteboard)
             }
-        }
-        
-        // If we failed to paste AND user doesn't want clipboard retention,
-        // show a notification that text is available in clipboard
-        if !pasteSucceeded && !hexSettings.copyToClipboard {
-            // Keep the transcribed text in clipboard regardless of setting
+        } else {
             pasteboardLogger.notice("Paste operation failed; text remains in clipboard as fallback.")
-            
-            // TODO: Could add a notification here to inform user
-            // that text is available in clipboard
         }
     }
 

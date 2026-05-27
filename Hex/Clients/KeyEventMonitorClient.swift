@@ -449,6 +449,11 @@ class KeyEventMonitorClientLive {
   private func handleTapDisabledEvent(_ type: CGEventType) {
     let reason = type == .tapDisabledByTimeout ? "timeout" : "userInput"
     logger.error("Event tap disabled by \(reason); scheduling restart.")
+    if type == .tapDisabledByTimeout {
+      // isMonitoring stays true even though the tap is dead, so activateTapIfNeeded
+      // would silently skip recreation. Clear it first so the restart path works.
+      DispatchQueue.main.async { [weak self] in self?.isMonitoring = false }
+    }
     Task { [weak self] in
       guard let self else { return }
       await self.refreshMonitoringState(reason: "tap_disabled_\(reason)")

@@ -50,8 +50,6 @@ struct HistorySectionView: View {
 						.settingsCaption()
 						.padding(.leading, 28)
 				}
-
-				PasteLastTranscriptHotkeyRow(store: store)
 			}
 		} header: {
 			Text("History")
@@ -60,63 +58,6 @@ struct HistorySectionView: View {
 				Text("When disabled, transcriptions will not be saved and audio files will be deleted immediately after transcription.")
 					.font(.footnote)
 					.foregroundColor(.secondary)
-			}
-		}
-		.enableInjection()
-	}
-}
-
-private struct PasteLastTranscriptHotkeyRow: View {
-	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
-
-	var body: some View {
-		let pasteHotkey = store.hexSettings.pasteLastTranscriptHotkey
-
-		VStack(alignment: .leading, spacing: 12) {
-			Label {
-				VStack(alignment: .leading, spacing: 2) {
-					Text("Paste Last Transcript")
-						.font(.subheadline.weight(.semibold))
-					Text("Assign a shortcut (modifier + key) to instantly paste your last transcription.")
-						.settingsCaption()
-				}
-			} icon: {
-				Image(systemName: "doc.on.clipboard")
-			}
-
-			let key = store.isSettingPasteLastTranscriptHotkey ? nil : pasteHotkey?.key
-			let modifiers = store.isSettingPasteLastTranscriptHotkey ? store.currentPasteLastModifiers : (pasteHotkey?.modifiers ?? .init(modifiers: []))
-
-			HStack {
-				Spacer()
-				ZStack {
-					HotKeyView(modifiers: modifiers, key: key, isActive: store.isSettingPasteLastTranscriptHotkey)
-
-					if !store.isSettingPasteLastTranscriptHotkey, pasteHotkey == nil {
-						Text("Not set")
-							.settingsCaption()
-					}
-				}
-				.contentShape(Rectangle())
-				.onTapGesture {
-					store.send(.startSettingPasteLastTranscriptHotkey)
-				}
-				Spacer()
-			}
-
-			if store.isSettingPasteLastTranscriptHotkey {
-				Text("Use at least one modifier (⌘, ⌥, ⇧, ⌃) plus a key.")
-					.settingsCaption()
-			} else if pasteHotkey != nil {
-				Button {
-					store.send(.clearPasteLastTranscriptHotkey)
-				} label: {
-					Label("Clear shortcut", systemImage: "xmark.circle")
-				}
-				.buttonStyle(.borderless)
-				.font(.caption)
-				.foregroundStyle(.secondary)
 			}
 		}
 		.enableInjection()

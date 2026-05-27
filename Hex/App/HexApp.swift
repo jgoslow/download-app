@@ -33,8 +33,8 @@ struct HexApp: App {
         MenuBarExtra {
             CheckForUpdatesView()
 
-            // Copy last transcript to clipboard
-            MenuBarCopyLastTranscriptButton()
+            // TODO: Add "Flow History" section showing the last 10 flows run.
+            // Clicking a flow entry should quick-link to the history view filtered to that flow.
 
             Button("Settings...") {
                 appDelegate.presentSettingsView()

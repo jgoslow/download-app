@@ -38,18 +38,6 @@ struct BasinSectionView: View {
                 Image(systemName: "sparkles")
             }
 
-            // Paste after session toggle
-            Label {
-                Toggle(
-                    "Paste transcript to cursor",
-                    isOn: basinBinding(\.pasteAfterSession)
-                )
-                Text("Enable to keep Hex's original paste-to-cursor behavior alongside session routing.")
-                    .settingsCaption()
-            } icon: {
-                Image(systemName: "doc.on.clipboard")
-            }
-
             // Sessions folder link
             Label {
                 HStack {

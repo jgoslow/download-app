@@ -15,10 +15,14 @@ import SwiftUI
 struct AppFeature {
   enum ActiveTab: Equatable {
     case home
-    case settings
-    case remappings
     case history
+    case settings
+    case flows
+    case workflows
+    case tools
     case about
+    // TODO: Audit whether Basin needs speech-to-text transforms or other speech post-processing tools.
+    // Requires review of capabilities provided by competing STT apps before re-exposing.
   }
 
 	@ObservableState
@@ -45,7 +49,6 @@ struct AppFeature {
     case castellum(CastellumFeature.Action)
     case setActiveTab(ActiveTab)
     case task
-    case pasteLastTranscript
 
     // Permission actions
     case checkPermissions
@@ -58,7 +61,6 @@ struct AppFeature {
   }
 
   @Dependency(\.keyEventMonitor) var keyEventMonitor
-  @Dependency(\.pasteboard) var pasteboard
   @Dependency(\.transcription) var transcription
   @Dependency(\.permissions) var permissions
   @Dependency(\.notifications) var notifications
@@ -86,24 +88,14 @@ struct AppFeature {
       switch action {
       case .binding:
         return syncNotificationSchedule()
-        
+
       case .task:
         return .merge(
-          startPasteLastTranscriptMonitoring(),
           ensureSelectedModelReadiness(),
           startPermissionMonitoring(),
           syncNotificationSchedule()
         )
-        
-      case .pasteLastTranscript:
-        @Shared(.transcriptionHistory) var transcriptionHistory: TranscriptionHistory
-        guard let lastTranscript = transcriptionHistory.history.first?.text else {
-          return .none
-        }
-        return .run { _ in
-          await pasteboard.paste(lastTranscript)
-        }
-        
+
       case .transcription(.modelMissing):
         HexLog.app.notice("Model missing - activating app and switching to settings")
         state.activeTab = .settings
@@ -118,7 +110,6 @@ struct AppFeature {
         }
 
       case let .transcription(.analysisReceived(analysis, captureID)):
-        // Forward analysis to Castellum for action planning
         return .send(.castellum(.planExecution(analysis, captureID: captureID)))
 
       case .transcription:
@@ -135,9 +126,10 @@ struct AppFeature {
         return .none
       case .history:
         return .none
-		case let .setActiveTab(tab):
-			state.activeTab = tab
-			return .none
+
+      case let .setActiveTab(tab):
+        state.activeTab = tab
+        return .none
 
       // Permission handling
       case .checkPermissions:
@@ -155,7 +147,6 @@ struct AppFeature {
         return .none
 
       case .appActivated:
-        // App became active - re-check permissions
         return .send(.checkPermissions)
 
       case .requestMicrophone:
@@ -167,7 +158,6 @@ struct AppFeature {
       case .requestAccessibility:
         return .run { send in
           await permissions.requestAccessibility()
-          // Poll for status change (macOS doesn't provide callback)
           for _ in 0..<10 {
             try? await Task.sleep(for: .seconds(1))
             await send(.checkPermissions)
@@ -185,44 +175,6 @@ struct AppFeature {
 
       case .modelStatusEvaluated:
         return .none
-      }
-    }
-  }
-  
-  private func startPasteLastTranscriptMonitoring() -> Effect<Action> {
-    .run { send in
-      @Shared(.isSettingPasteLastTranscriptHotkey) var isSettingPasteLastTranscriptHotkey: Bool
-      @Shared(.hexSettings) var hexSettings: HexSettings
-
-      let token = keyEventMonitor.handleKeyEvent { keyEvent in
-        // Skip if user is setting a hotkey
-        if isSettingPasteLastTranscriptHotkey {
-          return false
-        }
-
-        // Check if this matches the paste last transcript hotkey
-        guard let pasteHotkey = hexSettings.pasteLastTranscriptHotkey,
-              let key = keyEvent.key,
-              key == pasteHotkey.key,
-              keyEvent.modifiers.matchesExactly(pasteHotkey.modifiers) else {
-          return false
-        }
-
-        // Trigger paste action - use MainActor to avoid escaping send
-        MainActor.assumeIsolated {
-          send(.pasteLastTranscript)
-        }
-        return true // Intercept the key event
-      }
-
-      defer { token.cancel() }
-
-      await withTaskCancellationHandler {
-        while !Task.isCancelled {
-          try? await Task.sleep(for: .seconds(60))
-        }
-      } onCancel: {
-        token.cancel()
       }
     }
   }
@@ -262,7 +214,6 @@ struct AppFeature {
         if granted {
           await notifications.scheduleDaily()
         } else {
-          // Permission denied — turn off the toggle
           $hexSettings.withLock { $0.basinSettings.notificationsEnabled = false }
         }
       } else {
@@ -273,19 +224,14 @@ struct AppFeature {
 
   private func startPermissionMonitoring() -> Effect<Action> {
     .run { send in
-      // Initial check on app launch
       await send(.checkPermissions)
-
-      // Monitor app activation events
       for await activation in permissions.observeAppActivation() {
         if case .didBecomeActive = activation {
           await send(.appActivated)
         }
       }
-
     }
   }
-
 }
 
 struct AppView: View {
@@ -295,6 +241,7 @@ struct AppView: View {
   var body: some View {
     NavigationSplitView(columnVisibility: $columnVisibility) {
       List(selection: $store.activeTab) {
+        // Primary
         Button {
           store.send(.setActiveTab(.home))
         } label: {
@@ -303,8 +250,17 @@ struct AppView: View {
         .buttonStyle(.plain)
         .tag(AppFeature.ActiveTab.home)
 
+        Button {
+          store.send(.setActiveTab(.history))
+        } label: {
+          Label("History", systemImage: "clock")
+        }
+        .buttonStyle(.plain)
+        .tag(AppFeature.ActiveTab.history)
+
         Divider()
 
+        // Configuration
         Button {
           store.send(.setActiveTab(.settings))
         } label: {
@@ -314,20 +270,28 @@ struct AppView: View {
         .tag(AppFeature.ActiveTab.settings)
 
         Button {
-          store.send(.setActiveTab(.remappings))
+          store.send(.setActiveTab(.flows))
         } label: {
-          Label("Transforms", systemImage: "text.badge.plus")
+          Label("Flows", systemImage: "arrow.trianglehead.2.clockwise.rotate.90")
         }
         .buttonStyle(.plain)
-        .tag(AppFeature.ActiveTab.remappings)
+        .tag(AppFeature.ActiveTab.flows)
 
         Button {
-          store.send(.setActiveTab(.history))
+          store.send(.setActiveTab(.workflows))
         } label: {
-          Label("History", systemImage: "clock")
+          Label("Workflows", systemImage: "list.bullet.rectangle")
         }
         .buttonStyle(.plain)
-        .tag(AppFeature.ActiveTab.history)
+        .tag(AppFeature.ActiveTab.workflows)
+
+        Button {
+          store.send(.setActiveTab(.tools))
+        } label: {
+          Label("Tools", systemImage: "wrench.and.screwdriver")
+        }
+        .buttonStyle(.plain)
+        .tag(AppFeature.ActiveTab.tools)
 
         Button {
           store.send(.setActiveTab(.about))
@@ -342,6 +306,9 @@ struct AppView: View {
       case .home:
         HomeView(store: store)
           .navigationTitle("Basin")
+      case .history:
+        HistoryView(store: store.scope(state: \.history, action: \.history))
+          .navigationTitle("History")
       case .settings:
         SettingsView(
           store: store.scope(state: \.settings, action: \.settings),
@@ -350,12 +317,15 @@ struct AppView: View {
           inputMonitoringPermission: store.inputMonitoringPermission
         )
         .navigationTitle("Settings")
-      case .remappings:
-        WordRemappingsView(store: store.scope(state: \.settings, action: \.settings))
-          .navigationTitle("Transforms")
-      case .history:
-        HistoryView(store: store.scope(state: \.history, action: \.history))
-          .navigationTitle("History")
+      case .flows:
+        FlowsView()
+          .navigationTitle("Flows")
+      case .workflows:
+        WorkflowsView(store: store.scope(state: \.settings, action: \.settings))
+          .navigationTitle("Workflows")
+      case .tools:
+        ToolsView(store: store.scope(state: \.settings, action: \.settings))
+          .navigationTitle("Tools")
       case .about:
         AboutView(store: store.scope(state: \.settings, action: \.settings))
           .navigationTitle("About")
