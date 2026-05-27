@@ -471,6 +471,7 @@ private struct AnalysisCard: View {
         case .slack: return "bubble.left"
         case .email: return "envelope"
         case .calendar: return "calendar"
+        case .docs: return "doc.text"
         case .wave: return "dollarsign.circle"
         case .github: return "chevron.left.forwardslash.chevron.right"
         }

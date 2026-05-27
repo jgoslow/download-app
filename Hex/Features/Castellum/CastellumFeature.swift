@@ -89,6 +89,7 @@ struct CastellumFeature {
         var isExecuting: Bool = false
         var planningError: String?
         var selectedActions: Set<String> = []
+        var expandedActions: Set<String> = []
     }
 
     enum Action {
@@ -99,6 +100,7 @@ struct CastellumFeature {
 
         // User interaction
         case toggleAction(String)
+        case toggleActionDetail(String)
         case executeSelected
         case retryAction(String)
         case dismissPlan
@@ -187,6 +189,14 @@ struct CastellumFeature {
                 }
                 return .none
 
+            case let .toggleActionDetail(actionID):
+                if state.expandedActions.contains(actionID) {
+                    state.expandedActions.remove(actionID)
+                } else {
+                    state.expandedActions.insert(actionID)
+                }
+                return .none
+
             case .executeSelected:
                 guard let plan = state.currentPlan else { return .none }
 
@@ -257,6 +267,7 @@ struct CastellumFeature {
                 state.currentPlan = nil
                 state.actionResults = [:]
                 state.selectedActions = []
+                state.expandedActions = []
                 state.isPlanning = false
                 state.isExecuting = false
                 state.planningError = nil

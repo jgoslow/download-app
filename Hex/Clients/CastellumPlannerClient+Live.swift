@@ -23,7 +23,7 @@ extension CastellumPlannerClient {
             // 1. Match analysis integrations to connected tools
             //    Map integration names to tool IDs (calendar/email → google)
             let integrationToToolID: [String: String] = [
-                "calendar": "google", "email": "google",
+                "calendar": "google", "email": "google", "docs": "google",
                 "jira": "jira", "slack": "slack", "toggl": "toggl",
                 "github": "github", "wave": "wave"
             ]

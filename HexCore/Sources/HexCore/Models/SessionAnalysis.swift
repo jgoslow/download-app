@@ -35,6 +35,7 @@ public struct SessionAnalysis: Codable, Sendable, Equatable {
         case slack
         case email
         case calendar
+        case docs
         case wave
         case github
     }

@@ -104,7 +104,7 @@ Basin is modeled after a Roman waterworks system. Each layer has a role:
 | **Capture** | Water entering the basin | A single voice recording session with its transcript. |
 | **Flow** | A directed stream from the basin | A named capture ritual with guided prompts, schedule, and routing. E.g., "Morning Kickoff" or "Day's End". |
 | **Castellum** | The distribution hub | On-device AI orchestration. Receives water from the basin, analyzes it, and decides where it should go. In Roman waterworks, the castellum sat where the aqueduct entered the city and divided the water. |
-| **Workflow** (previously Channel) | An aqueduct | An emergent automation outcome produced by Castellum for a given capture. E.g., "Created Jira card", "Sent email", "Logged time". Not predefined — arises organically from the capture content and connected tools. |
+| **Workflow** (previously Channel) | An aqueduct | A channel to a specific outcome — like an aqueduct bringing water to a specific destination, through specific tools, creating a specific result. E.g., "Created Jira card", "Sent email", "Logged time". Not predefined — arises organically from the capture content and connected tools. |
 | **Tool** | Mechanisms along the aqueduct | A connected external service (Jira, Slack, Toggl, etc.). Like fountains, baths, and water clocks — a single channel may use many tools along its path. |
 | **Evaporation** | The water cycle | Feedback loop. Outputs (closed cards, logged hours, sent messages) become pre-session context for the next capture. The cycle completes. |
 

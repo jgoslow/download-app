@@ -102,7 +102,7 @@ Return ONLY valid JSON with exactly these fields, no markdown, no explanation:
   "tasks": ["actionable item 1", "actionable item 2"],
   "routing": ["jira", "calendar", "notes", "slack", "email", "cns"],
   "delegations": ["Diego: specific thing to delegate"],
-  "integrations": ["jira", "toggl", "slack", "email", "calendar", "wave", "github"],
+  "integrations": ["jira", "toggl", "slack", "email", "calendar", "docs", "wave", "github"],
   "prompts_addressed": [0, 2, 4]
 }
 
@@ -110,7 +110,8 @@ routing should only include relevant destinations. tasks should be concrete and 
 delegations should name the person when possible (Diego or Josh for work items). \
 integrations should list external services that would be needed to act on the session content — \
 only include ones that are clearly relevant (e.g. "jira" if tickets are mentioned, \
-"toggl" if time tracking is discussed, "email" if emails need sending). \
+"toggl" if time tracking is discussed, "email" if emails need sending, \
+"docs" if a Google Doc needs to be created or edited). \
 prompts_addressed should list the indices (0-based) of guided prompts that the user addressed \
 in their transcript. Only include prompts that were clearly covered. If no prompt titles \
 are provided, return an empty array.

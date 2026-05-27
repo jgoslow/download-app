@@ -194,43 +194,87 @@ struct ExecutionPlanView: View {
     // MARK: - Action Row
 
     private func actionRow(_ action: PlannedAction, indented: Bool = false) -> some View {
-        HStack(spacing: 8) {
-            // Checkbox (only when pending)
-            if action.status == .pending {
-                Button {
-                    store.send(.toggleAction(action.id))
-                } label: {
-                    Image(systemName: store.selectedActions.contains(action.id) ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(store.selectedActions.contains(action.id) ? .blue : .secondary)
+        let serviceName = ToolDefinitionLoader.load(action.toolID)?.name ?? action.toolID.capitalized
+        let hasParams = !action.parameters.isEmpty
+
+        return VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                // Checkbox (only when pending)
+                if action.status == .pending {
+                    Button {
+                        store.send(.toggleAction(action.id))
+                    } label: {
+                        Image(systemName: store.selectedActions.contains(action.id) ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(store.selectedActions.contains(action.id) ? .blue : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    statusIcon(action.status)
                 }
-                .buttonStyle(.plain)
-            } else {
-                statusIcon(action.status)
+
+                // Tool icon
+                Image(systemName: toolIcon(action.toolID, actionType: action.actionType))
+                    .frame(width: 16)
+                    .foregroundStyle(.secondary)
+
+                // Label + service name
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(action.label)
+                        .font(.callout)
+                        .lineLimit(2)
+                    Text(serviceName)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+
+                Spacer()
+
+                // Retry button for failed actions
+                if action.status == .failed {
+                    Button {
+                        store.send(.retryAction(action.id))
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
+                    .help("Retry this action")
+                }
+
+                // Expand chevron (when there are parameters)
+                if hasParams {
+                    Image(systemName: store.expandedActions.contains(action.id) ? "chevron.up" : "chevron.down")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if hasParams {
+                    store.send(.toggleActionDetail(action.id))
+                }
             }
 
-            // Tool icon
-            Image(systemName: toolIcon(action.toolID))
-                .frame(width: 16)
-                .foregroundStyle(.secondary)
-
-            // Label
-            Text(action.label)
-                .font(.callout)
-                .lineLimit(2)
-
-            Spacer()
-
-            // Retry button for failed actions
-            if action.status == .failed {
-                Button {
-                    store.send(.retryAction(action.id))
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.caption)
+            // Expanded parameter detail
+            if hasParams && store.expandedActions.contains(action.id) {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(action.parameters.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+                        HStack(alignment: .top, spacing: 6) {
+                            Text(key)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .frame(width: 80, alignment: .trailing)
+                            Text(value)
+                                .font(.caption2)
+                                .foregroundStyle(.primary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.blue)
-                .help("Retry this action")
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color(.windowBackgroundColor).opacity(0.4))
             }
         }
         .padding(.horizontal, indented ? 24 : 12)
@@ -276,7 +320,7 @@ struct ExecutionPlanView: View {
         }
     }
 
-    private func toolIcon(_ toolID: String) -> String {
+    private func toolIcon(_ toolID: String, actionType: String = "") -> String {
         switch toolID {
         case "jira": return "ticket"
         case "github": return "chevron.left.forwardslash.chevron.right"
@@ -285,6 +329,12 @@ struct ExecutionPlanView: View {
         case "calendar": return "calendar"
         case "email": return "envelope"
         case "wave": return "dollarsign.circle"
+        case "google":
+            switch actionType {
+            case "create_event": return "calendar"
+            case "send_email": return "envelope"
+            default: return "doc.text"
+            }
         default: return "wrench"
         }
     }

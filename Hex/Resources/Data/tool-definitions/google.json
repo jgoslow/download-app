@@ -184,7 +184,9 @@
   },
   "workflows": {
     "create-event": "create_event",
-    "write-email": "send_email"
+    "write-email": "send_email",
+    "create-doc": "create_document",
+    "append-doc": "append_text"
   },
   "claude_context": {
     "defaults": {}
