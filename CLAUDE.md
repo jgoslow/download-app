@@ -2,6 +2,10 @@
 
 This file provides guidance for coding agents working in this repo.
 
+## Memory
+
+All project memory lives in `.claude/memory/` within this repo — **not** in `~/.claude/projects/…`. Always read from and write memory files to `/Users/jonasgoslow/localhost/basin/.claude/memory/`, including `MEMORY.md` as the index. Never write project memories to the global Claude directory.
+
 ## Project Overview
 
 Hex is a macOS menu bar application for on‑device voice‑to‑text. It supports Whisper (Core ML via WhisperKit) and Parakeet TDT v3 (Core ML via FluidAudio). Users activate transcription with hotkeys; text can be auto‑pasted into the active app.
