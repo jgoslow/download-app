@@ -70,8 +70,8 @@ Basin is modeled after a Roman waterworks system. Each layer has a role:
        |         |         |        |        |
        v         v         v        v        v
     |==|==|   |==|==|   |==|==|  |==|==|  |==|==|
-    |card |   | msg |   |hours|  |issue|  |event|   CHANNELS
-    |==|==|   |==|==|   |==|==|  |==|==|  |==|==|   (aqueducts)
+    |card |   | msg |   |hours|  |issue|  |event|   WORKFLOWS
+    |==|==|   |==|==|   |==|==|  |==|==|  |==|==|   (previously Channels)
        |         |         |        |        |
        |         |         |        |        |       The paths that
        |         |         |        |        |       carry water to
@@ -104,7 +104,7 @@ Basin is modeled after a Roman waterworks system. Each layer has a role:
 | **Capture** | Water entering the basin | A single voice recording session with its transcript. |
 | **Flow** | A directed stream from the basin | A named capture ritual with guided prompts, schedule, and routing. E.g., "Morning Kickoff" or "Day's End". |
 | **Castellum** | The distribution hub | On-device AI orchestration. Receives water from the basin, analyzes it, and decides where it should go. In Roman waterworks, the castellum sat where the aqueduct entered the city and divided the water. |
-| **Channel** | An aqueduct | A specific automation path — the pipe that carries water to its destination. E.g., "Write an email", "Create a Jira card", "Log time". |
+| **Workflow** (previously Channel) | An aqueduct | An emergent automation outcome produced by Castellum for a given capture. E.g., "Created Jira card", "Sent email", "Logged time". Not predefined — arises organically from the capture content and connected tools. |
 | **Tool** | Mechanisms along the aqueduct | A connected external service (Jira, Slack, Toggl, etc.). Like fountains, baths, and water clocks — a single channel may use many tools along its path. |
 | **Evaporation** | The water cycle | Feedback loop. Outputs (closed cards, logged hours, sent messages) become pre-session context for the next capture. The cycle completes. |
 
@@ -116,7 +116,7 @@ Basin is modeled after a Roman waterworks system. Each layer has a role:
 2. **Double-tap** to lock recording, tap again to stop
 3. **Choose a flow** for guided prompts (or use Open for freeform)
 4. **AI analyzes** the capture: extracts tasks, routing, mood, delegations
-5. **Channels route** to tools: create Jira cards, log time, send messages
+5. **Workflows emerge**: Castellum routes to connected tools — creates Jira cards, logs time, sends messages
 
 ---
 
@@ -126,8 +126,8 @@ Once you open Basin, grant microphone and accessibility permissions so it can re
 
 ### Onboarding order:
 1. **Flows** — choose or create your capture rituals
-2. **Channels** — enable automation paths (Write an email, Create a card, Log time)
-3. **Tools** — connect the services those channels need (Jira, Slack, Toggl, etc.)
+2. **Tools** — connect the services you use (Jira, Slack, Toggl, Google, etc.)
+3. **Workflows emerge** — Castellum produces outcomes automatically based on your captures and connected tools
 
 ---
 
