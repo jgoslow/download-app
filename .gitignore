@@ -26,3 +26,6 @@ Hex/Config/Secrets.xcconfig
 
 # Claude
 .claude/
+
+# Playwright MCP session data
+.playwright-mcp/

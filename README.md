@@ -2,7 +2,7 @@
                                                         /\
                                                  /\    /  \
                                           /\    /  \  /    \
-  .             B A S I N          .     /  \  /    \/      \
+  .             B A S N            .     /  \  /    \/      \
  / \                              / \   /    \/              \
 /   \.                           /   \_/     /\               \
      '==.                       /           /  \               \
@@ -14,8 +14,12 @@
 ```
 
 # Basin
+Basn is an AI-powered capture and productivity app for iOS, macOS and Apple Watch.
 
-A personal AI-powered productivity app for macOS. Capture your thoughts by voice, let AI analyze them, and route actions to the tools you use.
+Pour your thoughts into Basn with daily ritual flows, and build channels for your ideas to go to work. Capture your thoughts by voice, let AI analyze them, and route workflows to the tools you connect. Create channels to support your personal and work life goals. Basn helps you build practical pathways for your ideas and empty your mind on a daily basis.
+
+Basn - Let your thoughts flow.
+
 
 Built on [Parakeet TDT v3](https://github.com/FluidInference/FluidAudio) (default) and [WhisperKit](https://github.com/argmaxinc/WhisperKit) for on-device transcription, [Swift Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) for state management, and SwiftData + CloudKit for persistence and sync.
 
@@ -83,7 +87,7 @@ Basin is modeled after a Roman waterworks system. Each layer has a role:
 
     Like mechanisms along an aqueduct —
     fountains, baths, water clocks. A single
-    channel may use many tools on its way.
+    workflow may use many tools on its way.
 
        ~    .    ~    .    ~    .    ~
       . ~ evaporation ~ . ~ . ~ . ~        The water cycle completes.
@@ -100,13 +104,13 @@ Basin is modeled after a Roman waterworks system. Each layer has a role:
 
 | Term | Metaphor | Definition |
 |------|----------|------------|
-| **Basin** | The basin itself | The app. Voice capture that feels effortless. |
+| **Basn** | The basin itself | The app. Voice capture that feels effortless. |
 | **Capture** | Water entering the basin | A single voice recording session with its transcript. |
 | **Flow** | A directed stream from the basin | A named capture ritual with guided prompts, schedule, and routing. E.g., "Morning Kickoff" or "Day's End". |
 | **Castellum** | The distribution hub | On-device AI orchestration. Receives water from the basin, analyzes it, and decides where it should go. In Roman waterworks, the castellum sat where the aqueduct entered the city and divided the water. |
-| **Workflow** (previously Channel) | An aqueduct | A channel to a specific outcome — like an aqueduct bringing water to a specific destination, through specific tools, creating a specific result. E.g., "Created Jira card", "Sent email", "Logged time". Not predefined — arises organically from the capture content and connected tools. |
-| **Tool** | Mechanisms along the aqueduct | A connected external service (Jira, Slack, Toggl, etc.). Like fountains, baths, and water clocks — a single channel may use many tools along its path. |
-| **Evaporation** | The water cycle | Feedback loop. Outputs (closed cards, logged hours, sent messages) become pre-session context for the next capture. The cycle completes. |
+| **Workflow** (previously Channel) | A channel to a specific outcome — like an aqueduct bringing water to a specific destination, through specific tools, creating a specific result. E.g., "Created Jira card", "Sent email", "Logged time". Not predefined — arises organically from the capture content and connected tools. |
+| **Tool** | Mechanisms along the aqueduct | A connected external service (Jira, Slack, Toggl, etc.) with various actions it can perform. Like fountains, baths, and water clocks — a single workflow may use many tools along its path. |
+| **Evaporation** | The water cycle or possible "Backflow" | Feedback loop. Outputs (closed cards, logged hours, sent messages) become pre-session context for the next capture. The cycle completes. |
 
 ---
 
@@ -127,7 +131,7 @@ Once you open Basin, grant microphone and accessibility permissions so it can re
 ### Onboarding order:
 1. **Flows** — choose or create your capture rituals
 2. **Tools** — connect the services you use (Jira, Slack, Toggl, Google, etc.)
-3. **Workflows emerge** — Castellum produces outcomes automatically based on your captures and connected tools
+3. **Workflows emerge** — Castellum produces outcomes automatically based on your captures and connected tools. Users can tune the specifics of a workflow by editing natural language descriptions or asking Basn to adjust a workflow directly through an open flow.
 
 ---
 
