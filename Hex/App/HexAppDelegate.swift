@@ -163,11 +163,16 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 			}
 		}
 
-		// Bring the settings window to front after OAuth redirect (not the app generally,
-		// which would surface the invisible transcription window instead).
+		// Bring the settings window to front after OAuth redirect. Activate first, then
+		// immediately close any windows we don't own (the empty SwiftUI WindowGroup that
+		// surfaces on activation). Do this before makeKeyAndOrderFront so the settings
+		// window ends up on top.
 		if urls.contains(where: { $0.scheme == "basin" }), let settingsWindow {
-			settingsWindow.makeKeyAndOrderFront(nil)
 			NSApplication.shared.activate(ignoringOtherApps: true)
+			for window in NSApplication.shared.windows where window !== settingsWindow && window !== invisibleWindow {
+				window.orderOut(nil)
+			}
+			settingsWindow.makeKeyAndOrderFront(nil)
 		}
 	}
 

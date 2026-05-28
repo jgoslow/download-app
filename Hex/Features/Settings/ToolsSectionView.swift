@@ -3,7 +3,15 @@
 //  Basin
 //
 //  Settings section for connecting external tools (Jira, Slack, Toggl, etc.).
-//  Two-tab auth: OAuth (preferred) or API Key (fallback).
+//  Each tool row is collapsible. The expanded state shows:
+//    1. Connection info — auth method, date connected, token expiry health
+//    2. Authorized permissions — scopes granted at OAuth time (non-interactive)
+//    3. Basin can use — service-area toggles controlling what Basin actually does
+//    4. Controls — Requires Approval toggle + Disconnect
+//
+//  TODO: Alert the user via system notification N days before oauthExpiresAt.
+//  TODO: When an action fails due to an expired token, surface a "Reconnect [Tool] →"
+//        inline link in the workflow summary card (add at the failure path in CastellumExecutor).
 //
 
 import ComposableArchitecture
@@ -19,7 +27,7 @@ struct ToolsSectionView: View {
     var body: some View {
         Section {
             ForEach(tools) { tool in
-                toolRow(tool)
+                ToolRowView(tool: tool, onConnect: { connectingTool = tool })
             }
         } header: {
             Text("Tools")
@@ -28,8 +36,288 @@ struct ToolsSectionView: View {
             ToolConnectSheet(tool: tool, onDismiss: { connectingTool = nil })
         }
     }
+}
 
-    private func disconnectTool(_ tool: Tool) {
+// MARK: - Tool Row
+
+private struct ToolRowView: View {
+    @Bindable var tool: Tool
+    let onConnect: () -> Void
+
+    @State private var isExpanded = false
+    @State private var verifyState: VerifyState = .idle
+
+    private enum VerifyState { case idle, checking, success, failed }
+
+    private var spec: ToolDefinitionSpec? { ToolDefinitionLoader.load(tool.id) }
+
+    var body: some View {
+        DisclosureGroup(isExpanded: $isExpanded) {
+            VStack(alignment: .leading, spacing: 14) {
+                if tool.isConnected {
+                    connectionSection
+                    if let grantedScopes = grantedScopeLabels, !grantedScopes.isEmpty {
+                        Divider()
+                        authorizedPermissionsSection(grantedScopes)
+                    }
+                    if hasBasinCanUseContent {
+                        Divider()
+                        basinCanUseSection
+                    }
+                    Divider()
+                }
+                controlsSection
+            }
+            .padding(.top, 6)
+            .padding(.bottom, 4)
+        } label: {
+            HStack {
+                // TODO: Replace SF Symbol with branded asset (e.g. Image("tool-\(tool.id)"))
+                //       once SVG brand icons are added to the asset catalog.
+                Label(tool.name, systemImage: spec?.icon ?? tool.iconSystemName)
+                Spacer()
+                if tool.isConnected {
+                    let tokenExpired = tool.oauthExpiresAt.map { $0 < Date() } ?? false
+                    if tokenExpired {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundStyle(.orange)
+                            .help("Token expired — reconnect to continue using this tool")
+                    } else {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                    }
+                } else {
+                    Button("Connect") { onConnect() }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(Color.accentColor)
+                }
+            }
+        }
+    }
+
+    // MARK: - Connection section
+
+    private var connectionSection: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 6) {
+                Text(tool.effectiveAuthMethod == "oauth" ? "OAuth" : "API Key")
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
+                    .foregroundStyle(.secondary)
+
+                if let connectedAt = tool.connectedAt {
+                    Text("Connected \(connectedAt, format: .dateTime.month(.wide).day().year())")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+
+            if let expiresAt = tool.oauthExpiresAt {
+                tokenHealthView(expiresAt: expiresAt)
+            }
+
+            HStack(spacing: 8) {
+                if let lastUsedAt = tool.lastUsedAt {
+                    Text("Last used \(lastUsedAt, format: .relative(presentation: .named))")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                } else {
+                    Text("Not yet used by Basin")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+
+                Spacer()
+
+                if spec?.healthCheck != nil {
+                    verifyButton
+                }
+            }
+        }
+    }
+
+    private var verifyButton: some View {
+        Group {
+            switch verifyState {
+            case .idle:
+                Button("Verify") { runVerify() }
+                    .font(.caption2)
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(Color.accentColor)
+            case .checking:
+                HStack(spacing: 4) {
+                    ProgressView().controlSize(.mini)
+                    Text("Checking…").font(.caption2).foregroundStyle(.secondary)
+                }
+            case .success:
+                Label("Connected", systemImage: "checkmark.circle.fill")
+                    .font(.caption2)
+                    .foregroundStyle(.green)
+            case .failed:
+                Label("Auth failed", systemImage: "xmark.circle.fill")
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
+    private func runVerify() {
+        guard let spec else { return }
+        verifyState = .checking
+        Task {
+            let ok = await GenericToolExecutor.verify(tool: tool, spec: spec)
+            await MainActor.run { verifyState = ok ? .success : .failed }
+            try? await Task.sleep(for: .seconds(4))
+            await MainActor.run { verifyState = .idle }
+        }
+    }
+
+    private func tokenHealthView(expiresAt: Date) -> some View {
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: expiresAt).day ?? 0
+        return HStack(spacing: 4) {
+            Image(systemName: days > 8 ? "key.fill" : "exclamationmark.triangle.fill")
+                .font(.caption2)
+            Group {
+                if days <= 0 {
+                    Text("Token expired — reconnect now")
+                } else if days < 8 {
+                    Text("Expiring in \(days) days — reconnect soon")
+                } else if days <= 30 {
+                    Text("Expires in \(days) days")
+                } else {
+                    Text("Auth valid")
+                }
+            }
+            .font(.caption2)
+        }
+        .foregroundStyle(days > 30 ? Color.secondary : days > 8 ? Color.orange : Color.red)
+    }
+
+    // MARK: - Authorized permissions section
+
+    /// Human-readable labels for the scopes actually granted at OAuth connect time.
+    private var grantedScopeLabels: [String]? {
+        guard tool.effectiveAuthMethod == "oauth",
+              let selectedKeys = tool.selectedScopeKeys,
+              let availableScopes = spec?.auth.availableScopes else { return nil }
+        return selectedKeys.compactMap { availableScopes[$0]?.label }
+    }
+
+    private func authorizedPermissionsSection(_ labels: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Authorized permissions")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            VStack(alignment: .leading, spacing: 3) {
+                ForEach(labels, id: \.self) { label in
+                    Label(label, systemImage: "checkmark")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Button("Reconnect to change") { onConnect() }
+                .font(.caption2)
+                .buttonStyle(.borderless)
+                .foregroundStyle(Color.accentColor)
+                .padding(.top, 2)
+        }
+    }
+
+    // MARK: - Basin can use section
+
+    private var hasBasinCanUseContent: Bool {
+        if let areas = serviceAreas, !areas.isEmpty { return true }
+        return spec?.actions.values.first != nil
+    }
+
+    @ViewBuilder
+    private var basinCanUseSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Basin can use")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if let areas = serviceAreas, !areas.isEmpty {
+                ForEach(areas) { area in
+                    serviceAreaToggle(area)
+                }
+            } else if let firstAction = spec?.actions.values.first {
+                // Single-action tool — just describe what it does
+                Text(firstAction.description)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+    }
+
+    private func serviceAreaToggle(_ area: ToolServiceArea) -> some View {
+        let allDisabled = area.actionKeys.allSatisfy { Set(tool.enabledActionKeys ?? []).contains($0) }
+
+        return HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(area.label)
+                    .font(.callout)
+                Text(area.description)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            Spacer()
+            Toggle("", isOn: Binding(
+                get: { !allDisabled },
+                set: { enabled in
+                    var current = Set(tool.enabledActionKeys ?? [])
+                    if enabled {
+                        area.actionKeys.forEach { current.remove($0) }
+                    } else {
+                        area.actionKeys.forEach { current.insert($0) }
+                    }
+                    tool.enabledActionKeys = current.isEmpty ? nil : Array(current)
+                }
+            ))
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .labelsHidden()
+        }
+    }
+
+    // MARK: - Controls section
+
+    private var controlsSection: some View {
+        HStack(spacing: 12) {
+            if tool.isConnected {
+                VStack(alignment: .leading, spacing: 1) {
+                    Toggle("Requires approval", isOn: Binding(
+                        get: { !tool.autoExecute },
+                        set: { tool.autoExecute = !$0 }
+                    ))
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    Text("Basin will ask before running actions. Overridden by individual workflow settings.")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+
+                Spacer()
+
+                Button("Disconnect") { disconnectTool() }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.red.opacity(0.8))
+                    .font(.callout)
+            } else {
+                Button("Connect \(tool.name)") { onConnect() }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(Color.accentColor)
+            }
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func disconnectTool() {
         tool.isConnected = false
         tool.oauthAccessToken = nil
         tool.oauthRefreshToken = nil
@@ -37,54 +325,70 @@ struct ToolsSectionView: View {
         tool.oauthScopes = nil
         tool.apiKey = nil
         tool.activeAuthMethod = tool.effectiveSupportsOAuth ? "oauth" : "api_key"
+        isExpanded = false
     }
 
-    @ViewBuilder
-    private func toolRow(_ tool: Tool) -> some View {
-        Label {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(tool.name)
-                    if tool.isConnected {
-                        HStack(spacing: 6) {
-                            Text(tool.effectiveAuthMethod == "oauth" ? "Connected via OAuth" : "Connected via API key")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                            Button("Disconnect") {
-                                disconnectTool(tool)
-                            }
-                            .font(.caption2)
-                            .buttonStyle(.borderless)
-                            .foregroundStyle(.red.opacity(0.7))
-                        }
-                    }
-                }
-                Spacer()
+    // Service areas for this tool, derived from available OAuth scopes + static action mapping.
+    // Nil means no sub-areas (single-action tools show a description caption instead).
+    private var serviceAreas: [ToolServiceArea]? {
+        guard let availableScopes = spec?.auth.availableScopes,
+              !availableScopes.isEmpty,
+              let spec else { return nil }
+        return ToolServiceArea.areas(for: tool.id, scopes: availableScopes, actions: spec.actions)
+    }
+}
 
-                if tool.isConnected {
-                    Toggle("Auto", isOn: Binding(
-                        get: { tool.autoExecute },
-                        set: { tool.autoExecute = $0 }
-                    ))
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .help("Auto-execute actions without confirmation")
+// MARK: - Service Area model
 
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                        .help("Connected")
-                } else {
-                    Button("Connect") {
-                        connectingTool = tool
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(Color.accentColor)
-                }
-            }
-        } icon: {
-            Image(systemName: tool.iconSystemName)
+/// A Basin-defined capability grouping that maps to a set of action keys.
+/// One toggle controls whether Basin uses any action within the area.
+private struct ToolServiceArea: Identifiable {
+    let id: String
+    let label: String
+    let description: String
+    let actionKeys: [String]
+
+    /// Derives service areas for a given tool by matching known scope→action mappings.
+    static func areas(
+        for toolID: String,
+        scopes: [String: ToolDefinitionSpec.AuthSpec.ScopeSpec],
+        actions: [String: ToolDefinitionSpec.ActionSpec]
+    ) -> [ToolServiceArea]? {
+        let mapping = scopeActionMapping[toolID] ?? [:]
+        guard !mapping.isEmpty else { return nil }
+
+        var result: [ToolServiceArea] = []
+        var covered: Set<String> = []
+
+        for (scopeKey, actionKeys) in mapping.sorted(by: { $0.key < $1.key }) {
+            let validKeys = actionKeys.filter { actions[$0] != nil }
+            guard !validKeys.isEmpty, let scopeSpec = scopes[scopeKey] else { continue }
+            covered.formUnion(validKeys)
+
+            let desc = validKeys.compactMap { actions[$0]?.displayName }.joined(separator: ", ")
+            result.append(ToolServiceArea(id: scopeKey, label: scopeSpec.label, description: desc, actionKeys: validKeys))
         }
+
+        // Ungrouped actions (not covered by any scope mapping)
+        let ungrouped = actions.keys.filter { !covered.contains($0) }.sorted()
+        if !ungrouped.isEmpty {
+            let desc = ungrouped.compactMap { actions[$0]?.displayName }.joined(separator: ", ")
+            result.append(ToolServiceArea(id: "__other", label: "Other", description: desc, actionKeys: ungrouped))
+        }
+
+        return result.isEmpty ? nil : result
     }
+
+    /// Maps tool ID → scope key → action keys covered by that scope.
+    /// Extend this as new tools with multi-scope support are added.
+    private static let scopeActionMapping: [String: [String: [String]]] = [
+        "google": [
+            "calendar": ["create_event"],
+            "gmail": ["send_email"],
+            "docs": ["create_document", "append_text", "read_document"],
+            "drive_file": []
+        ]
+    ]
 }
 
 // MARK: - Connect Sheet
@@ -120,7 +424,6 @@ private struct ToolConnectSheet: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Header
             HStack(spacing: 10) {
                 Image(systemName: tool.iconSystemName)
                     .font(.title2)
@@ -129,7 +432,6 @@ private struct ToolConnectSheet: View {
                     .font(.headline)
             }
 
-            // Tab picker (only if both methods available)
             if availableTabs.count > 1 {
                 Picker("Auth Method", selection: $selectedTab) {
                     ForEach(availableTabs, id: \.self) { tab in
@@ -139,17 +441,13 @@ private struct ToolConnectSheet: View {
                 .pickerStyle(.segmented)
             }
 
-            // Content
             switch selectedTab {
-            case .oauth:
-                oauthTab
-            case .apiKey:
-                apiKeyTab
+            case .oauth: oauthTab
+            case .apiKey: apiKeyTab
             }
 
             Divider()
 
-            // Actions
             HStack {
                 if tool.isConnected {
                     Button("Disconnect") { disconnect() }
@@ -175,7 +473,6 @@ private struct ToolConnectSheet: View {
             apiKeyInput = tool.apiKey ?? ""
             baseURLInput = tool.baseURL ?? ""
 
-            // Initialize scope toggles from saved selection, or default to all "default: true" scopes
             if let saved = tool.selectedScopeKeys {
                 enabledScopeKeys = Set(saved)
             } else if let scopes = toolSpec?.auth.availableScopes {
@@ -189,7 +486,6 @@ private struct ToolConnectSheet: View {
     private var oauthTab: some View {
         VStack(spacing: 12) {
             if tool.isOAuthConnected {
-                // Connected state
                 VStack(spacing: 8) {
                     Image(systemName: "checkmark.shield.fill")
                         .font(.system(size: 32))
@@ -208,7 +504,6 @@ private struct ToolConnectSheet: View {
                     }
                 }
             } else {
-                // Not connected — scope picker + sign in button
                 VStack(spacing: 12) {
                     Image(systemName: "lock.shield")
                         .font(.system(size: 32))
@@ -218,26 +513,31 @@ private struct ToolConnectSheet: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
-                    // Scope toggles (shown when the tool has selectable scopes)
                     if !availableScopes.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Access")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            ForEach(availableScopes, id: \.key) { key, spec in
-                                Toggle(spec.label, isOn: Binding(
-                                    get: { enabledScopeKeys.contains(key) },
-                                    set: { enabled in
-                                        if enabled { enabledScopeKeys.insert(key) }
-                                        else { enabledScopeKeys.remove(key) }
-                                    }
-                                ))
-                                .toggleStyle(.switch)
-                                .controlSize(.small)
+                            ForEach(availableScopes, id: \.key) { item in
+                                HStack {
+                                    Text(item.spec.label)
+                                        .font(.callout)
+                                    Spacer()
+                                    Toggle("", isOn: Binding(
+                                        get: { enabledScopeKeys.contains(item.key) },
+                                        set: { enabled in
+                                            if enabled { enabledScopeKeys.insert(item.key) }
+                                            else { enabledScopeKeys.remove(item.key) }
+                                        }
+                                    ))
+                                    .toggleStyle(.switch)
+                                    .controlSize(.small)
+                                    .labelsHidden()
+                                }
                             }
                         }
-                        .padding(.vertical, 4)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
                         .padding(.horizontal, 12)
                         .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
                     }
@@ -329,9 +629,8 @@ private struct ToolConnectSheet: View {
         isAuthenticating = true
         authError = nil
 
-        // Build the scopes to request from the enabled keys
         let selectedScopeURLs: [String]? = availableScopes.isEmpty ? nil :
-            availableScopes.compactMap { key, spec in enabledScopeKeys.contains(key) ? spec.scope : nil }
+            availableScopes.compactMap { item in enabledScopeKeys.contains(item.key) ? item.spec.scope : nil }
 
         Task {
             do {
@@ -350,15 +649,14 @@ private struct ToolConnectSheet: View {
                     tool.activeAuthMethod = "oauth"
                     tool.isConnected = true
                     tool.selectedScopeKeys = Array(enabledScopeKeys)
+                    tool.connectedAt = Date()
                     isAuthenticating = false
                 }
 
-                // Post-connect: fetch service metadata (projects, channels, etc.)
                 if tool.id == "jira" {
                     await JiraActionClient.fetchAndCacheProjects(tool: tool)
                 }
 
-                // Auto-dismiss after a brief success display
                 try? await Task.sleep(for: .seconds(1))
                 await MainActor.run { onDismiss() }
             } catch {
@@ -375,6 +673,7 @@ private struct ToolConnectSheet: View {
         tool.baseURL = baseURLInput.isEmpty ? nil : baseURLInput
         tool.activeAuthMethod = "api_key"
         tool.isConnected = !apiKeyInput.isEmpty
+        tool.connectedAt = Date()
         onDismiss()
     }
 

@@ -171,7 +171,16 @@ struct CastellumFeature {
                 state.currentPlan = plan
                 state.selectedActions = Set(plan.actions.map(\.id))
                 state.actionResults = [:]
-                return .none
+                // If every tool involved has auto-execute on ("Requires Approval" off),
+                // skip the approval step and execute immediately.
+                return .run { send in
+                    let tools = try await basinDB.fetchTools()
+                    let toolIDs = Set(plan.actions.map(\.toolID))
+                    let involved = tools.filter { toolIDs.contains($0.id) }
+                    if !involved.isEmpty && involved.allSatisfy(\.autoExecute) {
+                        await send(.executeSelected)
+                    }
+                }
 
             case let .planningFailed(error):
                 state.isPlanning = false

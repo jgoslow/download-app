@@ -11,6 +11,10 @@
   "base_url": {
     "api_key": "https://api.track.toggl.com/api/v9"
   },
+  "health_check": {
+    "endpoint": "{base_url}/workspaces",
+    "method": "GET"
+  },
   "discovery": {
     "workspaces": {
       "endpoint": "{base_url}/workspaces",

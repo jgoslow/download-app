@@ -25,11 +25,19 @@ struct ToolDefinitionSpec: Codable {
     /// e.g. {"create-event": "create_event", "write-email": "send_email"}
     let workflows: [String: String]?
     let claudeContext: ClaudeContextSpec?
+    /// Lightweight endpoint used by "Verify connection" in Settings → Tools.
+    let healthCheck: HealthCheckSpec?
 
     enum CodingKeys: String, CodingKey {
         case id, name, icon, auth, discovery, actions, workflows
         case baseUrl = "base_url"
         case claudeContext = "claude_context"
+        case healthCheck = "health_check"
+    }
+
+    struct HealthCheckSpec: Codable {
+        let endpoint: String
+        let method: String
     }
 
     struct AuthSpec: Codable {
@@ -215,35 +223,39 @@ enum ToolDefinitionLoader {
     }
 
     /// Build Claude tool_use schemas from a tool definition.
-    static func claudeSchemas(for spec: ToolDefinitionSpec) -> [[String: Any]] {
-        spec.actions.map { actionType, action in
-            var properties: [String: Any] = [:]
-            var required: [String] = []
+    /// Pass `tool` to filter out actions the user has disabled in Settings → Tools.
+    static func claudeSchemas(for spec: ToolDefinitionSpec, tool: Tool? = nil) -> [[String: Any]] {
+        let disabledKeys = Set(tool?.enabledActionKeys ?? [])
+        return spec.actions
+            .filter { disabledKeys.isEmpty || !disabledKeys.contains($0.key) }
+            .map { actionType, action in
+                var properties: [String: Any] = [:]
+                var required: [String] = []
 
-            for (paramName, param) in action.parameters {
-                var prop: [String: Any] = [
-                    "type": param.type == "array" ? "array" : "string",
-                    "description": param.description
-                ]
-                if let enumValues = param.enum {
-                    prop["enum"] = enumValues
-                }
-                properties[paramName] = prop
+                for (paramName, param) in action.parameters {
+                    var prop: [String: Any] = [
+                        "type": param.type == "array" ? "array" : "string",
+                        "description": param.description
+                    ]
+                    if let enumValues = param.enum {
+                        prop["enum"] = enumValues
+                    }
+                    properties[paramName] = prop
 
-                if param.required == true {
-                    required.append(paramName)
+                    if param.required == true {
+                        required.append(paramName)
+                    }
                 }
+
+                return [
+                    "name": "\(spec.id)_\(actionType)",
+                    "description": action.description,
+                    "input_schema": [
+                        "type": "object",
+                        "properties": properties,
+                        "required": required
+                    ]
+                ] as [String: Any]
             }
-
-            return [
-                "name": "\(spec.id)_\(actionType)",
-                "description": action.description,
-                "input_schema": [
-                    "type": "object",
-                    "properties": properties,
-                    "required": required
-                ]
-            ] as [String: Any]
-        }
     }
 }

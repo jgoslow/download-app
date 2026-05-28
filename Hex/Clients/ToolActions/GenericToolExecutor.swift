@@ -28,6 +28,14 @@ enum GenericToolExecutor {
             )
         }
 
+        if let disabledKeys = tool.enabledActionKeys, disabledKeys.contains(action.actionType) {
+            return ActionResult(
+                actionID: action.id,
+                success: false,
+                error: "'\(actionSpec.displayName)' is disabled for \(spec.name). Enable it in Settings → Tools."
+            )
+        }
+
         // Resolve auth
         guard let (authHeader, baseURL) = resolveAuth(tool: tool, spec: spec) else {
             return ActionResult(
@@ -91,6 +99,7 @@ enum GenericToolExecutor {
                 }
 
                 executorLogger.info("\(spec.name) \(action.actionType) succeeded: \(resultMessage)")
+                tool.lastUsedAt = Date()
                 return ActionResult(actionID: action.id, success: true, message: resultMessage)
             } else {
                 let errorBody = String(data: data.prefix(500), encoding: .utf8) ?? "unknown"
@@ -210,6 +219,31 @@ enum GenericToolExecutor {
         default:
             let message = errorObj?["message"] as? String ?? body.prefix(120).description
             return "\(toolName) error (\(status)): \(message)"
+        }
+    }
+
+    // MARK: - Connection Verification
+
+    /// Fires the tool's health check endpoint and returns whether it responds with 2xx.
+    /// Used by the "Verify connection" button in Settings → Tools.
+    static func verify(tool: Tool, spec: ToolDefinitionSpec) async -> Bool {
+        guard let healthCheck = spec.healthCheck else { return false }
+        guard let (authHeader, baseURL) = resolveAuth(tool: tool, spec: spec) else { return false }
+
+        let endpointStr = healthCheck.endpoint.replacingOccurrences(of: "{base_url}", with: baseURL)
+        guard let url = URL(string: endpointStr) else { return false }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = healthCheck.method
+        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 10
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            return (200...299).contains(status)
+        } catch {
+            return false
         }
     }
 

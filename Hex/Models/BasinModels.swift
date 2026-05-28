@@ -227,6 +227,17 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     /// Nil means use the tool definition's defaults.
     var selectedScopeKeys: [String]?
 
+    /// Action keys the user has explicitly disabled. Nil means all actions enabled.
+    var enabledActionKeys: [String]?
+
+    /// When the tool was last successfully connected (OAuth or API key).
+    // TODO: Use this to send a system notification N days before oauthExpiresAt, and
+    //       surface a "Reconnect [Tool]" inline link in workflow summaries when an action fails due to auth.
+    var connectedAt: Date?
+
+    /// When Basin last successfully executed an action using this tool.
+    var lastUsedAt: Date?
+
     /// Cached service metadata (e.g., Jira project list, Slack channels).
     /// Stored as JSON. Fetched after OAuth connect and refreshed periodically.
     var serviceMetadata: Data?

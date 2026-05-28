@@ -1,0 +1,60 @@
+{
+  "id": "github",
+  "name": "GitHub",
+  "icon": "chevron.left.forwardslash.chevron.right",
+  "auth": {
+    "methods": ["oauth", "api_key"],
+    "oauth_provider": "github",
+    "api_key_label": "Personal Access Token",
+    "api_key_format": "bearer"
+  },
+  "base_url": {
+    "oauth": "https://api.github.com",
+    "api_key": "https://api.github.com"
+  },
+  "health_check": {
+    "endpoint": "{base_url}/user",
+    "method": "GET"
+  },
+  "actions": {
+    "create_issue": {
+      "display_name": "Create issue",
+      "description": "Create a new issue in a GitHub repository",
+      "endpoint": "{base_url}/repos/{owner}/{repo}/issues",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.github.v3+json"
+      },
+      "body_template": {
+        "title": "{title}",
+        "body": "{body}"
+      },
+      "parameters": {
+        "owner": {
+          "type": "string",
+          "required": true,
+          "description": "Repository owner (username or organization)"
+        },
+        "repo": {
+          "type": "string",
+          "required": true,
+          "description": "Repository name"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Issue title"
+        },
+        "body": {
+          "type": "string",
+          "required": false,
+          "description": "Issue description"
+        }
+      },
+      "success_extract": "$.html_url",
+      "success_message": "Issue created: {result}"
+    }
+  },
+  "workflows": {}
+}

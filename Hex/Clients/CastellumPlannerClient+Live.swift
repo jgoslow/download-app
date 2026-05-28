@@ -41,7 +41,8 @@ extension CastellumPlannerClient {
             var toolSchemas: [[String: Any]] = []
             for toolID in matchedToolIDs {
                 if let spec = ToolDefinitionLoader.load(toolID) {
-                    toolSchemas.append(contentsOf: ToolDefinitionLoader.claudeSchemas(for: spec))
+                    let matchedTool = connectedTools.first { $0.id == toolID }
+                    toolSchemas.append(contentsOf: ToolDefinitionLoader.claudeSchemas(for: spec, tool: matchedTool))
                 }
             }
             if toolSchemas.isEmpty {

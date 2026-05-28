@@ -32,6 +32,10 @@
   "base_url": {
     "oauth": "https://www.googleapis.com"
   },
+  "health_check": {
+    "endpoint": "https://www.googleapis.com/oauth2/v2/userinfo",
+    "method": "GET"
+  },
   "discovery": {
     "calendars": {
       "endpoint": "{base_url}/calendar/v3/users/me/calendarList",

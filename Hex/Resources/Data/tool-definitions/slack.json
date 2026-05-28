@@ -13,6 +13,10 @@
     "oauth": "https://slack.com/api",
     "api_key": "https://slack.com/api"
   },
+  "health_check": {
+    "endpoint": "{base_url}/auth.test",
+    "method": "GET"
+  },
   "discovery": {
     "workflows": {
       "endpoint": "{base_url}/conversations.list?types=public_channel&limit=200",
