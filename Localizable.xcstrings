@@ -99,6 +99,9 @@
     "Anthropic API Key" : {
 
     },
+    "API Key" : {
+
+    },
     "Are you sure you want to delete all captures? This action cannot be undone." : {
 
     },
@@ -117,19 +120,28 @@
     "Audio Behavior while Recording" : {
 
     },
+    "Auth failed" : {
+
+    },
     "Auth Method" : {
 
     },
     "Auth Token" : {
 
     },
-    "Auto" : {
+    "Auth valid" : {
 
     },
-    "Auto-execute actions without confirmation" : {
+    "Authorized permissions" : {
 
     },
     "Basin" : {
+
+    },
+    "Basin can use" : {
+
+    },
+    "Basin will ask before running actions. Overridden by individual workflow settings." : {
 
     },
     "Basin will open your browser to authenticate. Your credentials are never stored in the app — only a revocable access token." : {
@@ -197,6 +209,9 @@
         }
       }
     },
+    "Checking…" : {
+
+    },
     "Close" : {
       "localizations" : {
         "de" : {
@@ -216,7 +231,7 @@
     "Connected" : {
 
     },
-    "Connected via API key" : {
+    "Connected %@" : {
 
     },
     "Connected via OAuth" : {
@@ -400,6 +415,12 @@
     "Executing..." : {
 
     },
+    "Expires in %lld days" : {
+
+    },
+    "Expiring in %lld days — reconnect soon" : {
+
+    },
     "Find your API token at track.toggl.com/profile (bottom of the page)." : {
 
     },
@@ -494,13 +515,16 @@
     "Input Device" : {
 
     },
-    "Input Monitoring is required so Hex can listen for your hotkey." : {
+    "Input Monitoring is required so Basin can listen for your hotkey." : {
 
     },
     "Instance URL" : {
 
     },
     "Integrations" : {
+
+    },
+    "Last used %@" : {
 
     },
     "LIVE" : {
@@ -570,6 +594,12 @@
       }
     },
     "No workflows yet" : {
+
+    },
+    "Not yet used by Basin" : {
+
+    },
+    "OAuth" : {
 
     },
     "Oldest entries will be automatically deleted when limit is reached" : {
@@ -693,6 +723,9 @@
     "Quit" : {
 
     },
+    "Reconnect to change" : {
+
+    },
     "Refresh available input devices" : {
 
     },
@@ -722,6 +755,9 @@
           }
         }
       }
+    },
+    "Requires approval" : {
+
     },
     "Retry this action" : {
 
@@ -868,6 +904,12 @@
     "Submit" : {
 
     },
+    "Token expired — reconnect now" : {
+
+    },
+    "Token expired — reconnect to continue using this tool" : {
+
+    },
     "Token expires: %@" : {
 
     },
@@ -928,6 +970,9 @@
       }
     },
     "Use double-tap only" : {
+
+    },
+    "Verify" : {
 
     },
     "Version" : {
