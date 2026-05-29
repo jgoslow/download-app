@@ -9,6 +9,7 @@ private let cacheLogger = BasnLog.caches
 class BasnAppDelegate: NSObject, NSApplicationDelegate {
 	var invisibleWindow: InvisibleWindow?
 	var settingsWindow: NSWindow?
+	var welcomeWindow: NSWindow?
 	var statusItem: NSStatusItem!
 	private var launchedAtLogin = false
 
@@ -55,7 +56,11 @@ class BasnAppDelegate: NSObject, NSApplicationDelegate {
 			return
 		}
 
-		presentSettingsView()
+		if UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
+			presentSettingsView()
+		} else {
+			presentWelcomeWindow()
+		}
 		NSApp.activate(ignoringOtherApps: true)
 	}
 
@@ -125,6 +130,32 @@ class BasnAppDelegate: NSObject, NSApplicationDelegate {
 		settingsWindow.makeKeyAndOrderFront(nil)
 		NSApp.activate(ignoringOtherApps: true)
 		self.settingsWindow = settingsWindow
+	}
+
+	func presentWelcomeWindow() {
+		if let existing = welcomeWindow {
+			existing.makeKeyAndOrderFront(nil)
+			return
+		}
+		let view = WelcomeView {
+			self.welcomeWindow?.close()
+			self.welcomeWindow = nil
+			self.presentSettingsView()
+			NSApp.activate(ignoringOtherApps: true)
+		}
+		let window = NSWindow(
+			contentRect: .init(x: 0, y: 0, width: 480, height: 520),
+			styleMask: [.titled, .fullSizeContentView, .closable],
+			backing: .buffered,
+			defer: false
+		)
+		window.titleVisibility = .hidden
+		window.titlebarAppearsTransparent = true
+		window.contentView = NSHostingView(rootView: view)
+		window.isReleasedWhenClosed = false
+		window.center()
+		window.makeKeyAndOrderFront(nil)
+		welcomeWindow = window
 	}
 
 	@objc private func handleAppModeUpdate() {

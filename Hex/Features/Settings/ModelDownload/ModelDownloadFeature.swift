@@ -131,6 +131,8 @@ public struct ModelDownloadFeature {
 		public var downloadProgress: Double = 0
 		public var downloadError: String?
 		public var downloadingModelName: String?
+		// All models currently downloading (active foreground + any background downloads)
+		public var downloadingModels: Set<String> = []
 
 		// Track which model generated a progress update to handle switching models
 		public var activeDownloadID: UUID?
@@ -162,6 +164,7 @@ public struct ModelDownloadFeature {
 		case cancelDownload
 
 		case deleteSelectedModel
+		case deleteModel(String)
 		case openModelLocation
 	}
 
@@ -310,6 +313,7 @@ public struct ModelDownloadFeature {
 			state.isDownloading = true
 			let selected = state.basnSettings.selectedModel
 			state.downloadingModelName = selected
+			state.downloadingModels.insert(selected)
 			state.activeDownloadID = UUID()
 			let downloadID = state.activeDownloadID!
 			let displayName = curatedDisplayName(for: selected, curated: state.curatedModels)
@@ -341,6 +345,18 @@ public struct ModelDownloadFeature {
 			return .none
 
 		case let .downloadCompleted(result):
+			// If a background download (from a previous selection) finishes, just mark it downloaded
+			// without disturbing the UI state for the currently active download.
+			if case let .success(name) = result, name != state.downloadingModelName {
+				state.availableModels[id: name]?.isDownloaded = true
+				if let idx = state.curatedModels.firstIndex(where: { $0.internalName == name }) {
+					state.curatedModels[idx].isDownloaded = true
+				}
+				state.downloadingModels.remove(name)
+				state.$basnSettings.withLock { $0.hasCompletedModelBootstrap = true }
+				return .none
+			}
+			if let name = state.downloadingModelName { state.downloadingModels.remove(name) }
 			state.isDownloading = false
 			state.downloadingModelName = nil
 			state.activeDownloadID = nil
@@ -386,6 +402,7 @@ public struct ModelDownloadFeature {
 
 		case .cancelDownload:
 			guard let id = state.activeDownloadID else { return .none }
+			if let name = state.downloadingModelName { state.downloadingModels.remove(name) }
 			state.isDownloading = false
 			state.downloadingModelName = nil
 			state.activeDownloadID = nil
@@ -406,6 +423,17 @@ public struct ModelDownloadFeature {
 				} catch {
 					await send(.downloadCompleted(.failure(error)))
 				}
+			}
+
+		case let .deleteModel(name):
+			state.downloadingModels.remove(name)
+			if let idx = state.curatedModels.firstIndex(where: { $0.internalName == name }) {
+				state.curatedModels[idx].isDownloaded = false
+			}
+			state.availableModels[id: name]?.isDownloaded = false
+			return .run { send in
+				try? await transcription.deleteModel(name)
+				await send(.fetchModels)
 			}
 
 		case .openModelLocation:

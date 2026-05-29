@@ -34,6 +34,9 @@
         }
       }
     },
+    "%lld%%" : {
+
+    },
     "•" : {
       "shouldTranslate" : false
     },
@@ -96,6 +99,12 @@
     "All actions completed" : {
 
     },
+    "All models" : {
+
+    },
+    "Allow" : {
+
+    },
     "Anthropic API Key" : {
 
     },
@@ -135,6 +144,9 @@
     "Authorized permissions" : {
 
     },
+    "Back" : {
+
+    },
     "Basin" : {
 
     },
@@ -145,6 +157,15 @@
 
     },
     "Basin will open your browser to authenticate. Your credentials are never stored in the app — only a revocable access token." : {
+
+    },
+    "Basn — let your thoughts flow." : {
+
+    },
+    "Basn gives you a place to capture your free-form thoughts aloud and channel them to the right destination — mix work and life, simple notes or even complicated workstreams. Connect to the tools you already use." : {
+
+    },
+    "Basn will download the best transcription model for your needs." : {
 
     },
     "Bearer token" : {
@@ -165,6 +186,9 @@
       }
     },
     "Cancel Download" : {
+
+    },
+    "Catch your stream of consciousness and put it to work." : {
 
     },
     "Changelog" : {
@@ -210,6 +234,9 @@
       }
     },
     "Checking…" : {
+
+    },
+    "Choose your language" : {
 
     },
     "Close" : {
@@ -330,6 +357,9 @@
     "Do Nothing" : {
 
     },
+    "Done" : {
+
+    },
     "Download" : {
 
     },
@@ -371,7 +401,7 @@
         }
       }
     },
-    "Downloading… %lld%%" : {
+    "Downloading…" : {
 
     },
     "Enable double-tap lock" : {
@@ -538,7 +568,6 @@
     },
     "Microphone" : {
       "comment" : "Microphone permission.",
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -561,6 +590,12 @@
 
     },
     "Mute Volume" : {
+
+    },
+    "Next" : {
+
+    },
+    "Next: Choose your language  →" : {
 
     },
     "No Captures" : {
@@ -611,6 +646,9 @@
     "Open" : {
 
     },
+    "Open Basn" : {
+
+    },
     "Open Flow" : {
 
     },
@@ -627,6 +665,9 @@
           }
         }
       }
+    },
+    "Open Settings" : {
+
     },
     "or type your flow" : {
 
@@ -780,6 +821,12 @@
     "Scratchpad" : {
 
     },
+    "See all models" : {
+
+    },
+    "Select a model to download it automatically." : {
+
+    },
     "Selected device not connected. System default will be used." : {
 
     },
@@ -863,6 +910,9 @@
 
     },
     "sk-ant-..." : {
+
+    },
+    "Skip for now" : {
 
     },
     "Sound" : {
@@ -1002,6 +1052,9 @@
 
     },
     "Waiting for authorization..." : {
+
+    },
+    "Welcome to Basn" : {
 
     },
     "When disabled, transcriptions will not be saved and audio files will be deleted immediately after transcription." : {

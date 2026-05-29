@@ -52,7 +52,13 @@ public struct BasnSettings: Codable, Equatable, Sendable {
 		hotkey: HotKey = .init(key: nil, modifiers: [.option]),
 		openOnLogin: Bool = false,
 		showDockIcon: Bool = true,
-		selectedModel: String = ParakeetModel.multilingualV3.identifier,
+		selectedModel: String = {
+			#if os(iOS)
+			return "openai_whisper-base"
+			#else
+			return ParakeetModel.multilingualV3.identifier
+			#endif
+		}(),
 		preventSystemSleep: Bool = true,
 		recordingAudioBehavior: RecordingAudioBehavior = .doNothing,
 		minimumKeyTime: Double = BasnCoreConstants.defaultMinimumKeyTime,

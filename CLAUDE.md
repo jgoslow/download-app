@@ -88,12 +88,19 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 
 ### Storage Locations
 
-- WhisperKit models
-  - `~/Library/Application Support/com.lyra.basn/models/argmaxinc/whisperkit-coreml/<model>`
-- Parakeet (FluidAudio)
-  - We set `XDG_CACHE_HOME` on launch so Parakeet caches under the app container:
-  - `~/Library/Containers/com.lyra.basn/Data/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v3-coreml`
-  - Legacy `~/.cache/fluidaudio/Models/…` is not visible to the sandbox; re‑download or import.
+- WhisperKit models (actual observed location inside sandbox container)
+  - `~/Library/Containers/com.lyra.basn/Data/Documents/huggingface/models/argmaxinc/whisperkit-coreml/<model>`
+  - Debug build: same path under `com.lyra.basn.debug`
+- Parakeet (FluidAudio) — ignores `XDG_CACHE_HOME`, writes directly into the container:
+  - `~/Library/Containers/com.lyra.basn/Data/Library/Application Support/FluidAudio/Models/<model>`
+  - Debug build: same path under `com.lyra.basn.debug`
+
+**To reset for fresh onboarding test (debug build):**
+```bash
+rm -rf ~/Library/Containers/com.lyra.basn.debug/Data/Library/Application\ Support/FluidAudio/Models/
+rm -rf ~/Library/Containers/com.lyra.basn.debug/Data/Documents/huggingface/
+defaults delete com.lyra.basn.debug hasCompletedOnboarding 2>/dev/null
+```
 
 ### Progress + Availability
 
@@ -115,16 +122,6 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 - `com.apple.security.app-sandbox = true`
 - `com.apple.security.network.client = true` (HF downloads)
 - `com.apple.security.files.user-selected.read-write = true` (optional import)
-
-### Cache root (Parakeet)
-
-Set at app launch and logged:
-
-```
-XDG_CACHE_HOME = ~/Library/Containers/com.lyra.basn/Data/Library/Application Support/com.lyra.basn/cache
-```
-
-FluidAudio models reside under `Application Support/FluidAudio/Models`.
 
 ## UI
 
