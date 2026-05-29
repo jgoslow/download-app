@@ -2,10 +2,10 @@
 import PackageDescription
 
 let package = Package(
-    name: "HexCore",
+    name: "BasnCore",
     platforms: [.macOS(.v15)],
     products: [
-        .library(name: "HexCore", targets: ["HexCore"]),
+        .library(name: "BasnCore", targets: ["BasnCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/Clipy/Sauce", branch: "master"),
@@ -14,22 +14,22 @@ let package = Package(
     ],
     targets: [
 	    .target(
-	        name: "HexCore",
+	        name: "BasnCore",
 	        dependencies: [
 	            "Sauce",
 	            .product(name: "Dependencies", package: "swift-dependencies"),
 	            .product(name: "DependenciesMacros", package: "swift-dependencies"),
 	            .product(name: "Logging", package: "swift-log"),
 	        ],
-	        path: "Sources/HexCore",
+	        path: "Sources/BasnCore",
 	        linkerSettings: [
 	            .linkedFramework("IOKit")
 	        ]
 	    ),
         .testTarget(
-            name: "HexCoreTests",
-            dependencies: ["HexCore"],
-            path: "Tests/HexCoreTests",
+            name: "BasnCoreTests",
+            dependencies: ["BasnCore"],
+            path: "Tests/BasnCoreTests",
             resources: [
                 .copy("Fixtures")
             ]

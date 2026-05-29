@@ -7,9 +7,9 @@
 //
 
 import Foundation
-import HexCore
+import BasnCore
 
-private let jiraLogger = HexLog.app
+private let jiraLogger = BasnLog.app
 
 enum JiraActionClient {
 

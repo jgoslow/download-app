@@ -1,6 +1,6 @@
 //
 //  AppFeature.swift
-//  Hex
+//  Basn
 //
 //  Created by Kit Langton on 1/26/25.
 //
@@ -8,7 +8,7 @@
 import AppKit
 import ComposableArchitecture
 import Dependencies
-import HexCore
+import BasnCore
 import SwiftUI
 
 @Reducer
@@ -32,7 +32,7 @@ struct AppFeature {
 		var history: HistoryFeature.State = .init()
 		var castellum: CastellumFeature.State = .init()
 		var activeTab: ActiveTab = .home
-		@Shared(.hexSettings) var hexSettings: HexSettings
+		@Shared(.basnSettings) var basnSettings: BasnSettings
 		@Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
 
     // Permission state
@@ -97,12 +97,12 @@ struct AppFeature {
         )
 
       case .transcription(.modelMissing):
-        HexLog.app.notice("Model missing - activating app and switching to settings")
+        BasnLog.app.notice("Model missing - activating app and switching to settings")
         state.activeTab = .settings
         state.settings.shouldFlashModelSection = true
         return .run { send in
           await MainActor.run {
-            HexLog.app.notice("Activating app for model missing")
+            BasnLog.app.notice("Activating app for model missing")
             NSApplication.shared.activate(ignoringOtherApps: true)
           }
           try? await Task.sleep(for: .seconds(2))
@@ -181,9 +181,9 @@ struct AppFeature {
 
   private func ensureSelectedModelReadiness() -> Effect<Action> {
     .run { send in
-      @Shared(.hexSettings) var hexSettings: HexSettings
+      @Shared(.basnSettings) var basnSettings: BasnSettings
       @Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
-      let selectedModel = hexSettings.selectedModel
+      let selectedModel = basnSettings.selectedModel
       guard !selectedModel.isEmpty else {
         await send(.modelStatusEvaluated(false))
         return
@@ -208,13 +208,13 @@ struct AppFeature {
 
   private func syncNotificationSchedule() -> Effect<Action> {
     .run { _ in
-      @Shared(.hexSettings) var hexSettings: HexSettings
-      if hexSettings.basinSettings.notificationsEnabled {
+      @Shared(.basnSettings) var basnSettings: BasnSettings
+      if basnSettings.basinSettings.notificationsEnabled {
         let granted = await notifications.requestPermission()
         if granted {
           await notifications.scheduleDaily()
         } else {
-          $hexSettings.withLock { $0.basinSettings.notificationsEnabled = false }
+          $basnSettings.withLock { $0.basinSettings.notificationsEnabled = false }
         }
       } else {
         await notifications.cancelAll()

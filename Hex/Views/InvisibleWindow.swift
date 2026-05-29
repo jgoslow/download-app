@@ -1,6 +1,6 @@
 //
 //  InvisibleWindow.swift
-//  Hex
+//  Basn
 //
 //  Created by Kit Langton on 1/24/25.
 //

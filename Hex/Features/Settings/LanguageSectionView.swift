@@ -11,8 +11,8 @@ struct LanguageSectionView: View {
 	var body: some View {
 		Label {
 			Picker("Output Language", selection: Binding(
-				get: { store.hexSettings.outputLanguage },
-				set: { newValue in store.$hexSettings.withLock { $0.outputLanguage = newValue } }
+				get: { store.basnSettings.outputLanguage },
+				set: { newValue in store.$basnSettings.withLock { $0.outputLanguage = newValue } }
 			)) {
 				ForEach(store.languages, id: \.id) { language in
 					Text(language.name).tag(language.code)

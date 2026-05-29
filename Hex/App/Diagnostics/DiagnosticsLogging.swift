@@ -1,9 +1,9 @@
-import HexCore
+import BasnCore
 import OSLog
 
 enum DiagnosticsLogging {
   private static var isBootstrapped = false
-  private static let logger = Logger(subsystem: HexLog.subsystem, category: "Diagnostics")
+  private static let logger = Logger(subsystem: BasnLog.subsystem, category: "Diagnostics")
 
   static func bootstrapIfNeeded() {
     guard !isBootstrapped else { return }

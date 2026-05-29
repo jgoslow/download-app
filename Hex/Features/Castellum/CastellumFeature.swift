@@ -8,10 +8,10 @@
 //
 
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import SwiftData
 
-private let castellumLogger = HexLog.app
+private let castellumLogger = BasnLog.app
 
 // MARK: - Dependencies (stubs for Phase 1)
 
@@ -132,8 +132,8 @@ struct CastellumFeature {
                 state.currentPlan = nil
 
                 return .run { send in
-                    @Shared(.hexSettings) var hexSettings: HexSettings
-                    let apiKey = hexSettings.basinSettings.anthropicAPIKey
+                    @Shared(.basnSettings) var basnSettings: BasnSettings
+                    let apiKey = basnSettings.basinSettings.anthropicAPIKey
 
                     // Fetch connected tools and enabled workflows from SwiftData
                     let tools = try await basinDB.fetchTools()

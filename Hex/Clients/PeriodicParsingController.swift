@@ -9,9 +9,9 @@
 
 import AVFoundation
 import Foundation
-import HexCore
+import BasnCore
 
-private let parseLogger = HexLog.app
+private let parseLogger = BasnLog.app
 
 /// Callback with partial transcript text and prompt indices addressed so far.
 typealias PeriodicParseUpdate = (partialText: String, promptsAddressed: [Int])

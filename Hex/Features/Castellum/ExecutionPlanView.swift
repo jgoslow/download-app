@@ -7,7 +7,7 @@
 //
 
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import SwiftUI
 
 struct ExecutionPlanView: View {

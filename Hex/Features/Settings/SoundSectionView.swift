@@ -1,5 +1,5 @@
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import Inject
 import SwiftUI
 
@@ -9,15 +9,15 @@ struct SoundSectionView: View {
 
 	var body: some View {
 		let sliderBinding = Binding<Double>(
-			get: { volumePercentage(for: store.hexSettings.soundEffectsVolume) },
-			set: { newValue in store.$hexSettings.withLock { $0.soundEffectsVolume = actualVolume(fromPercentage: newValue) } }
+			get: { volumePercentage(for: store.basnSettings.soundEffectsVolume) },
+			set: { newValue in store.$basnSettings.withLock { $0.soundEffectsVolume = actualVolume(fromPercentage: newValue) } }
 		)
 
 		return Section {
 			Label {
 				Toggle("Sound Effects", isOn: Binding(
-					get: { store.hexSettings.soundEffectsEnabled },
-					set: { newValue in store.$hexSettings.withLock { $0.soundEffectsEnabled = newValue } }
+					get: { store.basnSettings.soundEffectsEnabled },
+					set: { newValue in store.$basnSettings.withLock { $0.soundEffectsEnabled = newValue } }
 				))
 			} icon: {
 				Image(systemName: "speaker.wave.2.fill")
@@ -27,12 +27,12 @@ struct SoundSectionView: View {
 				HStack {
 					Text("Volume")
 					Spacer()
-					Text(formattedVolume(for: store.hexSettings.soundEffectsVolume))
+					Text(formattedVolume(for: store.basnSettings.soundEffectsVolume))
 						.foregroundStyle(.secondary)
 						.monospacedDigit()
 				}
 				Slider(value: sliderBinding, in: 0...1)
-					.disabled(!store.hexSettings.soundEffectsEnabled)
+					.disabled(!store.basnSettings.soundEffectsEnabled)
 			}
 		} header: {
 			Text("Sound")
@@ -47,12 +47,12 @@ private func formattedVolume(for actualVolume: Double) -> String {
 }
 
 private func volumePercentage(for actualVolume: Double) -> Double {
-	guard HexSettings.baseSoundEffectsVolume > 0 else { return 0 }
-	let ratio = actualVolume / HexSettings.baseSoundEffectsVolume
+	guard BasnSettings.baseSoundEffectsVolume > 0 else { return 0 }
+	let ratio = actualVolume / BasnSettings.baseSoundEffectsVolume
 	return max(0, min(1, ratio))
 }
 
 private func actualVolume(fromPercentage percentage: Double) -> Double {
 	let clampedPercentage = max(0, min(1, percentage))
-	return clampedPercentage * HexSettings.baseSoundEffectsVolume
+	return clampedPercentage * BasnSettings.baseSoundEffectsVolume
 }

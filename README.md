@@ -20,10 +20,17 @@ Pour your thoughts into Basn with daily ritual flows, and build channels for you
 
 Basn - Let your thoughts flow.
 
+Some ideas for how you can use Basn:
+* Morning Flow to plan your day - capture a quick journal, state your goals, create a task list.
+* Talk out a problem - start up Basn when you need to talk out a problem for work or life, and route the outcomes to the appropriate tools.
+* Check in with yourself - design a consistent check-in ritual and tell Basn when to remind you. 
+* Balance work and life in the same check-in - Basn makes it easy to separate
 
 Built on [Parakeet TDT v3](https://github.com/FluidInference/FluidAudio) (default) and [WhisperKit](https://github.com/argmaxinc/WhisperKit) for on-device transcription, [Swift Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) for state management, and SwiftData + CloudKit for persistence and sync.
 
 > **Note:** Basin requires an **Apple Silicon** Mac running macOS 14+.
+
+See [brand.md](brand.md) for naming conventions, bundle IDs, and brand guidelines.
 
 ---
 

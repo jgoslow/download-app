@@ -1,6 +1,6 @@
 //
 //  TranscriptionFeature.swift
-//  Hex
+//  Basn
 //
 //  Created by Kit Langton on 1/24/25.
 //
@@ -8,13 +8,13 @@
 import ComposableArchitecture
 import CoreGraphics
 import Foundation
-import HexCore
+import BasnCore
 import Inject
 import SwiftUI
 import WhisperKit
 
-private let transcriptionFeatureLogger = HexLog.transcription
-private let routerLogger = HexLog.app
+private let transcriptionFeatureLogger = BasnLog.transcription
+private let routerLogger = BasnLog.app
 
 @Reducer
 struct TranscriptionFeature {
@@ -33,7 +33,7 @@ struct TranscriptionFeature {
     var promptTitles: [String] = []
     var livePromptsAddressed: Set<Int> = []
     var partialTranscript: String? = nil
-    @Shared(.hexSettings) var hexSettings: HexSettings
+    @Shared(.basnSettings) var basnSettings: BasnSettings
     @Shared(.isRemappingScratchpadFocused) var isRemappingScratchpadFocused: Bool = false
     @Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
     @Shared(.transcriptionHistory) var transcriptionHistory: TranscriptionHistory
@@ -74,7 +74,6 @@ struct TranscriptionFeature {
 
   @Dependency(\.transcription) var transcription
   @Dependency(\.recording) var recording
-  @Dependency(\.pasteboard) var pasteboard
   @Dependency(\.keyEventMonitor) var keyEventMonitor
   @Dependency(\.soundEffects) var soundEffect
   @Dependency(\.sleepManagement) var sleepManagement
@@ -145,11 +144,11 @@ struct TranscriptionFeature {
         let promptTitles = state.promptTitles
 
         return .run { [basinDB = self.basinDB, router = self.destinationRouter, aiClient = self.anthropic] send in
-          @Shared(.hexSettings) var hexSettings: HexSettings
-          let basinSettings = hexSettings.basinSettings
+          @Shared(.basnSettings) var basnSettings: BasnSettings
+          let basinSettings = basnSettings.basinSettings
 
           let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-          let selectedModel = hexSettings.selectedModel
+          let selectedModel = basnSettings.selectedModel
 
           let session = Session(
             device: Host.current().localizedName ?? "mac",
@@ -250,7 +249,7 @@ private extension TranscriptionFeature {
     .run { send in
       var hotKeyProcessor: HotKeyProcessor = .init(hotkey: HotKey(key: nil, modifiers: [.option]))
       @Shared(.isSettingHotKey) var isSettingHotKey: Bool
-      @Shared(.hexSettings) var hexSettings: HexSettings
+      @Shared(.basnSettings) var basnSettings: BasnSettings
 
       // Handle incoming input events (keyboard and mouse)
       let token = keyEventMonitor.handleInputEvent { inputEvent in
@@ -260,11 +259,11 @@ private extension TranscriptionFeature {
         }
 
         // Always keep hotKeyProcessor in sync with current user hotkey preference
-        hotKeyProcessor.hotkey = hexSettings.hotkey
-        let useDoubleTapOnly = hexSettings.doubleTapLockEnabled && hexSettings.useDoubleTapOnly
-        hotKeyProcessor.doubleTapLockEnabled = hexSettings.doubleTapLockEnabled
+        hotKeyProcessor.hotkey = basnSettings.hotkey
+        let useDoubleTapOnly = basnSettings.doubleTapLockEnabled && basnSettings.useDoubleTapOnly
+        hotKeyProcessor.doubleTapLockEnabled = basnSettings.doubleTapLockEnabled
         hotKeyProcessor.useDoubleTapOnly = useDoubleTapOnly
-        hotKeyProcessor.minimumKeyTime = hexSettings.minimumKeyTime
+        hotKeyProcessor.minimumKeyTime = basnSettings.minimumKeyTime
 
         switch inputEvent {
         case .keyboard(let keyEvent):
@@ -380,10 +379,10 @@ private extension TranscriptionFeature {
 
     // Prevent system sleep during recording
     let promptTitles = state.promptTitles
-    let apiKey = state.hexSettings.basinSettings.anthropicAPIKey
-    let model = state.hexSettings.selectedModel
+    let apiKey = state.basnSettings.basinSettings.anthropicAPIKey
+    let model = state.basnSettings.selectedModel
 
-    return .run { [sleepManagement, preventSleep = state.hexSettings.preventSystemSleep] send in
+    return .run { [sleepManagement, preventSleep = state.basnSettings.preventSystemSleep] send in
       // Play sound immediately for instant feedback
       soundEffect.play(.startRecording)
 
@@ -429,8 +428,8 @@ private extension TranscriptionFeature {
 
     let decision = RecordingDecisionEngine.decide(
       .init(
-        hotkey: state.hexSettings.hotkey,
-        minimumKeyTime: state.hexSettings.minimumKeyTime,
+        hotkey: state.basnSettings.hotkey,
+        minimumKeyTime: state.basnSettings.minimumKeyTime,
         recordingStartTime: state.recordingStartTime,
         currentTime: stopTime
       )
@@ -438,8 +437,8 @@ private extension TranscriptionFeature {
 
     let startStamp = startTime?.ISO8601Format() ?? "nil"
     let stopStamp = stopTime.ISO8601Format()
-    let minimumKeyTime = state.hexSettings.minimumKeyTime
-    let hotkeyHasKey = state.hexSettings.hotkey.key != nil
+    let minimumKeyTime = state.basnSettings.minimumKeyTime
+    let hotkeyHasKey = state.basnSettings.hotkey.key != nil
     transcriptionFeatureLogger.notice(
       "Recording stopped duration=\(String(format: "%.3f", duration))s start=\(startStamp) stop=\(stopStamp) decision=\(String(describing: decision)) minimumKeyTime=\(String(format: "%.2f", minimumKeyTime)) hotkeyHasKey=\(hotkeyHasKey)"
     )
@@ -457,8 +456,8 @@ private extension TranscriptionFeature {
     // Otherwise, proceed to transcription
     state.isTranscribing = true
     state.error = nil
-    let model = state.hexSettings.selectedModel
-    let language = state.hexSettings.outputLanguage
+    let model = state.basnSettings.selectedModel
+    let language = state.basnSettings.outputLanguage
 
     state.isPrewarming = true
 
@@ -523,9 +522,9 @@ private extension TranscriptionFeature {
     let duration = state.recordingStartTime.map { Date().timeIntervalSince($0) } ?? 0
 
     transcriptionFeatureLogger.info("Raw transcription: '\(result)'")
-    let remappings = state.hexSettings.wordRemappings
-    let removalsEnabled = state.hexSettings.wordRemovalsEnabled
-    let removals = state.hexSettings.wordRemovals
+    let remappings = state.basnSettings.wordRemappings
+    let removalsEnabled = state.basnSettings.wordRemovalsEnabled
+    let removals = state.basnSettings.wordRemovals
     let modifiedResult: String
     if state.isRemappingScratchpadFocused {
       modifiedResult = result
@@ -554,11 +553,11 @@ private extension TranscriptionFeature {
     let sourceAppBundleID = state.sourceAppBundleID
     let sourceAppName = state.sourceAppName
     let transcriptionHistory = state.$transcriptionHistory
-    let basinSettings = state.hexSettings.basinSettings
+    let basinSettings = state.basnSettings.basinSettings
     let flowID = state.selectedFlowID
     let promptTitlesForAI = state.promptTitles
-    let selectedModel = state.hexSettings.selectedModel
-    let outputLanguage = state.hexSettings.outputLanguage
+    let selectedModel = state.basnSettings.selectedModel
+    let outputLanguage = state.basnSettings.outputLanguage
     let router = destinationRouter
     let aiClient = anthropic
 
@@ -570,8 +569,7 @@ private extension TranscriptionFeature {
           sourceAppBundleID: sourceAppBundleID,
           sourceAppName: sourceAppName,
           audioURL: audioURL,
-          transcriptionHistory: transcriptionHistory,
-          shouldPaste: false
+          transcriptionHistory: transcriptionHistory
         )
       } catch {
         await send(.transcriptionError(error, audioURL))
@@ -658,12 +656,11 @@ private extension TranscriptionFeature {
     sourceAppBundleID: String?,
     sourceAppName: String?,
     audioURL: URL,
-    transcriptionHistory: Shared<TranscriptionHistory>,
-    shouldPaste: Bool
+    transcriptionHistory: Shared<TranscriptionHistory>
   ) async throws {
-    @Shared(.hexSettings) var hexSettings: HexSettings
+    @Shared(.basnSettings) var basnSettings: BasnSettings
 
-    if hexSettings.saveTranscriptionHistory {
+    if basnSettings.saveTranscriptionHistory {
       let transcript = try await transcriptPersistence.save(
         result,
         audioURL,
@@ -675,7 +672,7 @@ private extension TranscriptionFeature {
       transcriptionHistory.withLock { history in
         history.history.insert(transcript, at: 0)
 
-        if let maxEntries = hexSettings.maxHistoryEntries, maxEntries > 0 {
+        if let maxEntries = basnSettings.maxHistoryEntries, maxEntries > 0 {
           while history.history.count > maxEntries {
             if let removedTranscript = history.history.popLast() {
               Task {
@@ -689,11 +686,7 @@ private extension TranscriptionFeature {
       try? FileManager.default.removeItem(at: audioURL)
     }
 
-    // Paste to cursor only if explicitly enabled (off by default in Basin mode)
-    if shouldPaste {
-      await pasteboard.paste(result)
-    }
-    soundEffect.play(.pasteTranscript)
+    soundEffect.play(.transcriptComplete)
   }
 }
 

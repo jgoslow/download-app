@@ -1,5 +1,5 @@
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import Inject
 import SwiftUI
 
@@ -12,7 +12,7 @@ struct GeneralSectionView: View {
 			Label {
 				Toggle("Open on Login",
 				       isOn: Binding(
-				       	get: { store.hexSettings.openOnLogin },
+				       	get: { store.basnSettings.openOnLogin },
 				       	set: { store.send(.toggleOpenOnLogin($0)) }
 				       ))
 			} icon: {
@@ -23,7 +23,7 @@ struct GeneralSectionView: View {
 				Toggle(
 					"Show Dock Icon",
 					isOn: Binding(
-						get: { store.hexSettings.showDockIcon },
+						get: { store.basnSettings.showDockIcon },
 						set: { store.send(.toggleShowDockIcon($0)) }
 					)
 				)
@@ -35,7 +35,7 @@ struct GeneralSectionView: View {
 				Toggle(
 					"Prevent System Sleep while Recording",
 					isOn: Binding(
-						get: { store.hexSettings.preventSystemSleep },
+						get: { store.basnSettings.preventSystemSleep },
 						set: { store.send(.togglePreventSystemSleep($0)) }
 					)
 				)
@@ -50,7 +50,7 @@ struct GeneralSectionView: View {
 					// TODO: Add "Lower Audio Volume" option (reduce to ~30% while recording, restore after).
 					// RecordingClient already has getSystemVolume/setSystemVolume infrastructure — same pattern as .mute.
 					Picker("", selection: Binding(
-						get: { store.hexSettings.recordingAudioBehavior },
+						get: { store.basnSettings.recordingAudioBehavior },
 						set: { store.send(.setRecordingAudioBehavior($0)) }
 					)) {
 						Label("Pause Media", systemImage: "pause")

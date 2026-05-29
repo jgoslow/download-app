@@ -2,12 +2,12 @@ import AVFoundation
 import AppKit
 import ComposableArchitecture
 import Dependencies
-import HexCore
+import BasnCore
 import Inject
 import SwiftData
 import SwiftUI
 
-private let historyLogger = HexLog.history
+private let historyLogger = BasnLog.history
 
 // MARK: - Date Extensions
 
@@ -112,7 +112,6 @@ struct HistoryFeature {
 		case navigateToSettings
 	}
 
-	@Dependency(\.pasteboard) var pasteboard
 	@Dependency(\.modelContext) var basinDB
 
 	var body: some ReducerOf<Self> {
@@ -157,8 +156,9 @@ struct HistoryFeature {
 				return .none
 
 			case let .copyToClipboard(text):
-				return .run { [pasteboard] _ in
-					await pasteboard.copy(text)
+				return .run { _ in
+					NSPasteboard.general.clearContents()
+					NSPasteboard.general.setString(text, forType: .string)
 				}
 
 			case let .deleteCapture(id):
@@ -331,11 +331,11 @@ struct HistoryView: View {
 	@Query(sort: \CaptureRecord.timestamp, order: .reverse)
 	private var captures: [CaptureRecord]
 	@State private var showingDeleteConfirmation = false
-	@Shared(.hexSettings) var hexSettings: HexSettings
+	@Shared(.basnSettings) var basnSettings: BasnSettings
 
 	var body: some View {
 		Group {
-			if !hexSettings.saveTranscriptionHistory {
+			if !basnSettings.saveTranscriptionHistory {
 				ContentUnavailableView {
 					Label("History Disabled", systemImage: "clock.arrow.circlepath")
 				} description: {

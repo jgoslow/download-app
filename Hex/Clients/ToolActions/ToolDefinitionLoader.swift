@@ -8,9 +8,9 @@
 //
 
 import Foundation
-import HexCore
+import BasnCore
 
-private let loaderLogger = HexLog.app
+private let loaderLogger = BasnLog.app
 
 /// A parsed tool definition from JSON.
 struct ToolDefinitionSpec: Codable {

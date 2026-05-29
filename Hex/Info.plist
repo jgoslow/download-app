@@ -16,7 +16,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.kitlangton.Hex.oauth</string>
+			<string>com.lyra.basn.oauth</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>basin</string>
@@ -40,18 +40,18 @@
 	<key>SlackClientSecret</key>
 	<string>$(SLACK_CLIENT_SECRET)</string>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>Hex needs accessibility access to monitor keyboard events for hotkey detection.</string>
+	<string>Basn needs accessibility access to monitor keyboard events for hotkey detection.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
 	<key>NSInputMonitoringUsageDescription</key>
-	<string>Hex needs Input Monitoring permission so your global hotkey works in every app.</string>
+	<string>Basn needs Input Monitoring permission so your global hotkey works in every app.</string>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://hex-updates.s3.amazonaws.com/appcast.xml</string>
+	<string>https://basn-updates.s3.amazonaws.com/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>mIek27lttJe8cIBqVZFhh6reRKjpTx1h9ZY9OKWPtuM=</string>
 </dict>

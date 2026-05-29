@@ -7,7 +7,7 @@
 //
 
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import Inject
 import SwiftData
 import SwiftUI
@@ -293,8 +293,8 @@ struct HomeView: View {
     }
 
     private var hotkeyDisplayString: String {
-        @Shared(.hexSettings) var hexSettings: HexSettings
-        let hotkey = hexSettings.hotkey
+        @Shared(.basnSettings) var basnSettings: BasnSettings
+        let hotkey = basnSettings.hotkey
         let modSymbols = hotkey.modifiers.kinds.map(\.symbol).joined()
         if let key = hotkey.key {
             return modSymbols + key.toString

@@ -1,5 +1,5 @@
 import Foundation
-import HexCore
+import BasnCore
 
 #if canImport(FluidAudio)
 import FluidAudio
@@ -8,9 +8,9 @@ actor ParakeetClient {
   private var asr: AsrManager?
   private var models: AsrModels?
   private var currentVariant: ParakeetModel?
-  private let logger = HexLog.parakeet
+  private let logger = BasnLog.parakeet
   private let vendorDirs = [
-    // Our app-specific cache path convention (under XDG or com.kitlangton.Hex/cache)
+    // Our app-specific cache path convention (under XDG or com.lyra.basn/cache)
     "fluidaudio/Models",
     "FluidAudio/Models"
   ]

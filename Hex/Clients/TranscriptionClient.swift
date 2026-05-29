@@ -1,6 +1,6 @@
 //
 //  TranscriptionClient.swift
-//  Hex
+//  Basn
 //
 //  Created by Kit Langton on 1/24/25.
 //
@@ -9,12 +9,12 @@ import AVFoundation
 import Dependencies
 import DependenciesMacros
 import Foundation
-import HexCore
+import BasnCore
 import WhisperKit
 
-private let transcriptionLogger = HexLog.transcription
-private let modelsLogger = HexLog.models
-private let parakeetLogger = HexLog.parakeet
+private let transcriptionLogger = BasnLog.transcription
+private let modelsLogger = BasnLog.models
+private let parakeetLogger = BasnLog.parakeet
 
 /// A client that downloads and loads WhisperKit models, then transcribes audio files using the loaded model.
 /// Exposes progress callbacks to report overall download-and-load percentage and transcription progress.

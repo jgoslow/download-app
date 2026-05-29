@@ -7,9 +7,9 @@
 //
 
 import Foundation
-import HexCore
+import BasnCore
 
-private let executorLogger = HexLog.app
+private let executorLogger = BasnLog.app
 
 enum GenericToolExecutor {
 

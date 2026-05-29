@@ -1,6 +1,6 @@
 //
 //  SoundEffect.swift
-//  Hex
+//  Basn
 //
 //  Created by Kit Langton on 1/26/25.
 //
@@ -10,12 +10,12 @@ import ComposableArchitecture
 import Dependencies
 import DependenciesMacros
 import Foundation
-import HexCore
+import BasnCore
 import SwiftUI
 
 // Thank you. Never mind then.What a beautiful idea.
 public enum SoundEffect: String, CaseIterable {
-  case pasteTranscript
+  case transcriptComplete
   case startRecording
   case stopRecording
   case cancel
@@ -65,23 +65,23 @@ public extension DependencyValues {
 }
 
 actor SoundEffectsClientLive {
-  private let logger = HexLog.sound
-  private let baselineVolume = HexSettings.baseSoundEffectsVolume
+  private let logger = BasnLog.sound
+  private let baselineVolume = BasnSettings.baseSoundEffectsVolume
 
   private let engine = AVAudioEngine()
-  @Shared(.hexSettings) var hexSettings: HexSettings
+  @Shared(.basnSettings) var basnSettings: BasnSettings
   private var playerNodes: [SoundEffect: AVAudioPlayerNode] = [:]
   private var audioBuffers: [SoundEffect: AVAudioPCMBuffer] = [:]
   private var isEngineRunning = false
 
   func play(_ soundEffect: SoundEffect) {
-	guard hexSettings.soundEffectsEnabled else { return }
+	guard basnSettings.soundEffectsEnabled else { return }
 	guard let player = playerNodes[soundEffect], let buffer = audioBuffers[soundEffect] else {
 		logger.error("Requested sound \(soundEffect.rawValue) not preloaded")
 		return
 	}
 	prepareEngineIfNeeded()
-	let clampedVolume = min(max(hexSettings.soundEffectsVolume, 0), baselineVolume)
+	let clampedVolume = min(max(basnSettings.soundEffectsVolume, 0), baselineVolume)
 	player.volume = Float(clampedVolume)
 	player.stop()
 	player.scheduleBuffer(buffer, at: nil, options: [], completionHandler: nil)

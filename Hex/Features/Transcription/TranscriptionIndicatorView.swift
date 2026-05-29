@@ -1,6 +1,6 @@
 //
-//  HexCapsuleView.swift
-//  Hex
+//  TranscriptionIndicatorView.swift
+//  Basn
 //
 //  Created by Kit Langton on 1/25/25.
 

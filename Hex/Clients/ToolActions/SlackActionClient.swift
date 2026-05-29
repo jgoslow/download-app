@@ -7,9 +7,9 @@
 //
 
 import Foundation
-import HexCore
+import BasnCore
 
-private let slackLogger = HexLog.app
+private let slackLogger = BasnLog.app
 
 enum SlackActionClient {
 

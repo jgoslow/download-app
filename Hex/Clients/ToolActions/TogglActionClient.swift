@@ -7,9 +7,9 @@
 //
 
 import Foundation
-import HexCore
+import BasnCore
 
-private let togglLogger = HexLog.app
+private let togglLogger = BasnLog.app
 
 enum TogglActionClient {
 

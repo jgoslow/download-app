@@ -1,4 +1,4 @@
-# Hex – Dev Notes for Agents
+# Basn – Dev Notes for Agents
 
 This file provides guidance for coding agents working in this repo.
 
@@ -8,27 +8,29 @@ All project memory lives in `.claude/memory/` within this repo — **not** in `~
 
 ## Project Overview
 
-Hex is a macOS menu bar application for on‑device voice‑to‑text. It supports Whisper (Core ML via WhisperKit) and Parakeet TDT v3 (Core ML via FluidAudio). Users activate transcription with hotkeys; text can be auto‑pasted into the active app.
+Basn is a macOS (and iOS) capture and productivity app. It uses on‑device voice‑to‑text (WhisperKit / Parakeet TDT v3 via FluidAudio) to transcribe recordings, then runs Castellum (Claude-powered orchestration) to route outputs to connected tools (Jira, Slack, Google, Toggl, etc.).
+
+See [brand.md](brand.md) for naming conventions. The app is **Basn** (not Basin). Bundle ID: `com.lyra.basn`.
 
 ## Build & Development Commands
 
 ```bash
 # Build the app
-xcodebuild -scheme Hex -configuration Release
+xcodebuild -scheme Basn -configuration Release
 
 # Run tests (must be run from HexCore directory for unit tests)
 cd HexCore && swift test
 
 # Or run all tests via Xcode
-xcodebuild test -scheme Hex
+xcodebuild test -scheme Basn
 
 # Open in Xcode (recommended for development)
-open Hex.xcodeproj
+open Basn.xcodeproj
 ```
 
 ## System Model
 
-Basin has three layers. See `docs/plans/architecture-system-model.md` for the full design doc.
+Basn has three layers. See `docs/plans/architecture-system-model.md` for the full design doc.
 
 - **Flows** — *when* you capture. Named contexts (Morning Kickoff, Day's End) that frame what Castellum should pay attention to.
 - **Workflows** (previously Channels) — *what happened*. A channel to a specific outcome — like an aqueduct bringing water to a specific destination, through specific tools, creating a specific result. Emergent outcomes produced by Castellum for a given capture — a Jira card, a calendar event, a Slack message. NOT predefined or user-configured; they arise from the capture content + connected tools. "Channel" is the historic name; use "Workflow" going forward.
@@ -50,14 +52,13 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 ### Dependency Clients
 - `TranscriptionClient`: WhisperKit integration for ML transcription
 - `RecordingClient`: AVAudioRecorder wrapper for audio capture
-- `PasteboardClient`: Clipboard operations
-- `KeyEventMonitorClient`: Global hotkey monitoring via Sauce framework
+- `KeyEventMonitorClient`: Global hotkey monitoring via Sauce framework (macOS only)
 
 ### Key Dependencies
 - **WhisperKit**: Core ML transcription (tracking main branch)
-- **FluidAudio (Parakeet)**: Core ML ASR (multilingual) default model
-- **Sauce**: Keyboard event monitoring
-- **Sparkle**: Auto-updates (feed: https://hex-updates.s3.amazonaws.com/appcast.xml)
+- **FluidAudio (Parakeet)**: Core ML ASR (multilingual) default model (macOS only in v1)
+- **Sauce**: Keyboard event monitoring (macOS only)
+- **Sparkle**: Auto-updates (feed: https://basn-updates.s3.amazonaws.com/appcast.xml) (macOS only)
 - **Swift Composable Architecture**: State management
 - **Inject** Hot Reloading for SwiftUI
 
@@ -73,11 +74,11 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 
 3. **Sound Effects**: Audio feedback is provided via `SoundEffect.swift` using files in `Resources/Audio/`
 
-4. **Window Management**: Uses an `InvisibleWindow` for the transcription indicator overlay
+4. **Window Management**: Uses an `InvisibleWindow` for the transcription indicator overlay (macOS)
 
-5. **Permissions**: Requires audio input and automation entitlements (see `Hex.entitlements`)
+5. **Permissions**: Requires audio input entitlement (see `Hex/Hex.entitlements`)
 
-6. **Logging**: All diagnostics should use the unified logging helper `HexLog` (`HexCore/Sources/HexCore/Logging.swift`). Pick an existing category (e.g., `.transcription`, `.recording`, `.settings`) or add a new case so Console predicates stay consistent. Avoid `print` and prefer privacy annotations (`, privacy: .private`) for anything potentially sensitive like transcript text or file paths.
+6. **Logging**: All diagnostics should use the unified logging helper `BasnLog` (`HexCore/Sources/BasnCore/Logging.swift`). Pick an existing category (e.g., `.transcription`, `.recording`, `.settings`) or add a new case so Console predicates stay consistent. Avoid `print` and prefer privacy annotations (`, privacy: .private`) for anything potentially sensitive like transcript text or file paths.
 
 ## Models (2025‑11)
 
@@ -88,10 +89,10 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 ### Storage Locations
 
 - WhisperKit models
-  - `~/Library/Application Support/com.kitlangton.Hex/models/argmaxinc/whisperkit-coreml/<model>`
+  - `~/Library/Application Support/com.lyra.basn/models/argmaxinc/whisperkit-coreml/<model>`
 - Parakeet (FluidAudio)
   - We set `XDG_CACHE_HOME` on launch so Parakeet caches under the app container:
-  - `~/Library/Containers/com.kitlangton.Hex/Data/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v3-coreml`
+  - `~/Library/Containers/com.lyra.basn/Data/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v3-coreml`
   - Legacy `~/.cache/fluidaudio/Models/…` is not visible to the sandbox; re‑download or import.
 
 ### Progress + Availability
@@ -114,14 +115,13 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 - `com.apple.security.app-sandbox = true`
 - `com.apple.security.network.client = true` (HF downloads)
 - `com.apple.security.files.user-selected.read-write = true` (optional import)
-- `com.apple.security.automation.apple-events = true` (media control)
 
 ### Cache root (Parakeet)
 
 Set at app launch and logged:
 
 ```
-XDG_CACHE_HOME = ~/Library/Containers/com.kitlangton.Hex/Data/Library/Application Support/com.kitlangton.Hex/cache
+XDG_CACHE_HOME = ~/Library/Containers/com.lyra.basn/Data/Library/Application Support/com.lyra.basn/cache
 ```
 
 FluidAudio models reside under `Application Support/FluidAudio/Models`.
@@ -135,7 +135,7 @@ FluidAudio models reside under `Application Support/FluidAudio/Models`.
 
 - Repeated mic prompts during debug: ensure Debug signing uses "Apple Development" so TCC sticks
 - Sandbox network errors (‑1003): add `com.apple.security.network.client = true` (already set)
-- Parakeet not detected: ensure it resides under the container path above; downloading from Hex places it correctly.
+- Parakeet not detected: ensure it resides under the container path above; downloading from Basn places it correctly.
 
 ## Changelog Workflow Expectations
 
@@ -205,7 +205,7 @@ Releases are automated via a local CLI tool that handles building, signing, nota
 9. Creates and signs DMG
 10. Notarizes DMG
 11. Generates Sparkle appcast
-12. Uploads to S3 (versioned DMG + `hex-latest.dmg` + appcast.xml)
+12. Uploads to S3 (versioned DMG + `basn-latest.dmg` + appcast.xml)
 13. Commits version changes, creates git tag, pushes
 14. Creates GitHub release with DMG and ZIP attachments
 
@@ -218,9 +218,9 @@ The tool will prompt you to either:
 ### Artifacts
 
 Each release produces:
-- `Hex-{version}.dmg` - Signed, notarized DMG
-- `Hex-{version}.zip` - For Homebrew cask
-- `hex-latest.dmg` - Always points to latest
+- `Basn-{version}.dmg` - Signed, notarized DMG
+- `Basn-{version}.zip` - For Homebrew cask
+- `basn-latest.dmg` - Always points to latest
 - `appcast.xml` - Sparkle update feed
 
 ### Troubleshooting

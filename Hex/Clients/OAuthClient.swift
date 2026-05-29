@@ -12,7 +12,7 @@ import CryptoKit
 import Foundation
 import os
 
-private let oauthLogger = Logger(subsystem: "com.kitlangton.Hex", category: "oauth")
+private let oauthLogger = Logger(subsystem: "com.lyra.basn", category: "oauth")
 
 // MARK: - Provider Configuration
 

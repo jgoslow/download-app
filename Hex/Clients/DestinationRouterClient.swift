@@ -10,9 +10,9 @@ import ComposableArchitecture
 import Dependencies
 import DependenciesMacros
 import Foundation
-import HexCore
+import BasnCore
 
-private let routerLogger = HexLog.app
+private let routerLogger = BasnLog.app
 
 /// A summary of a previous session, used as pre-session context.
 public struct SessionContext: Codable, Sendable {
@@ -61,8 +61,8 @@ struct DestinationRouterClient {
 extension DestinationRouterClient: DependencyKey {
     static var liveValue: Self {
         .init(route: { session in
-            @Shared(.hexSettings) var hexSettings: HexSettings
-            let config = hexSettings.basinSettings
+            @Shared(.basnSettings) var basnSettings: BasnSettings
+            let config = basnSettings.basinSettings
 
             // 1. Save locally — always
             do {
@@ -106,8 +106,8 @@ extension DestinationRouterClient: DependencyKey {
                 return .serverFailed(error: error.localizedDescription)
             }
         }, postAnalysis: { sessionID, analysis in
-            @Shared(.hexSettings) var hexSettings: HexSettings
-            let config = hexSettings.basinSettings
+            @Shared(.basnSettings) var basnSettings: BasnSettings
+            let config = basnSettings.basinSettings
             guard !config.serverURL.isEmpty,
                   let serverURL = URL(string: config.serverURL) else { return }
 
@@ -131,8 +131,8 @@ extension DestinationRouterClient: DependencyKey {
                 routerLogger.error("Analysis POST failed for \(sessionID): \(error.localizedDescription)")
             }
         }, fetchContext: { typeID in
-            @Shared(.hexSettings) var hexSettings: HexSettings
-            let config = hexSettings.basinSettings
+            @Shared(.basnSettings) var basnSettings: BasnSettings
+            let config = basnSettings.basinSettings
             guard !config.serverURL.isEmpty,
                   let serverURL = URL(string: config.serverURL) else { return [] }
 

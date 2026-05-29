@@ -1,5 +1,5 @@
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import Inject
 import SwiftUI
 
@@ -25,7 +25,7 @@ struct SettingsView: View {
 
 			ModelSectionView(store: store, shouldFlash: store.shouldFlashModelSection)
 			// Only show language picker for WhisperKit models (not Parakeet)
-			if ParakeetModel(rawValue: store.hexSettings.selectedModel) == nil {
+			if ParakeetModel(rawValue: store.basnSettings.selectedModel) == nil {
 				LanguageSectionView(store: store)
 			}
 

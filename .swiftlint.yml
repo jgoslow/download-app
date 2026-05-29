@@ -1,4 +1,4 @@
-# SwiftLint configuration for Hex
+# SwiftLint configuration for Basn
 
 disabled_rules:
   - trailing_whitespace
@@ -35,8 +35,8 @@ excluded:
   - SourcePackages
   - DerivedData
   - .swiftpm
-  - Hex.xcodeproj
-  - HexTests
+  - Basn.xcodeproj
+  - BasnTests
 
 line_length:
   warning: 150

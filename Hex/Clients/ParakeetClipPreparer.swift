@@ -1,6 +1,6 @@
 import AVFoundation
 import Foundation
-import HexCore
+import BasnCore
 import os.log
 
 struct ParakeetClipPreparationResult {
@@ -40,7 +40,7 @@ enum ParakeetClipPreparer {
   static func ensureMinimumDuration(
     url: URL,
     minimumDuration: TimeInterval = defaultMinimumDuration,
-    logger: os.Logger = HexLog.parakeet
+    logger: os.Logger = BasnLog.parakeet
   ) throws -> ParakeetClipPreparationResult {
     let audioFile = try AVAudioFile(forReading: url)
     let format = audioFile.processingFormat

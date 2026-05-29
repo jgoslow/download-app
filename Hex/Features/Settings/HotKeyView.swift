@@ -1,11 +1,11 @@
 //
 //  HotKeyView.swift
-//  Hex
+//  Basn
 //
 //  Created by Kit Langton on 1/30/25.
 //
 
-import HexCore
+import BasnCore
 import Inject
 import Sauce
 import SwiftUI

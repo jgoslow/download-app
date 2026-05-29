@@ -10,9 +10,9 @@ import ComposableArchitecture
 import Dependencies
 import DependenciesMacros
 import Foundation
-import HexCore
+import BasnCore
 
-private let anthropicLogger = HexLog.app
+private let anthropicLogger = BasnLog.app
 
 @DependencyClient
 struct AnthropicClient {

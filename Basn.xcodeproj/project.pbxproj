@@ -1,0 +1,902 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		47512ABF2E14D8C9000E25BA /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 47512ABE2E14D8C9000E25BA /* WhisperKit */; };
+		476316272E5FB31400913CDE /* BasnCore in Frameworks */ = {isa = PBXBuildFile; productRef = 476316262E5FB31400913CDE /* BasnCore */; };
+		476BAD3E2D47E7880088C61F /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 476BAD3D2D47E7880088C61F /* Sparkle */; };
+		47C08AB62DE9F61B00564AE6 /* Inject in Frameworks */ = {isa = PBXBuildFile; productRef = 47C08AB52DE9F61B00564AE6 /* Inject */; };
+		47E05E022D444EE900D26DA6 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 47E05E012D444EE900D26DA6 /* ComposableArchitecture */; };
+		47E05E052D444EF800D26DA6 /* Sauce in Frameworks */ = {isa = PBXBuildFile; productRef = 47E05E042D444EF800D26DA6 /* Sauce */; };
+		47E05E0A2D44525B00D26DA6 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 47E05E092D44525B00D26DA6 /* Dependencies */; };
+		47E05E0C2D44525B00D26DA6 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 47E05E0B2D44525B00D26DA6 /* DependenciesMacros */; };
+		47E16A622EC6C9D300885CF7 /* FluidAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 47E16A612EC6C9D300885CF7 /* FluidAudio */; };
+		68FAB12F68549B75D50EFD8E /* SessionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB7ED1A7AE043D70F0C0931 /* SessionHistoryView.swift */; };
+		7410B65235D47B52C01244B2 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = FEBF08CBE50A6DBE18753FC5 /* DependenciesMacros */; };
+		7454E5334AE661884B778945 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = D72148F7A7A05F887DAFBBDA /* ComposableArchitecture */; };
+		80671773A8E0950C04195BC5 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 71AD5B0A39691E6B68D6F5B8 /* WhisperKit */; };
+		8142B6875B495F1288157F35 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E4F1F66630C09F632AB633 /* ContentView.swift */; };
+		9BA123399E6F3084BDAE304A /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9F920EA43B2E6DB17375E2 /* HomeView.swift */; };
+		9DF2A700AD437BBDB5AE9084 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99ACD2512699EC978D1BD59 /* SettingsView.swift */; };
+		9F01493AA7217A5F0C9F5CBD /* BasnAppIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97467FAEA51A2CCCD5326D82 /* BasnAppIOS.swift */; };
+		B3A2388B51B89AA56116F3DC /* RecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E524C29A4EBE4129F3E091 /* RecordingView.swift */; };
+		B5045C972D78DED500D0A119 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = B5045C962D78DED500D0A119 /* MarkdownUI */; };
+		B53356002D7B8D4900E5F542 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */; };
+		CE6912B2450BA958CF950A06 /* BasinShared in Frameworks */ = {isa = PBXBuildFile; productRef = 97C217B4F9F266C110BF4C4A /* BasinShared */; };
+		E54A87A814009F29D1BF2517 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 023AFB1663046E6B5406ED0A /* Foundation.framework */; };
+		E57671F45CACD836B316BF1F /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 3140CBD592178F42DE84B97F /* Dependencies */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		478637A92D48725900319BFA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 47E05DE62D444EC600D26DA6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 47E05DED2D444EC600D26DA6;
+			remoteInfo = Basn;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		023AFB1663046E6B5406ED0A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		463B0AA6FFAA537F10C8F8DF /* Basn iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Basn iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		473544502D445936001FBCB5 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		473544542D445959001FBCB5 /* Testing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Testing.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework; sourceTree = DEVELOPER_DIR; };
+		478637A52D48725900319BFA /* BasnTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BasnTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		47E05DEE2D444EC600D26DA6 /* Basn Debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Basn Debug.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		66E524C29A4EBE4129F3E091 /* RecordingView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = iOS/RecordingView.swift; sourceTree = "<group>"; };
+		97467FAEA51A2CCCD5326D82 /* BasnAppIOS.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = iOS/App/BasnAppIOS.swift; sourceTree = "<group>"; };
+		B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		B5A1C7E22E6A1C5B00AB1234 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.icon; name = AppIcon.icon; path = Hex/AppIcon.icon; sourceTree = "<group>"; };
+		C4E4F1F66630C09F632AB633 /* ContentView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = iOS/App/ContentView.swift; sourceTree = "<group>"; };
+		F99ACD2512699EC978D1BD59 /* SettingsView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = iOS/SettingsView.swift; sourceTree = "<group>"; };
+		FD9F920EA43B2E6DB17375E2 /* HomeView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = iOS/HomeView.swift; sourceTree = "<group>"; };
+		FEB7ED1A7AE043D70F0C0931 /* SessionHistoryView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = iOS/SessionHistoryView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		476BAD402D47E8500088C61F /* Exceptions for "Hex" folder in "Basn" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 47E05DED2D444EC600D26DA6 /* Basn */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		47E05DF02D444EC600D26DA6 /* Hex */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				476BAD402D47E8500088C61F /* Exceptions for "Hex" folder in "Basn" target */,
+			);
+			path = Hex;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2E896649174452458EC2944C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E54A87A814009F29D1BF2517 /* Foundation.framework in Frameworks */,
+				CE6912B2450BA958CF950A06 /* BasinShared in Frameworks */,
+				7454E5334AE661884B778945 /* ComposableArchitecture in Frameworks */,
+				80671773A8E0950C04195BC5 /* WhisperKit in Frameworks */,
+				E57671F45CACD836B316BF1F /* Dependencies in Frameworks */,
+				7410B65235D47B52C01244B2 /* DependenciesMacros in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		478637A22D48725900319BFA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		47E05DEB2D444EC600D26DA6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				476BAD3E2D47E7880088C61F /* Sparkle in Frameworks */,
+				476316272E5FB31400913CDE /* BasnCore in Frameworks */,
+				47E05E0A2D44525B00D26DA6 /* Dependencies in Frameworks */,
+				B5045C972D78DED500D0A119 /* MarkdownUI in Frameworks */,
+				47512ABF2E14D8C9000E25BA /* WhisperKit in Frameworks */,
+				47E05E052D444EF800D26DA6 /* Sauce in Frameworks */,
+				47E16A622EC6C9D300885CF7 /* FluidAudio in Frameworks */,
+				47C08AB62DE9F61B00564AE6 /* Inject in Frameworks */,
+				47E05E0C2D44525B00D26DA6 /* DependenciesMacros in Frameworks */,
+				47E05E022D444EE900D26DA6 /* ComposableArchitecture in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4735444F2D445936001FBCB5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				473544542D445959001FBCB5 /* Testing.framework */,
+				473544502D445936001FBCB5 /* XCTest.framework */,
+				BCC8428A818161742DECB175 /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		47E05DE52D444EC600D26DA6 = {
+			isa = PBXGroup;
+			children = (
+				B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */,
+				B5A1C7E22E6A1C5B00AB1234 /* AppIcon.icon */,
+				47E05DF02D444EC600D26DA6 /* Hex */,
+				4735444F2D445936001FBCB5 /* Frameworks */,
+				47E05DEF2D444EC600D26DA6 /* Products */,
+				57EFA79C108BC1AA2B2305F5 /* iOS */,
+			);
+			sourceTree = "<group>";
+		};
+		47E05DEF2D444EC600D26DA6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				47E05DEE2D444EC600D26DA6 /* Basn Debug.app */,
+				478637A52D48725900319BFA /* BasnTests.xctest */,
+				463B0AA6FFAA537F10C8F8DF /* Basn iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		57EFA79C108BC1AA2B2305F5 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				97467FAEA51A2CCCD5326D82 /* BasnAppIOS.swift */,
+				C4E4F1F66630C09F632AB633 /* ContentView.swift */,
+				FD9F920EA43B2E6DB17375E2 /* HomeView.swift */,
+				66E524C29A4EBE4129F3E091 /* RecordingView.swift */,
+				FEB7ED1A7AE043D70F0C0931 /* SessionHistoryView.swift */,
+				F99ACD2512699EC978D1BD59 /* SettingsView.swift */,
+			);
+			name = iOS;
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		BCC8428A818161742DECB175 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				023AFB1663046E6B5406ED0A /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		478637A42D48725900319BFA /* BasnTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 478637AB2D48725900319BFA /* Build configuration list for PBXNativeTarget "BasnTests" */;
+			buildPhases = (
+				478637A12D48725900319BFA /* Sources */,
+				478637A22D48725900319BFA /* Frameworks */,
+				478637A32D48725900319BFA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				478637AA2D48725900319BFA /* PBXTargetDependency */,
+			);
+			name = BasnTests;
+			productName = BasnTests;
+			productReference = 478637A52D48725900319BFA /* BasnTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		47E05DED2D444EC600D26DA6 /* Basn */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 47E05DFD2D444EC700D26DA6 /* Build configuration list for PBXNativeTarget "Basn" */;
+			buildPhases = (
+				47E05DEA2D444EC600D26DA6 /* Sources */,
+				47E05DEB2D444EC600D26DA6 /* Frameworks */,
+				47E05DEC2D444EC600D26DA6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				47E05DF02D444EC600D26DA6 /* Hex */,
+			);
+			name = Basn;
+			packageProductDependencies = (
+				47E05E012D444EE900D26DA6 /* ComposableArchitecture */,
+				47E05E042D444EF800D26DA6 /* Sauce */,
+				47E05E092D44525B00D26DA6 /* Dependencies */,
+				47E05E0B2D44525B00D26DA6 /* DependenciesMacros */,
+				476BAD3D2D47E7880088C61F /* Sparkle */,
+				B5045C962D78DED500D0A119 /* MarkdownUI */,
+				47C08AB52DE9F61B00564AE6 /* Inject */,
+				47512ABE2E14D8C9000E25BA /* WhisperKit */,
+				476316262E5FB31400913CDE /* BasnCore */,
+				47E16A612EC6C9D300885CF7 /* FluidAudio */,
+			);
+			productName = Basn;
+			productReference = 47E05DEE2D444EC600D26DA6 /* Basn Debug.app */;
+			productType = "com.apple.product-type.application";
+		};
+		923BDC220AE494282C93633A /* Basn iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B3090C13608B17765D572D26 /* Build configuration list for PBXNativeTarget "Basn iOS" */;
+			buildPhases = (
+				BFAA90E8EF63FC4F4681A0FD /* Sources */,
+				2E896649174452458EC2944C /* Frameworks */,
+				81D2833D2B63602E76F32AFB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Basn iOS";
+			packageProductDependencies = (
+				97C217B4F9F266C110BF4C4A /* BasinShared */,
+				D72148F7A7A05F887DAFBBDA /* ComposableArchitecture */,
+				71AD5B0A39691E6B68D6F5B8 /* WhisperKit */,
+				3140CBD592178F42DE84B97F /* Dependencies */,
+				FEBF08CBE50A6DBE18753FC5 /* DependenciesMacros */,
+			);
+			productName = "Basn iOS";
+			productReference = 463B0AA6FFAA537F10C8F8DF /* Basn iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		47E05DE62D444EC600D26DA6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					478637A42D48725900319BFA = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 47E05DED2D444EC600D26DA6;
+					};
+					47E05DED2D444EC600D26DA6 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+				};
+			};
+			buildConfigurationList = 47E05DE92D444EC600D26DA6 /* Build configuration list for PBXProject "Basn" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 47E05DE52D444EC600D26DA6;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				47E05E002D444EE900D26DA6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				47E05E032D444EF800D26DA6 /* XCRemoteSwiftPackageReference "Sauce" */,
+				47E05E082D44525B00D26DA6 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
+				476BAD3C2D47E7880088C61F /* XCRemoteSwiftPackageReference "Sparkle" */,
+				B5045C952D78DED500D0A119 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+				47C08AB42DE9F61B00564AE6 /* XCRemoteSwiftPackageReference "Inject" */,
+				47512ABD2E14D8C9000E25BA /* XCRemoteSwiftPackageReference "WhisperKit" */,
+				476316252E5FB31400913CDE /* XCLocalSwiftPackageReference "HexCore" */,
+				47E16A602EC6C9D300885CF7 /* XCRemoteSwiftPackageReference "FluidAudio" */,
+				8517ACCCC2D7F6F5CD53C753 /* XCLocalSwiftPackageReference "BasinShared" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 47E05DEF2D444EC600D26DA6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				47E05DED2D444EC600D26DA6 /* Basn */,
+				478637A42D48725900319BFA /* BasnTests */,
+				923BDC220AE494282C93633A /* Basn iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		478637A32D48725900319BFA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		47E05DEC2D444EC600D26DA6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B53356002D7B8D4900E5F542 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		81D2833D2B63602E76F32AFB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		478637A12D48725900319BFA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		47E05DEA2D444EC600D26DA6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFAA90E8EF63FC4F4681A0FD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F01493AA7217A5F0C9F5CBD /* BasnAppIOS.swift in Sources */,
+				8142B6875B495F1288157F35 /* ContentView.swift in Sources */,
+				9BA123399E6F3084BDAE304A /* HomeView.swift in Sources */,
+				B3A2388B51B89AA56116F3DC /* RecordingView.swift in Sources */,
+				68FAB12F68549B75D50EFD8E /* SessionHistoryView.swift in Sources */,
+				9DF2A700AD437BBDB5AE9084 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		478637AA2D48725900319BFA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 47E05DED2D444EC600D26DA6 /* Basn */;
+			targetProxy = 478637A92D48725900319BFA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		478637AC2D48725900319BFA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 47E05DF02D444EC600D26DA6 /* Hex */;
+			baseConfigurationReferenceRelativePath = Config/Secrets.xcconfig;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 81;
+				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.7.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lyra.basn.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Basn.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Basn";
+			};
+			name = Debug;
+		};
+		478637AD2D48725900319BFA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 81;
+				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.7.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lyra.basn.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Basn.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Basn";
+			};
+			name = Release;
+		};
+		47E05DFB2D444EC700D26DA6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 47E05DF02D444EC600D26DA6 /* Hex */;
+			baseConfigurationReferenceRelativePath = Config/Secrets.xcconfig;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = QC99C9JE59;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		47E05DFC2D444EC700D26DA6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = QC99C9JE59;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		47E05DFE2D444EC700D26DA6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 47E05DF02D444EC600D26DA6 /* Hex */;
+			baseConfigurationReferenceRelativePath = Config/Secrets.xcconfig;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AUTOMATION_APPLE_EVENTS = YES;
+				CODE_SIGN_ENTITLEMENTS = Hex/Hex.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 81;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"Hex/Preview Content\"";
+				DEVELOPMENT_TEAM = 8T86GRZ5M9;
+				EMIT_FRONTEND_COMMAND_LINES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Hex/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Basn needs microphone access in order to transcribe your voice.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.7.1;
+				OTHER_LDFLAGS = (
+					"-Xlinker",
+					"-interposable",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lyra.basn.debug;
+				PRODUCT_NAME = "Basn Debug";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		47E05DFF2D444EC700D26DA6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AUTOMATION_APPLE_EVENTS = YES;
+				CODE_SIGN_ENTITLEMENTS = Hex/Hex.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 81;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"Hex/Preview Content\"";
+				DEVELOPMENT_TEAM = QC99C9JE59;
+				EMIT_FRONTEND_COMMAND_LINES = NO;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Hex/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Basn needs microphone access in order to transcribe your voice.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.7.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lyra.basn;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		793FD3597A06AB0DFE6D75DD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = iOS/BasnIOS.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 8T86GRZ5M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Basn needs microphone access to capture your voice.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lyra.basn.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C127B359BB4A5E9CB9A78879 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = iOS/BasnIOS.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 8T86GRZ5M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Basn needs microphone access to capture your voice.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lyra.basn.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		478637AB2D48725900319BFA /* Build configuration list for PBXNativeTarget "BasnTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				478637AC2D48725900319BFA /* Debug */,
+				478637AD2D48725900319BFA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		47E05DE92D444EC600D26DA6 /* Build configuration list for PBXProject "Basn" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				47E05DFB2D444EC700D26DA6 /* Debug */,
+				47E05DFC2D444EC700D26DA6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		47E05DFD2D444EC700D26DA6 /* Build configuration list for PBXNativeTarget "Basn" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				47E05DFE2D444EC700D26DA6 /* Debug */,
+				47E05DFF2D444EC700D26DA6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B3090C13608B17765D572D26 /* Build configuration list for PBXNativeTarget "Basn iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				793FD3597A06AB0DFE6D75DD /* Release */,
+				C127B359BB4A5E9CB9A78879 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		476316252E5FB31400913CDE /* XCLocalSwiftPackageReference "HexCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = HexCore;
+		};
+		8517ACCCC2D7F6F5CD53C753 /* XCLocalSwiftPackageReference "BasinShared" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Shared;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		47512ABD2E14D8C9000E25BA /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.0;
+			};
+		};
+		476BAD3C2D47E7880088C61F /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.8.1;
+			};
+		};
+		47C08AB42DE9F61B00564AE6 /* XCRemoteSwiftPackageReference "Inject" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/krzysztofzablocki/Inject";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.2;
+			};
+		};
+		47E05E002D444EE900D26DA6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.25.2;
+			};
+		};
+		47E05E032D444EF800D26DA6 /* XCRemoteSwiftPackageReference "Sauce" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Clipy/Sauce";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		47E05E082D44525B00D26DA6 /* XCRemoteSwiftPackageReference "swift-dependencies" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-dependencies";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.11.0;
+			};
+		};
+		47E16A602EC6C9D300885CF7 /* XCRemoteSwiftPackageReference "FluidAudio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/FluidInference/FluidAudio";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		B5045C952D78DED500D0A119 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3140CBD592178F42DE84B97F /* Dependencies */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47E05E082D44525B00D26DA6 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = Dependencies;
+		};
+		47512ABE2E14D8C9000E25BA /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47512ABD2E14D8C9000E25BA /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+		476316262E5FB31400913CDE /* BasnCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BasnCore;
+		};
+		476BAD3D2D47E7880088C61F /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 476BAD3C2D47E7880088C61F /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+		47C08AB52DE9F61B00564AE6 /* Inject */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47C08AB42DE9F61B00564AE6 /* XCRemoteSwiftPackageReference "Inject" */;
+			productName = Inject;
+		};
+		47E05E012D444EE900D26DA6 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47E05E002D444EE900D26DA6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+		47E05E042D444EF800D26DA6 /* Sauce */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47E05E032D444EF800D26DA6 /* XCRemoteSwiftPackageReference "Sauce" */;
+			productName = Sauce;
+		};
+		47E05E092D44525B00D26DA6 /* Dependencies */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47E05E082D44525B00D26DA6 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = Dependencies;
+		};
+		47E05E0B2D44525B00D26DA6 /* DependenciesMacros */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47E05E082D44525B00D26DA6 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = DependenciesMacros;
+		};
+		47E16A612EC6C9D300885CF7 /* FluidAudio */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47E16A602EC6C9D300885CF7 /* XCRemoteSwiftPackageReference "FluidAudio" */;
+			productName = FluidAudio;
+		};
+		71AD5B0A39691E6B68D6F5B8 /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47512ABD2E14D8C9000E25BA /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+		97C217B4F9F266C110BF4C4A /* BasinShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8517ACCCC2D7F6F5CD53C753 /* XCLocalSwiftPackageReference "LocalSwiftPackageReference" */;
+			productName = BasinShared;
+		};
+		B5045C962D78DED500D0A119 /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B5045C952D78DED500D0A119 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
+		};
+		D72148F7A7A05F887DAFBBDA /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47E05E002D444EE900D26DA6 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+		FEBF08CBE50A6DBE18753FC5 /* DependenciesMacros */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47E05E082D44525B00D26DA6 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = DependenciesMacros;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 47E05DE62D444EC600D26DA6 /* Project object */;
+}

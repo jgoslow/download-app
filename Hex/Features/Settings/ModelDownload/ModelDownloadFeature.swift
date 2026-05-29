@@ -6,7 +6,7 @@
 import AppKit
 import ComposableArchitecture
 import Dependencies
-import HexCore
+import BasnCore
 import IdentifiedCollections
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -116,7 +116,7 @@ public struct ModelDownloadFeature {
 	@ObservableState
 	public struct State: Equatable {
 		// Shared user settings
-		@Shared(.hexSettings) var hexSettings: HexSettings
+		@Shared(.basnSettings) var basnSettings: BasnSettings
 		@Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
 
 		// Remote data
@@ -136,7 +136,7 @@ public struct ModelDownloadFeature {
 		public var activeDownloadID: UUID?
 
 		// Convenience computed vars
-		var selectedModel: String { hexSettings.selectedModel }
+		var selectedModel: String { basnSettings.selectedModel }
 		var selectedModelIsDownloaded: Bool {
 			availableModels[id: selectedModel]?.isDownloaded ?? false
 		}
@@ -195,7 +195,7 @@ public struct ModelDownloadFeature {
 	}
 
 	private func updateBootstrapState(_ state: inout State) {
-		let model = state.hexSettings.selectedModel
+		let model = state.basnSettings.selectedModel
 		guard !model.isEmpty else { return }
 		let displayName = curatedDisplayName(for: model, curated: state.curatedModels)
 		state.$modelBootstrapState.withLock { bootstrap in
@@ -224,7 +224,7 @@ public struct ModelDownloadFeature {
 			// If the curated item is a glob (e.g., "distil*large-v3"),
 			// resolve it to a concrete available model so both tabs stay in sync
 			let resolved = resolvePattern(model, from: Array(state.availableModels)) ?? model
-			state.$hexSettings.withLock { $0.selectedModel = resolved }
+			state.$basnSettings.withLock { $0.selectedModel = resolved }
 			updateBootstrapState(&state)
 			return .none
 
@@ -275,9 +275,9 @@ public struct ModelDownloadFeature {
 			state.availableModels = IdentifiedArrayOf(uniqueElements: availablePlus)
 
 			// If the selected model is a pattern, resolve it now to the first available match
-			if state.hexSettings.selectedModel.contains("*") || state.hexSettings.selectedModel.contains("?") {
-				if let resolved = resolvePattern(state.hexSettings.selectedModel, from: available) {
-					state.$hexSettings.withLock { $0.selectedModel = resolved }
+			if state.basnSettings.selectedModel.contains("*") || state.basnSettings.selectedModel.contains("?") {
+				if let resolved = resolvePattern(state.basnSettings.selectedModel, from: available) {
+					state.$basnSettings.withLock { $0.selectedModel = resolved }
 				}
 			}
 
@@ -293,10 +293,10 @@ public struct ModelDownloadFeature {
 			}
 			state.curatedModels = IdentifiedArrayOf(uniqueElements: curated)
 			updateBootstrapState(&state)
-			if !state.anyModelDownloaded && !state.hexSettings.hasCompletedModelBootstrap {
-				let preferred = state.recommendedModel.isEmpty ? state.hexSettings.selectedModel : state.recommendedModel
+			if !state.anyModelDownloaded && !state.basnSettings.hasCompletedModelBootstrap {
+				let preferred = state.recommendedModel.isEmpty ? state.basnSettings.selectedModel : state.recommendedModel
 				if !preferred.isEmpty {
-					state.$hexSettings.withLock { $0.selectedModel = preferred }
+					state.$basnSettings.withLock { $0.selectedModel = preferred }
 					updateBootstrapState(&state)
 				}
 			}
@@ -305,10 +305,10 @@ public struct ModelDownloadFeature {
 		// MARK: – Download
 
 		case .downloadSelectedModel:
-			guard !state.hexSettings.selectedModel.isEmpty else { return .none }
+			guard !state.basnSettings.selectedModel.isEmpty else { return .none }
 			state.downloadError = nil
 			state.isDownloading = true
-			let selected = state.hexSettings.selectedModel
+			let selected = state.basnSettings.selectedModel
 			state.downloadingModelName = selected
 			state.activeDownloadID = UUID()
 			let downloadID = state.activeDownloadID!
@@ -335,7 +335,7 @@ public struct ModelDownloadFeature {
 
 		case let .downloadProgress(progress):
 			state.downloadProgress = progress
-			if state.downloadingModelName == state.hexSettings.selectedModel {
+			if state.downloadingModelName == state.basnSettings.selectedModel {
 				state.$modelBootstrapState.withLock { $0.progress = progress }
 			}
 			return .none
@@ -351,7 +351,7 @@ public struct ModelDownloadFeature {
 				if let idx = state.curatedModels.firstIndex(where: { $0.internalName == name }) {
 					state.curatedModels[idx].isDownloaded = true
 				}
-				state.$hexSettings.withLock { settings in
+				state.$basnSettings.withLock { settings in
 					settings.hasCompletedModelBootstrap = true
 				}
 				state.downloadError = nil
@@ -429,7 +429,7 @@ extension ModelDownloadFeature.State {
 	}
 
 	private var prefersEnglishParakeet: Bool {
-		guard let language = hexSettings.outputLanguage?.lowercased(), !language.isEmpty else {
+		guard let language = basnSettings.outputLanguage?.lowercased(), !language.isEmpty else {
 			return false
 		}
 		return language.hasPrefix("en")

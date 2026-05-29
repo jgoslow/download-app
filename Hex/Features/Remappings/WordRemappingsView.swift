@@ -1,5 +1,5 @@
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import Inject
 import SwiftUI
 
@@ -82,15 +82,15 @@ struct WordRemappingsView: View {
 		GroupBox {
 			VStack(alignment: .leading, spacing: 10) {
 				Toggle("Enable Word Removals", isOn: Binding(
-			get: { store.hexSettings.wordRemovalsEnabled },
-			set: { newValue in store.$hexSettings.withLock { $0.wordRemovalsEnabled = newValue } }
+			get: { store.basnSettings.wordRemovalsEnabled },
+			set: { newValue in store.$basnSettings.withLock { $0.wordRemovalsEnabled = newValue } }
 		))
 					.toggleStyle(.checkbox)
 
 				removalsColumnHeaders
 
 				LazyVStack(alignment: .leading, spacing: 6) {
-					ForEach(store.hexSettings.wordRemovals) { removal in
+					ForEach(store.basnSettings.wordRemovals) { removal in
 						if let removalBinding = removalBinding(for: removal.id) {
 							RemovalRow(removal: removalBinding) {
 								store.send(.removeWordRemoval(removal.id))
@@ -125,7 +125,7 @@ struct WordRemappingsView: View {
 				remappingsColumnHeaders
 
 				LazyVStack(alignment: .leading, spacing: 6) {
-					ForEach(store.hexSettings.wordRemappings) { remapping in
+					ForEach(store.basnSettings.wordRemappings) { remapping in
 						if let remappingBinding = remappingBinding(for: remapping.id) {
 							RemappingRow(remapping: remappingBinding) {
 								store.send(.removeWordRemapping(remapping.id))
@@ -187,31 +187,31 @@ struct WordRemappingsView: View {
 	}
 
 	private func removalBinding(for id: UUID) -> Binding<WordRemoval>? {
-		guard let index = store.hexSettings.wordRemovals.firstIndex(where: { $0.id == id }) else {
+		guard let index = store.basnSettings.wordRemovals.firstIndex(where: { $0.id == id }) else {
 			return nil
 		}
 		return Binding(
-			get: { store.hexSettings.wordRemovals[index] },
-			set: { newValue in store.$hexSettings.withLock { $0.wordRemovals[index] = newValue } }
+			get: { store.basnSettings.wordRemovals[index] },
+			set: { newValue in store.$basnSettings.withLock { $0.wordRemovals[index] = newValue } }
 		)
 	}
 
 	private func remappingBinding(for id: UUID) -> Binding<WordRemapping>? {
-		guard let index = store.hexSettings.wordRemappings.firstIndex(where: { $0.id == id }) else {
+		guard let index = store.basnSettings.wordRemappings.firstIndex(where: { $0.id == id }) else {
 			return nil
 		}
 		return Binding(
-			get: { store.hexSettings.wordRemappings[index] },
-			set: { newValue in store.$hexSettings.withLock { $0.wordRemappings[index] = newValue } }
+			get: { store.basnSettings.wordRemappings[index] },
+			set: { newValue in store.$basnSettings.withLock { $0.wordRemappings[index] = newValue } }
 		)
 	}
 
 	private var previewText: String {
 		var output = store.remappingScratchpadText
-		if store.hexSettings.wordRemovalsEnabled {
-			output = WordRemovalApplier.apply(output, removals: store.hexSettings.wordRemovals)
+		if store.basnSettings.wordRemovalsEnabled {
+			output = WordRemovalApplier.apply(output, removals: store.basnSettings.wordRemovals)
 		}
-		output = WordRemappingApplier.apply(output, remappings: store.hexSettings.wordRemappings)
+		output = WordRemappingApplier.apply(output, remappings: store.basnSettings.wordRemappings)
 		return output
 	}
 }

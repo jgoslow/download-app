@@ -11,9 +11,9 @@ import ComposableArchitecture
 import Dependencies
 import DependenciesMacros
 import Foundation
-import HexCore
+import BasnCore
 
-private let diagLogger = HexLog.app
+private let diagLogger = BasnLog.app
 
 // MARK: - Diagnostic Event
 
@@ -105,8 +105,8 @@ private actor DiagnosticsStore {
         saveLocally(event)
 
         // Queue for remote reporting if enabled
-        @Shared(.hexSettings) var hexSettings: HexSettings
-        guard hexSettings.basinSettings.diagnosticsEnabled else { return }
+        @Shared(.basnSettings) var basnSettings: BasnSettings
+        guard basnSettings.basinSettings.diagnosticsEnabled else { return }
 
         queue.append(event)
         if queue.count > maxQueueSize {

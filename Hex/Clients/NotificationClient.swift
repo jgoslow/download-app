@@ -10,11 +10,11 @@ import ComposableArchitecture
 import Dependencies
 import DependenciesMacros
 import Foundation
-import HexCore
+import BasnCore
 import SwiftData
 import UserNotifications
 
-private let notifLogger = HexLog.app
+private let notifLogger = BasnLog.app
 
 @DependencyClient
 struct NotificationClient {
@@ -44,7 +44,7 @@ extension NotificationClient: DependencyKey {
                 center.removeAllPendingNotificationRequests()
 
                 // Read flows with reminders enabled from SwiftData
-                let context = ModelContext(HexApp.modelContainer)
+                let context = ModelContext(BasnApp.modelContainer)
                 let descriptor = FetchDescriptor<FlowDefinition>(
                     predicate: #Predicate { $0.scheduleReminderEnabled }
                 )

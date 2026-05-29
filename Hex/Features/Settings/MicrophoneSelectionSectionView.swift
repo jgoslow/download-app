@@ -18,8 +18,8 @@ struct MicrophoneSelectionSectionView: View {
 						return "System Default"
 					}()
 					Picker("Input Device", selection: Binding(
-						get: { store.hexSettings.selectedMicrophoneID },
-						set: { newValue in store.$hexSettings.withLock { $0.selectedMicrophoneID = newValue } }
+						get: { store.basnSettings.selectedMicrophoneID },
+						set: { newValue in store.$basnSettings.withLock { $0.selectedMicrophoneID = newValue } }
 					)) {
 						Text(systemLabel).tag(nil as String?)
 						ForEach(store.availableInputDevices) { device in
@@ -42,7 +42,7 @@ struct MicrophoneSelectionSectionView: View {
 			}
 
 			// Show fallback note for selected device not connected
-			if let selectedID = store.hexSettings.selectedMicrophoneID,
+			if let selectedID = store.basnSettings.selectedMicrophoneID,
 			   !store.availableInputDevices.contains(where: { $0.id == selectedID })
 			{
 				Text("Selected device not connected. System default will be used.")

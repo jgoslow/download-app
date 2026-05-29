@@ -21,7 +21,7 @@ The fork is currently called "Hex". Rename it to "Download":
 2. Double-click the target name → rename to `Download`
 3. Under **General → Display Name**: change to `Download`
 4. Under **General → Bundle Identifier**: change to `com.jonasgoslow.download` (or your preferred ID)
-5. Rename `Hex.xcodeproj` file on disk → `Download.xcodeproj` via Finder (then reopen in Xcode)
+5. Rename `Basn.xcodeproj` file on disk → `Download.xcodeproj` via Finder (then reopen in Xcode)
 
 ---
 

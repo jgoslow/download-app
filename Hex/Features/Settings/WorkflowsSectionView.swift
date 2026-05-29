@@ -10,7 +10,7 @@
 //
 
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import SwiftData
 import SwiftUI
 

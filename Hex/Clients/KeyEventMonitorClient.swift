@@ -6,12 +6,12 @@ import CoreGraphics
 import Dependencies
 import DependenciesMacros
 import Foundation
-import HexCore
+import BasnCore
 import IOKit
 import IOKit.hidsystem
 import Sauce
 
-private let logger = HexLog.keyEvent
+private let logger = BasnLog.keyEvent
 
 struct KeyEventMonitorToken: Sendable {
   private let cancelHandler: @Sendable () -> Void
@@ -94,7 +94,7 @@ class KeyEventMonitorClientLive {
   private var runLoopSource: CFRunLoopSource?
   private var continuations: [UUID: @Sendable (KeyEvent) -> Bool] = [:]
   private var inputContinuations: [UUID: @Sendable (InputEvent) -> Bool] = [:]
-  private let queue = DispatchQueue(label: "com.kitlangton.Hex.KeyEventMonitor", attributes: .concurrent)
+  private let queue = DispatchQueue(label: "com.lyra.basn.KeyEventMonitor", attributes: .concurrent)
   private var isMonitoring = false
   private var wantsMonitoring = false
   private var accessibilityTrusted = false

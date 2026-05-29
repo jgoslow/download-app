@@ -8,9 +8,9 @@
 //
 
 import Foundation
-import HexCore
+import BasnCore
 
-private let plannerLogger = HexLog.app
+private let plannerLogger = BasnLog.app
 
 extension CastellumPlannerClient {
 

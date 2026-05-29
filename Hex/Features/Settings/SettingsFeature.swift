@@ -2,13 +2,13 @@ import AVFoundation
 import AppKit
 import ComposableArchitecture
 import Dependencies
-import HexCore
+import BasnCore
 import IdentifiedCollections
 import Sauce
 import ServiceManagement
 import SwiftUI
 
-private let settingsLogger = HexLog.settings
+private let settingsLogger = BasnLog.settings
 
 extension SharedReaderKey
   where Self == InMemoryKey<Bool>.Default
@@ -28,7 +28,7 @@ extension SharedReaderKey
 struct SettingsFeature {
   @ObservableState
   struct State {
-    @Shared(.hexSettings) var hexSettings: HexSettings
+    @Shared(.basnSettings) var basnSettings: BasnSettings
     @Shared(.isSettingHotKey) var isSettingHotKey: Bool = false
     @Shared(.isRemappingScratchpadFocused) var isRemappingScratchpadFocused: Bool = false
     @Shared(.transcriptionHistory) var transcriptionHistory: TranscriptionHistory
@@ -109,9 +109,9 @@ struct SettingsFeature {
     Reduce { state, action in
       switch action {
       case .binding:
-        let didNormalizeDoubleTapOnly = !state.hexSettings.doubleTapLockEnabled && state.hexSettings.useDoubleTapOnly
+        let didNormalizeDoubleTapOnly = !state.basnSettings.doubleTapLockEnabled && state.basnSettings.useDoubleTapOnly
         if didNormalizeDoubleTapOnly {
-          state.$hexSettings.withLock {
+          state.$basnSettings.withLock {
             $0.useDoubleTapOnly = false
           }
         }
@@ -186,25 +186,25 @@ struct SettingsFeature {
         return .none
 
       case .addWordRemoval:
-        state.$hexSettings.withLock {
+        state.$basnSettings.withLock {
           $0.wordRemovals.append(.init(pattern: ""))
         }
         return .none
 
       case let .removeWordRemoval(id):
-        state.$hexSettings.withLock {
+        state.$basnSettings.withLock {
           $0.wordRemovals.removeAll { $0.id == id }
         }
         return .none
 
       case .addWordRemapping:
-        state.$hexSettings.withLock {
+        state.$basnSettings.withLock {
           $0.wordRemappings.append(.init(match: "", replacement: ""))
         }
         return .none
 
       case let .removeWordRemapping(id):
-        state.$hexSettings.withLock {
+        state.$basnSettings.withLock {
           $0.wordRemappings.removeAll { $0.id == id }
         }
         return .none
@@ -226,7 +226,7 @@ struct SettingsFeature {
         state.currentModifiers = updatedModifiers
 
         if let key = keyEvent.key {
-          state.$hexSettings.withLock {
+          state.$basnSettings.withLock {
             $0.hotkey.key = key
             $0.hotkey.modifiers = updatedModifiers.erasingSides()
           }
@@ -236,7 +236,7 @@ struct SettingsFeature {
         }
 
         if keyEvent.modifiers.isEmpty {
-          state.$hexSettings.withLock {
+          state.$basnSettings.withLock {
             $0.hotkey.key = nil
             $0.hotkey.modifiers = updatedModifiers.erasingSides()
           }
@@ -247,7 +247,7 @@ struct SettingsFeature {
         return .none
 
       case let .toggleOpenOnLogin(enabled):
-        state.$hexSettings.withLock { $0.openOnLogin = enabled }
+        state.$basnSettings.withLock { $0.openOnLogin = enabled }
         return .run { _ in
           if enabled {
             try? SMAppService.mainApp.register()
@@ -257,7 +257,7 @@ struct SettingsFeature {
         }
 
       case let .toggleShowDockIcon(enabled):
-        state.$hexSettings.withLock { $0.showDockIcon = enabled }
+        state.$basnSettings.withLock { $0.showDockIcon = enabled }
         return .run { _ in
           await MainActor.run {
             NotificationCenter.default.post(name: .updateAppMode, object: nil)
@@ -265,11 +265,11 @@ struct SettingsFeature {
         }
 
       case let .togglePreventSystemSleep(enabled):
-        state.$hexSettings.withLock { $0.preventSystemSleep = enabled }
+        state.$basnSettings.withLock { $0.preventSystemSleep = enabled }
         return .none
 
       case let .setRecordingAudioBehavior(behavior):
-        state.$hexSettings.withLock { $0.recordingAudioBehavior = behavior }
+        state.$basnSettings.withLock { $0.recordingAudioBehavior = behavior }
         return .none
 
       // Permission requests
@@ -293,7 +293,7 @@ struct SettingsFeature {
 
       // Model Management
       case let .modelDownload(.selectModel(newModel)):
-        state.$hexSettings.withLock {
+        state.$basnSettings.withLock {
           $0.selectedModel = newModel
         }
         return .none
@@ -315,7 +315,7 @@ struct SettingsFeature {
         return .none
 
       case let .toggleSaveTranscriptionHistory(enabled):
-        state.$hexSettings.withLock { $0.saveTranscriptionHistory = enabled }
+        state.$basnSettings.withLock { $0.saveTranscriptionHistory = enabled }
 
         if !enabled {
           let transcripts = state.transcriptionHistory.history
@@ -328,8 +328,8 @@ struct SettingsFeature {
         return .none
 
       case let .setModifierSide(kind, side):
-        guard state.hexSettings.hotkey.key == nil else { return .none }
-        state.$hexSettings.withLock {
+        guard state.basnSettings.hotkey.key == nil else { return .none }
+        state.$basnSettings.withLock {
           $0.hotkey.modifiers = $0.hotkey.modifiers.setting(kind: kind, to: side)
         }
         return .none

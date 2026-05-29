@@ -1,5 +1,5 @@
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import Inject
 import SwiftUI
 
@@ -9,7 +9,7 @@ struct HotKeySectionView: View {
 
     var body: some View {
         Section("Hot Key") {
-            let hotKey = store.hexSettings.hotkey
+            let hotKey = store.basnSettings.hotkey
             let key = store.isSettingHotKey ? nil : hotKey.key
             let modifiers = store.isSettingHotKey ? store.currentModifiers : hotKey.modifiers
 
@@ -42,8 +42,8 @@ struct HotKeySectionView: View {
 
             Label {
                 Toggle("Enable double-tap lock", isOn: Binding(
-                    get: { store.hexSettings.doubleTapLockEnabled },
-                    set: { newValue in store.$hexSettings.withLock { $0.doubleTapLockEnabled = newValue } }
+                    get: { store.basnSettings.doubleTapLockEnabled },
+                    set: { newValue in store.$basnSettings.withLock { $0.doubleTapLockEnabled = newValue } }
                 ))
             } icon: {
                 Image(systemName: "hand.tap")
@@ -53,23 +53,23 @@ struct HotKeySectionView: View {
             if hotKey.key != nil {
                 Label {
                     Toggle("Use double-tap only", isOn: Binding(
-                        get: { store.hexSettings.useDoubleTapOnly },
-                        set: { newValue in store.$hexSettings.withLock { $0.useDoubleTapOnly = newValue } }
+                        get: { store.basnSettings.useDoubleTapOnly },
+                        set: { newValue in store.$basnSettings.withLock { $0.useDoubleTapOnly = newValue } }
                     ))
-                        .disabled(!store.hexSettings.doubleTapLockEnabled)
+                        .disabled(!store.basnSettings.doubleTapLockEnabled)
                 } icon: {
                     Image(systemName: "hand.tap.fill")
                 }
             }
 
             // Minimum key time (for modifier-only shortcuts)
-            if store.hexSettings.hotkey.key == nil {
+            if store.basnSettings.hotkey.key == nil {
                 Label {
                     Slider(value: Binding(
-                        get: { store.hexSettings.minimumKeyTime },
-                        set: { newValue in store.$hexSettings.withLock { $0.minimumKeyTime = newValue } }
+                        get: { store.basnSettings.minimumKeyTime },
+                        set: { newValue in store.$basnSettings.withLock { $0.minimumKeyTime = newValue } }
                     ), in: 0.0 ... 2.0, step: 0.1) {
-                        Text("Ignore below \(store.hexSettings.minimumKeyTime, specifier: "%.1f")s")
+                        Text("Ignore below \(store.basnSettings.minimumKeyTime, specifier: "%.1f")s")
                     }
                 } icon: {
                     Image(systemName: "clock")

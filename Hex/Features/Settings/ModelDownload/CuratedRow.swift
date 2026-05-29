@@ -9,7 +9,7 @@ struct CuratedRow: View {
 	let model: CuratedModelInfo
 
 	var isSelected: Bool {
-		let selected = store.hexSettings.selectedModel
+		let selected = store.basnSettings.selectedModel
 		if model.internalName.contains("*") || model.internalName.contains("?") {
 			return fnmatch(model.internalName, selected, 0) == 0
 		}

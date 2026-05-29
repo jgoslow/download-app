@@ -1,7 +1,7 @@
 import ComposableArchitecture
 import Inject
 import SwiftUI
-import HexCore
+import BasnCore
 
 struct HistorySectionView: View {
 	@ObserveInjection var inject
@@ -11,7 +11,7 @@ struct HistorySectionView: View {
 		Section {
 			Label {
 				Toggle("Save Transcription History", isOn: Binding(
-					get: { store.hexSettings.saveTranscriptionHistory },
+					get: { store.basnSettings.saveTranscriptionHistory },
 					set: { store.send(.toggleSaveTranscriptionHistory($0)) }
 				))
 				Text("Save transcriptions and audio recordings for later access")
@@ -20,15 +20,15 @@ struct HistorySectionView: View {
 				Image(systemName: "clock.arrow.circlepath")
 			}
 
-			if store.hexSettings.saveTranscriptionHistory {
+			if store.basnSettings.saveTranscriptionHistory {
 				Label {
 					HStack {
 						Text("Maximum History Entries")
 						Spacer()
 						Picker("", selection: Binding(
-							get: { store.hexSettings.maxHistoryEntries ?? 0 },
+							get: { store.basnSettings.maxHistoryEntries ?? 0 },
 							set: { newValue in
-								store.$hexSettings.withLock { $0.maxHistoryEntries = newValue == 0 ? nil : newValue }
+								store.$basnSettings.withLock { $0.maxHistoryEntries = newValue == 0 ? nil : newValue }
 							}
 						)) {
 							Text("Unlimited").tag(0)
@@ -45,7 +45,7 @@ struct HistorySectionView: View {
 					Image(systemName: "number.square")
 				}
 
-				if store.hexSettings.maxHistoryEntries != nil {
+				if store.basnSettings.maxHistoryEntries != nil {
 					Text("Oldest entries will be automatically deleted when limit is reached")
 						.settingsCaption()
 						.padding(.leading, 28)
@@ -54,7 +54,7 @@ struct HistorySectionView: View {
 		} header: {
 			Text("History")
 		} footer: {
-			if !store.hexSettings.saveTranscriptionHistory {
+			if !store.basnSettings.saveTranscriptionHistory {
 				Text("When disabled, transcriptions will not be saved and audio files will be deleted immediately after transcription.")
 					.font(.footnote)
 					.foregroundColor(.secondary)

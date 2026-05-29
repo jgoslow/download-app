@@ -10,10 +10,10 @@ import ComposableArchitecture
 import Dependencies
 import DependenciesMacros
 import Foundation
-import HexCore
+import BasnCore
 import SwiftData
 
-private let dbLogger = HexLog.app
+private let dbLogger = BasnLog.app
 
 @DependencyClient
 struct ModelContextClient {
@@ -41,7 +41,7 @@ struct ModelContextClient {
 extension ModelContextClient: DependencyKey {
     @MainActor
     static var liveValue: Self {
-        let context = ModelContext(HexApp.modelContainer)
+        let context = ModelContext(BasnApp.modelContainer)
 
         return .init(
             saveCapture: { capture in

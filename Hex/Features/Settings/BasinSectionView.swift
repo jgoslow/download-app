@@ -6,7 +6,7 @@
 //
 
 import ComposableArchitecture
-import HexCore
+import BasnCore
 import SwiftUI
 
 struct BasinSectionView: View {
@@ -14,8 +14,8 @@ struct BasinSectionView: View {
 
     private func basinBinding<T>(_ keyPath: WritableKeyPath<BasinSettings, T>) -> Binding<T> {
         Binding(
-            get: { store.hexSettings.basinSettings[keyPath: keyPath] },
-            set: { newValue in store.$hexSettings.withLock { $0.basinSettings[keyPath: keyPath] = newValue } }
+            get: { store.basnSettings.basinSettings[keyPath: keyPath] },
+            set: { newValue in store.$basnSettings.withLock { $0.basinSettings[keyPath: keyPath] = newValue } }
         )
     }
 

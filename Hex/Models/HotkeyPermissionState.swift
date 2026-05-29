@@ -1,6 +1,6 @@
 import ComposableArchitecture
 import Foundation
-import HexCore
+import BasnCore
 
 struct HotkeyPermissionState: Codable, Equatable {
   var accessibility: PermissionStatus = .notDetermined

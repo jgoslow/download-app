@@ -1,6 +1,6 @@
 //
 //  RecordingClient.swift
-//  Hex
+//  Basn
 //
 //  Created by Kit Langton on 1/24/25.
 //
@@ -12,10 +12,10 @@ import CoreAudio
 import Dependencies
 import DependenciesMacros
 import Foundation
-import HexCore
+import BasnCore
 
-private let recordingLogger = HexLog.recording
-private let mediaLogger = HexLog.media
+private let recordingLogger = BasnLog.recording
+private let mediaLogger = BasnLog.media
 private typealias CoreAudioPropertyListenerBlock = @convention(block) (UInt32, UnsafePointer<AudioObjectPropertyAddress>) -> Void
 
 /// Represents an audio input device
@@ -341,7 +341,7 @@ actor RecordingClientLive {
   private var audioHardwareObservers: [AudioHardwareObserver] = []
   private var isObservingSystemChanges = false
 
-  @Shared(.hexSettings) var hexSettings: HexSettings
+  @Shared(.basnSettings) var basnSettings: BasnSettings
 
   /// Tracks whether media was paused using the media key when recording started.
   private var didPauseMedia: Bool = false
@@ -749,7 +749,7 @@ actor RecordingClientLive {
   }
 
   private func resolvePreferredInputDevice() -> AudioDeviceID? {
-    if let selectedDeviceIDString = hexSettings.selectedMicrophoneID,
+    if let selectedDeviceIDString = basnSettings.selectedMicrophoneID,
        let selectedDeviceID = AudioDeviceID(selectedDeviceIDString) {
       let devices = getAllAudioDevices()
       if devices.contains(selectedDeviceID), deviceHasInput(deviceID: selectedDeviceID) {
@@ -858,7 +858,7 @@ actor RecordingClientLive {
     // Check the selected device if specified, otherwise the default
     var deviceIDsToCheck: [AudioDeviceID] = []
 
-    if let selectedIDString = hexSettings.selectedMicrophoneID,
+    if let selectedIDString = basnSettings.selectedMicrophoneID,
        let selectedID = AudioDeviceID(selectedIDString) {
       deviceIDsToCheck.append(selectedID)
     }
@@ -977,7 +977,7 @@ actor RecordingClientLive {
     mediaControlTask = nil
 
     // Handle audio behavior based on user preference
-    switch hexSettings.recordingAudioBehavior {
+    switch basnSettings.recordingAudioBehavior {
     case .pauseMedia:
       // Pause media in background - don't block recording from starting
       mediaControlTask = Task { [sessionID] in
