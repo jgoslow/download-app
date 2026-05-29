@@ -5,18 +5,20 @@
 //  Created by Kit Langton on 1/24/25.
 //
 
-import AppKit // For NSEvent media key simulation
 import AVFoundation
 import ComposableArchitecture
-import CoreAudio
 import Dependencies
 import DependenciesMacros
 import Foundation
-import BasnCore
 
+#if os(macOS)
+import AppKit
+import CoreAudio
+import BasnCore
 private let recordingLogger = BasnLog.recording
 private let mediaLogger = BasnLog.media
 private typealias CoreAudioPropertyListenerBlock = @convention(block) (UInt32, UnsafePointer<AudioObjectPropertyAddress>) -> Void
+#endif
 
 /// Represents an audio input device
 struct AudioInputDevice: Identifiable, Equatable {
@@ -36,6 +38,7 @@ struct RecordingClient {
   var cleanup: @Sendable () async -> Void = {}
 }
 
+#if os(macOS)
 extension RecordingClient: DependencyKey {
   static var liveValue: Self {
     let live = RecordingClientLive()
@@ -54,6 +57,7 @@ extension RecordingClient: DependencyKey {
     )
   }
 }
+#endif
 
 /// Simple structure representing audio metering values.
 struct Meter: Equatable {
@@ -61,6 +65,7 @@ struct Meter: Equatable {
   let peakPower: Double
 }
 
+#if os(macOS)
 // Define function pointer types for the MediaRemote functions.
 typealias MRNowPlayingIsPlayingFunc = @convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void
 typealias MRMediaRemoteSendCommandFunc = @convention(c) (Int32, CFDictionary?) -> Void
@@ -1287,6 +1292,7 @@ actor RecordingClientLive {
     recordingLogger.notice("RecordingClient cleaned up")
   }
 }
+#endif // os(macOS)
 
 extension DependencyValues {
   var recording: RecordingClient {

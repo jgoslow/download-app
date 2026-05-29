@@ -7,10 +7,12 @@
 //  exchanges codes for tokens, and manages refresh.
 //
 
-import AppKit
 import CryptoKit
 import Foundation
 import os
+#if os(macOS)
+import AppKit
+#endif
 
 private let oauthLogger = Logger(subsystem: "com.lyra.basn", category: "oauth")
 
@@ -124,6 +126,8 @@ actor OAuthClient {
     /// HTTPS redirect for providers that don't support custom schemes (e.g., Slack).
     /// Cloudflare page at this URL passes query params through to basin://oauth/callback.
     private let httpsRedirectURI = "https://getbasin.ai/oauth/callback"
+
+    #if os(macOS)
     private var pendingFlows: [String: PendingFlow] = [:]
 
     struct PendingFlow {
@@ -133,6 +137,7 @@ actor OAuthClient {
         let state: String
         let continuation: CheckedContinuation<OAuthTokenResponse, Error>
     }
+    #endif
 
     struct OAuthTokenResponse {
         let accessToken: String
@@ -206,6 +211,7 @@ actor OAuthClient {
         let authURL = components.url!
         oauthLogger.info("Opening OAuth flow for \(provider, privacy: .public) tool=\(toolID, privacy: .public)")
 
+        #if os(macOS)
         return try await withCheckedThrowingContinuation { continuation in
             pendingFlows[state] = PendingFlow(
                 provider: provider,
@@ -219,9 +225,13 @@ actor OAuthClient {
                 NSWorkspace.shared.open(authURL)
             }
         }
+        #elseif os(iOS)
+        return try await startFlowIOS(authURL: authURL, state: state, provider: provider, pkce: pkce)
+        #endif
     }
 
-    /// Called from the app delegate when basin://oauth/callback is received.
+    /// Called from the app delegate when basin://oauth/callback is received. macOS only.
+    #if os(macOS)
     func handleCallback(url: URL) async {
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let queryItems = components.queryItems else {
@@ -265,8 +275,9 @@ actor OAuthClient {
             flow.continuation.resume(throwing: error)
         }
     }
+    #endif // os(macOS)
 
-    private func exchangeCode(code: String, provider: String, pkceVerifier: String?) async throws -> OAuthTokenResponse {
+    func exchangeCode(code: String, provider: String, pkceVerifier: String?) async throws -> OAuthTokenResponse {
         guard let config = OAuthProviderConfig.config(for: provider) else {
             throw OAuthError.noConfig(provider)
         }
