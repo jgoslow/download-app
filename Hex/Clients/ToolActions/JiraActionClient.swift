@@ -103,10 +103,10 @@ enum JiraActionClient {
 
     private static func resolveAuth(tool: Tool) async -> (authHeader: String, baseURL: String)? {
         // OAuth path — fetch cloud ID from Atlassian, then build the base URL
-        if var oauthToken = tool.oauthAccessToken, !oauthToken.isEmpty {
+        if var oauthToken = KeychainClient.load(toolID: tool.id, key: .accessToken), !oauthToken.isEmpty {
             // Check if token is expired and refresh if needed
-            if let expiresAt = tool.oauthExpiresAt, expiresAt < Date(),
-               let refreshToken = tool.oauthRefreshToken {
+            if let expiresAt = KeychainClient.loadExpiry(toolID: tool.id), expiresAt < Date(),
+               let refreshToken = KeychainClient.load(toolID: tool.id, key: .refreshToken) {
                 jiraLogger.info("Atlassian token expired, refreshing...")
                 if let refreshed = await refreshAtlassianToken(tool: tool, refreshToken: refreshToken) {
                     oauthToken = refreshed
@@ -127,8 +127,8 @@ enum JiraActionClient {
                 return ("Bearer \(oauthToken)", cloudBase)
             }
 
-            // Token might be expired even if oauthExpiresAt wasn't set — try refresh
-            if let refreshToken = tool.oauthRefreshToken {
+            // Token might be expired even if expiry wasn't stored — try refresh
+            if let refreshToken = KeychainClient.load(toolID: tool.id, key: .refreshToken) {
                 jiraLogger.info("Cloud ID fetch failed (possible expired token), trying refresh...")
                 if let refreshed = await refreshAtlassianToken(tool: tool, refreshToken: refreshToken) {
                     if let cloudBase = await fetchAtlassianCloudBaseURL(token: refreshed) {
@@ -142,7 +142,7 @@ enum JiraActionClient {
         }
 
         // API key path: email:token → Basic auth
-        if let apiKey = tool.apiKey, !apiKey.isEmpty,
+        if let apiKey = KeychainClient.load(toolID: tool.id, key: .apiKey), !apiKey.isEmpty,
            let baseURL = tool.baseURL, !baseURL.isEmpty {
             let encoded = Data(apiKey.utf8).base64EncodedString()
             return ("Basic \(encoded)", baseURL)
@@ -248,15 +248,13 @@ enum JiraActionClient {
                 refreshToken: refreshToken,
                 clientID: Bundle.main.infoDictionary?["AtlassianClientID"] as? String ?? ""
             )
-            // Update the tool with new tokens
-            await MainActor.run {
-                tool.oauthAccessToken = response.accessToken
-                if let newRefresh = response.refreshToken {
-                    tool.oauthRefreshToken = newRefresh
-                }
-                if let expiresIn = response.expiresIn {
-                    tool.oauthExpiresAt = Date().addingTimeInterval(TimeInterval(expiresIn))
-                }
+            // Store refreshed tokens in Keychain
+            try? KeychainClient.save(response.accessToken, toolID: tool.id, key: .accessToken)
+            if let newRefresh = response.refreshToken {
+                try? KeychainClient.save(newRefresh, toolID: tool.id, key: .refreshToken)
+            }
+            if let expiresIn = response.expiresIn {
+                try? KeychainClient.saveExpiry(Date().addingTimeInterval(TimeInterval(expiresIn)), toolID: tool.id)
             }
             jiraLogger.info("Atlassian token refreshed successfully")
             return response.accessToken

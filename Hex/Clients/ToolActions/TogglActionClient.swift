@@ -25,7 +25,7 @@ enum TogglActionClient {
     // MARK: - Create Time Entry
 
     private static func createTimeEntry(action: PlannedAction, tool: Tool) async -> ActionResult {
-        guard let apiToken = tool.apiKey, !apiToken.isEmpty else {
+        guard let apiToken = KeychainClient.load(toolID: tool.id, key: .apiKey), !apiToken.isEmpty else {
             return ActionResult(actionID: action.id, success: false, error: "Toggl not authenticated. Add API token in Settings.")
         }
 

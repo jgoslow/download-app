@@ -25,7 +25,8 @@ enum SlackActionClient {
     // MARK: - Send Message
 
     private static func sendMessage(action: PlannedAction, tool: Tool) async -> ActionResult {
-        guard let token = tool.oauthAccessToken ?? tool.apiKey, !token.isEmpty else {
+        guard let token = KeychainClient.load(toolID: tool.id, key: .accessToken)
+            ?? KeychainClient.load(toolID: tool.id, key: .apiKey), !token.isEmpty else {
             return ActionResult(actionID: action.id, success: false, error: "Slack not authenticated. Connect in Settings.")
         }
 

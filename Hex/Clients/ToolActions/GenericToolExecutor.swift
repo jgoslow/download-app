@@ -116,14 +116,14 @@ enum GenericToolExecutor {
 
     private static func resolveAuth(tool: Tool, spec: ToolDefinitionSpec) -> (authHeader: String, baseURL: String)? {
         // OAuth path
-        if let token = tool.oauthAccessToken, !token.isEmpty {
+        if let token = KeychainClient.load(toolID: tool.id, key: .accessToken), !token.isEmpty {
             let baseTemplate = spec.baseUrl?.oauth ?? ""
             let baseURL = tool.baseURL ?? baseTemplate
             return ("Bearer \(token)", baseURL)
         }
 
         // API key path
-        if let apiKey = tool.apiKey, !apiKey.isEmpty {
+        if let apiKey = KeychainClient.load(toolID: tool.id, key: .apiKey), !apiKey.isEmpty {
             let format = spec.auth.apiKeyFormat ?? "bearer"
             let authHeader: String
             switch format {

@@ -9,7 +9,7 @@
 //    3. Basin can use — service-area toggles controlling what Basin actually does
 //    4. Controls — Requires Approval toggle + Disconnect
 //
-//  TODO: Alert the user via system notification N days before oauthExpiresAt.
+//  TODO: Alert the user via system notification N days before token expiry (KeychainClient.loadExpiry).
 //  TODO: When an action fails due to an expired token, surface a "Reconnect [Tool] →"
 //        inline link in the workflow summary card (add at the failure path in CastellumExecutor).
 //
@@ -77,7 +77,7 @@ private struct ToolRowView: View {
                 Label(tool.name, systemImage: spec?.icon ?? tool.iconSystemName)
                 Spacer()
                 if tool.isConnected {
-                    let tokenExpired = tool.oauthExpiresAt.map { $0 < Date() } ?? false
+                    let tokenExpired = KeychainClient.loadExpiry(toolID: tool.id).map { $0 < Date() } ?? false
                     if tokenExpired {
                         Image(systemName: "exclamationmark.circle.fill")
                             .foregroundStyle(.orange)
@@ -114,7 +114,7 @@ private struct ToolRowView: View {
                 }
             }
 
-            if let expiresAt = tool.oauthExpiresAt {
+            if let expiresAt = KeychainClient.loadExpiry(toolID: tool.id) {
                 tokenHealthView(expiresAt: expiresAt)
             }
 
@@ -319,11 +319,8 @@ private struct ToolRowView: View {
 
     private func disconnectTool() {
         tool.isConnected = false
-        tool.oauthAccessToken = nil
-        tool.oauthRefreshToken = nil
-        tool.oauthExpiresAt = nil
         tool.oauthScopes = nil
-        tool.apiKey = nil
+        KeychainClient.deleteAll(toolID: tool.id)
         tool.activeAuthMethod = tool.effectiveSupportsOAuth ? "oauth" : "api_key"
         isExpanded = false
     }
@@ -470,7 +467,7 @@ private struct ToolConnectSheet: View {
             if tool.activeAuthMethod == "api_key" && tool.effectiveSupportsAPIKey {
                 selectedTab = .apiKey
             }
-            apiKeyInput = tool.apiKey ?? ""
+            apiKeyInput = KeychainClient.load(toolID: tool.id, key: .apiKey) ?? ""
             baseURLInput = tool.baseURL ?? ""
 
             if let saved = tool.selectedScopeKeys {
@@ -485,7 +482,7 @@ private struct ToolConnectSheet: View {
 
     private var oauthTab: some View {
         VStack(spacing: 12) {
-            if tool.isOAuthConnected {
+            if tool.isConnected && tool.effectiveAuthMethod == "oauth" {
                 VStack(spacing: 8) {
                     Image(systemName: "checkmark.shield.fill")
                         .font(.system(size: 32))
@@ -497,7 +494,7 @@ private struct ToolConnectSheet: View {
                             .font(.caption)
                             .foregroundStyle(.tertiary)
                     }
-                    if let expires = tool.oauthExpiresAt {
+                    if let expires = KeychainClient.loadExpiry(toolID: tool.id) {
                         Text("Token expires: \(expires.formatted(.relative(presentation: .named)))")
                             .font(.caption)
                             .foregroundStyle(.tertiary)
@@ -640,11 +637,13 @@ private struct ToolConnectSheet: View {
                     scopes: selectedScopeURLs
                 )
                 await MainActor.run {
-                    tool.oauthAccessToken = tokens.accessToken
-                    tool.oauthRefreshToken = tokens.refreshToken
+                    try? KeychainClient.save(tokens.accessToken, toolID: tool.id, key: .accessToken)
+                    if let refresh = tokens.refreshToken {
+                        try? KeychainClient.save(refresh, toolID: tool.id, key: .refreshToken)
+                    }
                     tool.oauthScopes = tokens.scope
                     if let expiresIn = tokens.expiresIn {
-                        tool.oauthExpiresAt = Date().addingTimeInterval(TimeInterval(expiresIn))
+                        try? KeychainClient.saveExpiry(Date().addingTimeInterval(TimeInterval(expiresIn)), toolID: tool.id)
                     }
                     tool.activeAuthMethod = "oauth"
                     tool.isConnected = true
@@ -669,21 +668,23 @@ private struct ToolConnectSheet: View {
     }
 
     private func saveAPIKey() {
-        tool.apiKey = apiKeyInput.isEmpty ? nil : apiKeyInput
+        if apiKeyInput.isEmpty {
+            KeychainClient.delete(toolID: tool.id, key: .apiKey)
+            tool.isConnected = false
+        } else {
+            try? KeychainClient.save(apiKeyInput, toolID: tool.id, key: .apiKey)
+            tool.isConnected = true
+            tool.connectedAt = Date()
+        }
         tool.baseURL = baseURLInput.isEmpty ? nil : baseURLInput
         tool.activeAuthMethod = "api_key"
-        tool.isConnected = !apiKeyInput.isEmpty
-        tool.connectedAt = Date()
         onDismiss()
     }
 
     private func disconnect() {
         tool.isConnected = false
-        tool.oauthAccessToken = nil
-        tool.oauthRefreshToken = nil
-        tool.oauthExpiresAt = nil
         tool.oauthScopes = nil
-        tool.apiKey = nil
+        KeychainClient.deleteAll(toolID: tool.id)
         tool.activeAuthMethod = tool.effectiveSupportsOAuth ? "oauth" : "api_key"
         onDismiss()
     }

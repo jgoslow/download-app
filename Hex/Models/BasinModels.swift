@@ -212,14 +212,10 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     /// Whether API key auth is available for this tool. Nil = true (default).
     var supportsAPIKey: Bool?
 
-    // OAuth fields
-    var oauthAccessToken: String?
-    var oauthRefreshToken: String?
-    var oauthExpiresAt: Date?
+    // OAuth fields — tokens stored in iCloud Keychain via KeychainClient
     var oauthScopes: String?
 
-    // API key fields
-    var apiKey: String?
+    // API key fields — key stored in iCloud Keychain via KeychainClient
     var apiKeyLabel: String?
     var baseURL: String?
 
@@ -231,7 +227,7 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     var enabledActionKeys: [String]?
 
     /// When the tool was last successfully connected (OAuth or API key).
-    // TODO: Use this to send a system notification N days before oauthExpiresAt, and
+    // TODO: Use this to send a system notification N days before token expiry (via KeychainClient.loadExpiry), and
     //       surface a "Reconnect [Tool]" inline link in workflow summaries when an action fails due to auth.
     var connectedAt: Date?
 
@@ -278,14 +274,6 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     var effectiveAuthMethod: String { activeAuthMethod ?? "oauth" }
     var effectiveSupportsOAuth: Bool { supportsOAuth ?? true }
     var effectiveSupportsAPIKey: Bool { supportsAPIKey ?? true }
-
-    var isOAuthConnected: Bool {
-        oauthAccessToken != nil
-    }
-
-    var isAPIKeyConnected: Bool {
-        apiKey != nil && !(apiKey?.isEmpty ?? true)
-    }
 
     /// OAuth provider identifier used to look up the OAuth config
     var oauthProvider: String? {
