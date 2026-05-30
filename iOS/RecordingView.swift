@@ -20,7 +20,16 @@ struct RecordView: View {
 
                 Spacer()
 
-                if !appState.isRecording {
+                if appState.isTranscribing {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .controlSize(.large)
+                        Text("Processing…")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                } else if !appState.isRecording {
                     VStack(spacing: 12) {
                         Image(systemName: "mic.badge.plus")
                             .font(.system(size: 44))
@@ -52,6 +61,7 @@ struct RecordView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: appState.isRecording)
+        .animation(.easeInOut(duration: 0.25), value: appState.isTranscribing)
     }
 
     // MARK: - Flow Header

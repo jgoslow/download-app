@@ -86,7 +86,9 @@ private struct SessionRow: View {
 
                 Spacer()
 
-                Text(session.timestamp, style: .relative)
+                Text(session.timestamp, format: Calendar.current.isDateInToday(session.timestamp)
+                    ? .dateTime.hour().minute()
+                    : .dateTime.month().day().hour().minute())
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -3,6 +3,7 @@ import BasinShared
 import Foundation
 import Observation
 import os
+import UIKit
 import WhisperKit
 
 private let appLogger = Logger(subsystem: "com.lyra.basn", category: "ios-app")
@@ -23,6 +24,10 @@ final class AppState {
     var showOnboarding: Bool = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     var downloadingModelVariant: String? = nil
     var modelDownloadProgress: Double = 0
+    var isTranscribing = false
+
+    private var whisperKit: WhisperKit?
+    private var loadedModelVariant: String?
 
     var settings: IOSAppSettings = AppState.loadSettings() {
         didSet { AppState.saveSettings(settings) }
@@ -50,14 +55,13 @@ final class AppState {
     private var recordingStart: Date?
 
     func isModelDownloaded(variant: String) -> Bool {
-        guard let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return false }
-        let path = docs.appendingPathComponent("huggingface/models/argmaxinc/whisperkit-coreml/\(variant)")
-        return FileManager.default.fileExists(atPath: path.path)
+        return FileManager.default.fileExists(atPath: modelFolder(for: variant).path)
     }
 
     func downloadModel(variant: String) async {
         if isModelDownloaded(variant: variant) {
             settings.selectedModel = variant
+            try? await ensureWhisperKitLoaded(variant: variant)
             return
         }
         guard downloadingModelVariant == nil else { return }
@@ -75,6 +79,8 @@ final class AppState {
             )
             modelDownloadProgress = 1.0
             settings.selectedModel = variant
+            excludeModelFromBackup(variant: variant)
+            try? await ensureWhisperKitLoaded(variant: variant)
         } catch {
             appLogger.error("Model download failed: \(error.localizedDescription)")
         }
@@ -83,6 +89,34 @@ final class AppState {
 
     func downloadDefaultModelIfNeeded() async {
         await downloadModel(variant: settings.selectedModel)
+    }
+
+    func ensureWhisperKitLoaded(variant: String? = nil) async throws {
+        let target = variant ?? settings.selectedModel
+        guard isModelDownloaded(variant: target) else { return }
+        guard loadedModelVariant != target else { return }
+        let folder = modelFolder(for: target)
+        let config = WhisperKitConfig(
+            model: target,
+            modelFolder: folder.path,
+            prewarm: false,
+            load: true
+        )
+        whisperKit = try await WhisperKit(config)
+        loadedModelVariant = target
+        appLogger.notice("WhisperKit loaded model=\(target, privacy: .public)")
+    }
+
+    private func modelFolder(for variant: String) -> URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return docs.appendingPathComponent("huggingface/models/argmaxinc/whisperkit-coreml/\(variant)")
+    }
+
+    private func excludeModelFromBackup(variant: String) {
+        var url = modelFolder(for: variant)
+        var rv = URLResourceValues()
+        rv.isExcludedFromBackup = true
+        try? url.setResourceValues(rv)
     }
 
     func load() async {
@@ -95,11 +129,13 @@ final class AppState {
         if let first = flows.first { activeFlow = first }
         isLoadingFlows = false
         appLogger.notice("Loaded \(self.flows.count) flows, \(self.sessions.count) sessions")
+        // Pre-load WhisperKit in the background so the first recording doesn't wait.
+        Task { try? await ensureWhisperKitLoaded() }
     }
 
     func startRecording() async {
-        guard micPermissionGranted else {
-            appLogger.warning("Mic permission denied — cannot start recording")
+        guard micPermissionGranted, !isTranscribing else {
+            appLogger.warning("Cannot start recording: micPermission=\(micPermissionGranted) transcribing=\(isTranscribing)")
             return
         }
         await recorder.startRecording()
@@ -112,17 +148,52 @@ final class AppState {
     }
 
     func stopRecording() async {
+        let duration = recordingDuration
         timerTask?.cancel()
         levelTask?.cancel()
         timerTask = nil
         levelTask = nil
         let exportURL = await recorder.stopRecording()
+        let capturedFlow = activeFlow
         isRecording = false
         recordingDuration = 0
         audioLevel = 0
         recordingStart = nil
         appLogger.notice("Recording stopped, file: \(exportURL.lastPathComponent, privacy: .public)")
-        // Phase 7: transcribe exportURL and save Session
+
+        guard isModelDownloaded(variant: settings.selectedModel) else {
+            appLogger.warning("No model downloaded — skipping transcription")
+            return
+        }
+        isTranscribing = true
+        defer { isTranscribing = false }
+        do {
+            try await ensureWhisperKitLoaded()
+            guard let wk = whisperKit else { return }
+            var options = DecodingOptions()
+            if let lang = settings.outputLanguage { options.language = lang }
+            let results = try await wk.transcribe(audioPath: exportURL.path, decodeOptions: options)
+            let text = results.map(\.text).joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+            let wordCount = text.split(whereSeparator: \.isWhitespace).count
+            let session = Session(
+                device: UIDevice.current.name,
+                platform: .ios,
+                flowID: capturedFlow.id,
+                rawText: text,
+                durationSeconds: duration,
+                wordCount: wordCount,
+                metadata: Session.Metadata(
+                    appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0",
+                    whisperModel: settings.selectedModel,
+                    language: settings.outputLanguage
+                )
+            )
+            try await sessionStore.save(session)
+            await reloadSessions()
+            appLogger.notice("Session saved: \(session.id, privacy: .public) words=\(wordCount)")
+        } catch {
+            appLogger.error("Transcription failed: \(error.localizedDescription)")
+        }
     }
 
     func selectFlow(_ flow: Flow) {

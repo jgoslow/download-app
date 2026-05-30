@@ -35,6 +35,16 @@ struct ContentView: View {
     // (chord of a circle), not the full radius. The vertical gap to the menu bar
     // is (toggleBottomPad - tabHeight). Setting horizontal gap equal gives:
     //   offset = -(fabXAtToggleY + verticalGap + toggleRadius)
+    private var fabColor: Color {
+        if useTypeMode { return .black }
+        if appState.isTranscribing { return Color(.systemGray3) }
+        return appState.isRecording ? .red : .blue
+    }
+
+    private var fabIcon: String {
+        useTypeMode ? "keyboard" : (appState.isRecording ? "waveform" : "mic.fill")
+    }
+
     private var toggleXOffset: CGFloat {
         let fabCenterY   = fabBottomPad  + fabSize   / 2   // 44 pt above safe-area top
         let toggleCenterY = toggleBottomPad + toggleSize / 2  // 90 pt above safe-area top
@@ -125,16 +135,23 @@ struct ContentView: View {
             Button { handleFabTap() } label: {
                 ZStack {
                     Circle()
-                        .fill(useTypeMode ? Color.black : (appState.isRecording ? Color.red : Color.blue))
-                        .shadow(color: (useTypeMode ? Color.black : (appState.isRecording ? Color.red : Color.blue)).opacity(0.4), radius: 16, y: 4)
-                    Image(systemName: useTypeMode ? "keyboard" : (appState.isRecording ? "waveform" : "mic.fill"))
-                        .font(.system(size: 38, weight: .medium))
-                        .foregroundStyle(.white)
-                        .contentTransition(.symbolEffect(.replace))
+                        .fill(fabColor)
+                        .shadow(color: fabColor.opacity(0.4), radius: 16, y: 4)
+                    if appState.isTranscribing {
+                        ProgressView()
+                            .tint(.white)
+                            .controlSize(.large)
+                    } else {
+                        Image(systemName: fabIcon)
+                            .font(.system(size: 38, weight: .medium))
+                            .foregroundStyle(.white)
+                            .contentTransition(.symbolEffect(.replace))
+                    }
                 }
             }
             .buttonStyle(.plain)
             .frame(width: fabSize, height: fabSize)
+            .disabled(appState.isTranscribing)
             // Bottom edge sits fabBottomPad above safe-area top.
             .padding(.bottom, fabBottomPad)
         }
