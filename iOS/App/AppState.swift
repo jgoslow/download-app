@@ -135,7 +135,7 @@ final class AppState {
 
     func startRecording() async {
         guard micPermissionGranted, !isTranscribing else {
-            appLogger.warning("Cannot start recording: micPermission=\(micPermissionGranted) transcribing=\(isTranscribing)")
+            appLogger.warning("Cannot start recording: micPermission=\(self.micPermissionGranted) transcribing=\(self.isTranscribing)")
             return
         }
         await recorder.startRecording()
