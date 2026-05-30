@@ -7,6 +7,8 @@ import WhisperKit
 
 private let appLogger = Logger(subsystem: "com.lyra.basn", category: "ios-app")
 
+private let settingsKey = "com.lyra.basn.ios-settings"
+
 @MainActor
 @Observable
 final class AppState {
@@ -19,9 +21,26 @@ final class AppState {
     var micPermissionGranted = false
     var isLoadingFlows = true
     var showOnboarding: Bool = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-    var isDownloadingModel = false
+    var downloadingModelVariant: String? = nil
     var modelDownloadProgress: Double = 0
-    var isModelDownloaded: Bool = false
+
+    var settings: IOSAppSettings = AppState.loadSettings() {
+        didSet { AppState.saveSettings(settings) }
+    }
+
+    private static func loadSettings() -> IOSAppSettings {
+        guard let data = UserDefaults.standard.data(forKey: settingsKey),
+              let decoded = try? JSONDecoder().decode(IOSAppSettings.self, from: data) else {
+            return IOSAppSettings()
+        }
+        return decoded
+    }
+
+    private static func saveSettings(_ s: IOSAppSettings) {
+        if let data = try? JSONEncoder().encode(s) {
+            UserDefaults.standard.set(data, forKey: settingsKey)
+        }
+    }
 
     private let recorder = RecordingClientLiveIOS()
     private let sessionStore = SessionStore.live
@@ -30,38 +49,40 @@ final class AppState {
     private var levelTask: Task<Void, Never>?
     private var recordingStart: Date?
 
-    func downloadDefaultModelIfNeeded() async {
-        if isWhisperBaseDownloaded() {
-            isModelDownloaded = true
+    func isModelDownloaded(variant: String) -> Bool {
+        guard let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return false }
+        let path = docs.appendingPathComponent("huggingface/models/argmaxinc/whisperkit-coreml/\(variant)")
+        return FileManager.default.fileExists(atPath: path.path)
+    }
+
+    func downloadModel(variant: String) async {
+        if isModelDownloaded(variant: variant) {
+            settings.selectedModel = variant
             return
         }
-        guard !isDownloadingModel else { return }
-        isDownloadingModel = true
+        guard downloadingModelVariant == nil else { return }
+        downloadingModelVariant = variant
         modelDownloadProgress = 0
         do {
             _ = try await WhisperKit.download(
-                variant: "openai_whisper-base",
+                variant: variant,
                 downloadBase: nil,
                 useBackgroundSession: false,
                 progressCallback: { progress in
                     let fraction = progress.fractionCompleted
-                    Task { @MainActor in
-                        self.modelDownloadProgress = fraction
-                    }
+                    Task { @MainActor in self.modelDownloadProgress = fraction }
                 }
             )
             modelDownloadProgress = 1.0
-            isModelDownloaded = true
+            settings.selectedModel = variant
         } catch {
             appLogger.error("Model download failed: \(error.localizedDescription)")
         }
-        isDownloadingModel = false
+        downloadingModelVariant = nil
     }
 
-    private func isWhisperBaseDownloaded() -> Bool {
-        guard let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return false }
-        let path = docs.appendingPathComponent("huggingface/models/argmaxinc/whisperkit-coreml/openai_whisper-base")
-        return FileManager.default.fileExists(atPath: path.path)
+    func downloadDefaultModelIfNeeded() async {
+        await downloadModel(variant: settings.selectedModel)
     }
 
     func load() async {

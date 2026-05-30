@@ -26,6 +26,7 @@
 		9DF2A700AD437BBDB5AE9084 /* iOS/SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99ACD2512699EC978D1BD59 /* iOS/SettingsView.swift */; };
 		9F01493AA7217A5F0C9F5CBD /* iOS/App/BasnAppIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97467FAEA51A2CCCD5326D82 /* iOS/App/BasnAppIOS.swift */; };
 		AA20B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift */; };
+		AC20B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC10B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift */; };
 		B3A2388B51B89AA56116F3DC /* iOS/RecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E524C29A4EBE4129F3E091 /* iOS/RecordingView.swift */; };
 		B5045C972D78DED500D0A119 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = B5045C962D78DED500D0A119 /* MarkdownUI */; };
 		B53356002D7B8D4900E5F542 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */; };
@@ -36,6 +37,11 @@
 		E54A87A814009F29D1BF2517 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 023AFB1663046E6B5406ED0A /* Foundation.framework */; };
 		E57671F45CACD836B316BF1F /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 3140CBD592178F42DE84B97F /* Dependencies */; };
 		EE20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift */; };
+		F020B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F010B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift */; };
+		F120B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F110B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift */; };
+		F220B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = F210B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift */; };
+		F320B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F310B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift */; };
+		F420B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F410B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +65,7 @@
 		66E524C29A4EBE4129F3E091 /* iOS/RecordingView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/RecordingView.swift; sourceTree = "<group>"; };
 		97467FAEA51A2CCCD5326D82 /* iOS/App/BasnAppIOS.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/BasnAppIOS.swift; sourceTree = "<group>"; };
 		AA10B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/AppState.swift; sourceTree = "<group>"; };
+		AC10B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/IOSAppSettings.swift; sourceTree = "<group>"; };
 		B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B5A1C7E22E6A1C5B00AB1234 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.icon; name = AppIcon.icon; path = Hex/AppIcon.icon; sourceTree = "<group>"; };
 		BB10B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Clients/RecordingClientIOS.swift; sourceTree = "<group>"; };
@@ -66,6 +73,11 @@
 		CC10B001C2D3E4F5A6B7C8D9 /* Hex/Clients/RecordingClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Clients/RecordingClient.swift; sourceTree = "<group>"; };
 		DD10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Onboarding/OnboardingView.swift; sourceTree = "<group>"; };
 		EE10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Onboarding/LoopingVideoView.swift; sourceTree = "<group>"; };
+		F010B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Models/BasinModels.swift; sourceTree = "<group>"; };
+		F110B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Clients/OAuthClient.swift; sourceTree = "<group>"; };
+		F210B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Clients/OAuthClientIOS.swift; sourceTree = "<group>"; };
+		F310B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Clients/KeychainClient.swift; sourceTree = "<group>"; };
+		F410B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Clients/ToolActions/ToolDefinitionLoader.swift; sourceTree = "<group>"; };
 		F99ACD2512699EC978D1BD59 /* iOS/SettingsView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/SettingsView.swift; sourceTree = "<group>"; };
 		FD9F920EA43B2E6DB17375E2 /* iOS/HomeView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/HomeView.swift; sourceTree = "<group>"; };
 		FEB7ED1A7AE043D70F0C0931 /* iOS/SessionHistoryView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/SessionHistoryView.swift; sourceTree = "<group>"; };
@@ -174,6 +186,7 @@
 				66E524C29A4EBE4129F3E091 /* iOS/RecordingView.swift */,
 				FEB7ED1A7AE043D70F0C0931 /* iOS/SessionHistoryView.swift */,
 				AA10B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift */,
+				AC10B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift */,
 				BB10B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift */,
 				CC10B001C2D3E4F5A6B7C8D9 /* Hex/Clients/RecordingClient.swift */,
 				DD10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift */,
@@ -372,11 +385,17 @@
 				B3A2388B51B89AA56116F3DC /* iOS/RecordingView.swift in Sources */,
 				68FAB12F68549B75D50EFD8E /* iOS/SessionHistoryView.swift in Sources */,
 				AA20B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift in Sources */,
+				AC20B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift in Sources */,
 				BB20B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift in Sources */,
 				CC20B001C2D3E4F5A6B7C8D9 /* Hex/Clients/RecordingClient.swift in Sources */,
 				DD20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift in Sources */,
 				EE20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift in Sources */,
 				9DF2A700AD437BBDB5AE9084 /* iOS/SettingsView.swift in Sources */,
+				F020B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift in Sources */,
+				F120B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift in Sources */,
+				F220B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift in Sources */,
+				F320B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift in Sources */,
+				F420B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

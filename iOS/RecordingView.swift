@@ -47,7 +47,7 @@ struct RecordView: View {
                         .fontWeight(.medium)
                         .foregroundStyle(.secondary)
                         .padding(.top, 16)
-                        .padding(.bottom, 24)
+                        .padding(.bottom, 140)
                 }
             }
         }

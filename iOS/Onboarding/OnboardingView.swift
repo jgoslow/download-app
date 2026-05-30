@@ -33,7 +33,7 @@ struct OnboardingView: View {
                     WelcomePage(onContinue: { withAnimation { page = 1 } })
                         .tag(0)
                     MicPermissionPage(
-                        modelReady: appState.isModelDownloaded,
+                        modelReady: appState.isModelDownloaded(variant: appState.settings.selectedModel),
                         onComplete: { appState.completeOnboarding() }
                     )
                     .tag(1)
@@ -41,12 +41,12 @@ struct OnboardingView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .ignoresSafeArea()
 
-                if appState.isDownloadingModel || !appState.isModelDownloaded {
+                if appState.downloadingModelVariant != nil || !appState.isModelDownloaded(variant: appState.settings.selectedModel) {
                     downloadBanner
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .animation(.easeInOut(duration: 0.3), value: appState.isDownloadingModel)
+            .animation(.easeInOut(duration: 0.3), value: appState.downloadingModelVariant != nil)
         }
         .preferredColorScheme(.dark)
         .task {
@@ -71,13 +71,13 @@ struct OnboardingView: View {
     private var downloadBanner: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                if appState.isDownloadingModel {
+                if appState.downloadingModelVariant != nil {
                     ProgressView()
                         .controlSize(.mini)
                         .tint(.white.opacity(0.7))
                 }
                 Text(
-                    appState.isDownloadingModel
+                    appState.downloadingModelVariant != nil
                         ? "Downloading transcription model…"
                         : "Preparing transcription model…"
                 )
@@ -86,7 +86,7 @@ struct OnboardingView: View {
 
                 Spacer()
 
-                if appState.isDownloadingModel && appState.modelDownloadProgress > 0 {
+                if appState.downloadingModelVariant != nil && appState.modelDownloadProgress > 0 {
                     Text("\(Int(appState.modelDownloadProgress * 100))%")
                         .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(.white.opacity(0.7))
@@ -96,7 +96,7 @@ struct OnboardingView: View {
             .padding(.top, 10)
             .padding(.bottom, 6)
 
-            ProgressView(value: appState.isDownloadingModel ? appState.modelDownloadProgress : 0)
+            ProgressView(value: appState.downloadingModelVariant != nil ? appState.modelDownloadProgress : 0)
                 .tint(.white)
         }
         .background(.ultraThinMaterial.opacity(0.6))

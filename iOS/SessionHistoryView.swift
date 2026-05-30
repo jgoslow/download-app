@@ -14,6 +14,9 @@ struct HistoryView: View {
                     sessionList
                 }
             }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Color.clear.frame(height: 140)
+            }
             .navigationTitle("History")
             .refreshable {
                 await appState.reloadSessions()

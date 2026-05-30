@@ -38,7 +38,7 @@ struct HomeView: View {
     }
 
     private var needsSetup: Bool {
-        !appState.micPermissionGranted || !appState.isModelDownloaded
+        !appState.micPermissionGranted || !appState.isModelDownloaded(variant: appState.settings.selectedModel)
     }
 
     var body: some View {
@@ -52,11 +52,23 @@ struct HomeView: View {
                     if !appState.sessions.isEmpty { weekStatsCard }
                 }
                 .padding(.top, 16)
-                .padding(.bottom, 40)
+                .padding(.bottom, 140)
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Basn")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if !appState.sessions.isEmpty {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        NavigationLink {
+                            HistoryView()
+                        } label: {
+                            Text("History")
+                                .font(.subheadline)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -82,16 +94,16 @@ struct HomeView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
 
-            if !appState.isModelDownloaded {
+            if !appState.isModelDownloaded(variant: appState.settings.selectedModel) {
                 SetupRow(
                     icon: "arrow.down.circle.fill",
                     title: "Download transcription model",
-                    subtitle: appState.isDownloadingModel
+                    subtitle: appState.downloadingModelVariant != nil
                         ? "Downloading… \(Int(appState.modelDownloadProgress * 100))%"
                         : "Required for on-device voice transcription",
                     done: false,
-                    inProgress: appState.isDownloadingModel,
-                    progressValue: appState.isDownloadingModel ? appState.modelDownloadProgress : nil
+                    inProgress: appState.downloadingModelVariant != nil,
+                    progressValue: appState.downloadingModelVariant != nil ? appState.modelDownloadProgress : nil
                 )
             }
 
@@ -104,7 +116,7 @@ struct HomeView: View {
                 )
             }
 
-            if appState.isModelDownloaded && appState.micPermissionGranted {
+            if appState.isModelDownloaded(variant: appState.settings.selectedModel) && appState.micPermissionGranted {
                 SetupRow(
                     icon: "checkmark.circle.fill",
                     title: "You're all set",
@@ -158,9 +170,13 @@ struct HomeView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text(session.timestamp, style: .relative)
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                NavigationLink {
+                    HistoryView()
+                } label: {
+                    Text("See all")
+                        .font(.subheadline)
+                        .foregroundStyle(.blue)
+                }
             }
 
             VStack(alignment: .leading, spacing: 8) {

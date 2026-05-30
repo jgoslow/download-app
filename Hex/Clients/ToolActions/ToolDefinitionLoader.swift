@@ -8,9 +8,13 @@
 //
 
 import Foundation
+import os
+#if canImport(BasnCore)
 import BasnCore
-
 private let loaderLogger = BasnLog.app
+#else
+private let loaderLogger = Logger(subsystem: "com.lyra.basn", category: "tool-loader")
+#endif
 
 /// A parsed tool definition from JSON.
 struct ToolDefinitionSpec: Codable {
