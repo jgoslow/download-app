@@ -65,6 +65,12 @@ struct ContentView: View {
             .overlay(alignment: .bottom) {
                 bottomBarOverlay
             }
+            .onOpenURL { url in
+                guard url.scheme == "basin", url.host == "capture" else { return }
+                selectedTab = .record
+                useTypeMode = false
+                Task { await appState.startRecording() }
+            }
             .sheet(isPresented: $showTextInput) {
                 TextInputSheet(text: $typedText) {
                     showTextInput = false

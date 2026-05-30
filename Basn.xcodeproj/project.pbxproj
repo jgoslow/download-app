@@ -17,6 +17,9 @@
 		47E05E0C2D44525B00D26DA6 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 47E05E0B2D44525B00D26DA6 /* DependenciesMacros */; };
 		47E16A622EC6C9D300885CF7 /* FluidAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 47E16A612EC6C9D300885CF7 /* FluidAudio */; };
 		5001D1A32FCA040300CAC678 /* onboarding_water_mill 2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 5001D1A22FCA040300CAC678 /* onboarding_water_mill 2.mp4 */; };
+		5001DC3C2FCB98AF00CAC678 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5001DC3B2FCB98AF00CAC678 /* WidgetKit.framework */; };
+		5001DC3E2FCB98AF00CAC678 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5001DC3D2FCB98AF00CAC678 /* SwiftUI.framework */; };
+		5001DC4D2FCB98B000CAC678 /* BasnWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5001DC3A2FCB98AF00CAC678 /* BasnWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		68FAB12F68549B75D50EFD8E /* iOS/SessionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB7ED1A7AE043D70F0C0931 /* iOS/SessionHistoryView.swift */; };
 		7410B65235D47B52C01244B2 /* DependenciesMacros in Frameworks */ = {isa = PBXBuildFile; productRef = FEBF08CBE50A6DBE18753FC5 /* DependenciesMacros */; };
 		7454E5334AE661884B778945 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = D72148F7A7A05F887DAFBBDA /* ComposableArchitecture */; };
@@ -52,7 +55,28 @@
 			remoteGlobalIDString = 47E05DED2D444EC600D26DA6;
 			remoteInfo = Basn;
 		};
+		5001DC4B2FCB98B000CAC678 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 47E05DE62D444EC600D26DA6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5001DC392FCB98AF00CAC678;
+			remoteInfo = BasnWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5001DC4E2FCB98B000CAC678 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5001DC4D2FCB98B000CAC678 /* BasnWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		023AFB1663046E6B5406ED0A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -62,6 +86,9 @@
 		478637A52D48725900319BFA /* BasnTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BasnTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		47E05DEE2D444EC600D26DA6 /* Basn Debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Basn Debug.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5001D1A22FCA040300CAC678 /* onboarding_water_mill 2.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "onboarding_water_mill 2.mp4"; sourceTree = "<group>"; };
+		5001DC3A2FCB98AF00CAC678 /* BasnWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BasnWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5001DC3B2FCB98AF00CAC678 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		5001DC3D2FCB98AF00CAC678 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		66E524C29A4EBE4129F3E091 /* iOS/RecordingView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/RecordingView.swift; sourceTree = "<group>"; };
 		97467FAEA51A2CCCD5326D82 /* iOS/App/BasnAppIOS.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/BasnAppIOS.swift; sourceTree = "<group>"; };
 		AA10B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/AppState.swift; sourceTree = "<group>"; };
@@ -91,6 +118,13 @@
 			);
 			target = 47E05DED2D444EC600D26DA6 /* Basn */;
 		};
+		5001DC512FCB98B000CAC678 /* Exceptions for "BasnWidget" folder in "BasnWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5001DC392FCB98AF00CAC678 /* BasnWidgetExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -100,6 +134,14 @@
 				476BAD402D47E8500088C61F /* Exceptions for "Hex" folder in "Basn" target */,
 			);
 			path = Hex;
+			sourceTree = "<group>";
+		};
+		5001DC3F2FCB98AF00CAC678 /* BasnWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5001DC512FCB98B000CAC678 /* Exceptions for "BasnWidget" folder in "BasnWidgetExtension" target */,
+			);
+			path = BasnWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -142,6 +184,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5001DC372FCB98AF00CAC678 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5001DC3E2FCB98AF00CAC678 /* SwiftUI.framework in Frameworks */,
+				5001DC3C2FCB98AF00CAC678 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -151,6 +202,8 @@
 				473544542D445959001FBCB5 /* Testing.framework */,
 				473544502D445936001FBCB5 /* XCTest.framework */,
 				BCC8428A818161742DECB175 /* iOS */,
+				5001DC3B2FCB98AF00CAC678 /* WidgetKit.framework */,
+				5001DC3D2FCB98AF00CAC678 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -161,9 +214,11 @@
 				B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */,
 				B5A1C7E22E6A1C5B00AB1234 /* AppIcon.icon */,
 				47E05DF02D444EC600D26DA6 /* Hex */,
+				5001DC3F2FCB98AF00CAC678 /* BasnWidget */,
 				4735444F2D445936001FBCB5 /* Frameworks */,
 				47E05DEF2D444EC600D26DA6 /* Products */,
 				57EFA79C108BC1AA2B2305F5 /* iOS */,
+				5001DB742FCB95A100CAC678 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -173,8 +228,21 @@
 				47E05DEE2D444EC600D26DA6 /* Basn Debug.app */,
 				478637A52D48725900319BFA /* BasnTests.xctest */,
 				463B0AA6FFAA537F10C8F8DF /* Basn iOS.app */,
+				5001DC3A2FCB98AF00CAC678 /* BasnWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		5001DB742FCB95A100CAC678 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				F010B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift */,
+				F110B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift */,
+				F210B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift */,
+				F310B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift */,
+				F410B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		57EFA79C108BC1AA2B2305F5 /* iOS */ = {
@@ -258,6 +326,28 @@
 			productReference = 47E05DEE2D444EC600D26DA6 /* Basn Debug.app */;
 			productType = "com.apple.product-type.application";
 		};
+		5001DC392FCB98AF00CAC678 /* BasnWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5001DC522FCB98B000CAC678 /* Build configuration list for PBXNativeTarget "BasnWidgetExtension" */;
+			buildPhases = (
+				5001DC362FCB98AF00CAC678 /* Sources */,
+				5001DC372FCB98AF00CAC678 /* Frameworks */,
+				5001DC382FCB98AF00CAC678 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5001DC3F2FCB98AF00CAC678 /* BasnWidget */,
+			);
+			name = BasnWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = BasnWidgetExtension;
+			productReference = 5001DC3A2FCB98AF00CAC678 /* BasnWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		923BDC220AE494282C93633A /* Basn iOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B3090C13608B17765D572D26 /* Build configuration list for PBXNativeTarget "Basn iOS" */;
@@ -265,10 +355,12 @@
 				BFAA90E8EF63FC4F4681A0FD /* Sources */,
 				2E896649174452458EC2944C /* Frameworks */,
 				81D2833D2B63602E76F32AFB /* Resources */,
+				5001DC4E2FCB98B000CAC678 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5001DC4C2FCB98B000CAC678 /* PBXTargetDependency */,
 			);
 			name = "Basn iOS";
 			packageProductDependencies = (
@@ -289,7 +381,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1620;
+				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					478637A42D48725900319BFA = {
@@ -298,6 +390,9 @@
 					};
 					47E05DED2D444EC600D26DA6 = {
 						CreatedOnToolsVersion = 16.2;
+					};
+					5001DC392FCB98AF00CAC678 = {
+						CreatedOnToolsVersion = 26.5;
 					};
 				};
 			};
@@ -330,6 +425,7 @@
 				47E05DED2D444EC600D26DA6 /* Basn */,
 				478637A42D48725900319BFA /* BasnTests */,
 				923BDC220AE494282C93633A /* Basn iOS */,
+				5001DC392FCB98AF00CAC678 /* BasnWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -347,6 +443,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				B53356002D7B8D4900E5F542 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5001DC382FCB98AF00CAC678 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -369,6 +472,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		47E05DEA2D444EC600D26DA6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5001DC362FCB98AF00CAC678 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -406,6 +516,11 @@
 			isa = PBXTargetDependency;
 			target = 47E05DED2D444EC600D26DA6 /* Basn */;
 			targetProxy = 478637A92D48725900319BFA /* PBXContainerItemProxy */;
+		};
+		5001DC4C2FCB98B000CAC678 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5001DC392FCB98AF00CAC678 /* BasnWidgetExtension */;
+			targetProxy = 5001DC4B2FCB98B000CAC678 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -677,6 +792,71 @@
 			};
 			name = Release;
 		};
+		5001DC4F2FCB98B000CAC678 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8T86GRZ5M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BasnWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BasnWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lyra.basn.ios.BasnWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5001DC502FCB98B000CAC678 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8T86GRZ5M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BasnWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BasnWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lyra.basn.ios.BasnWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		793FD3597A06AB0DFE6D75DD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -687,13 +867,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 8T86GRZ5M9;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Basn needs microphone access to capture your voice.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_FILE = iOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -720,13 +894,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 8T86GRZ5M9;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Basn needs microphone access to capture your voice.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_FILE = iOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -770,6 +938,15 @@
 			buildConfigurations = (
 				47E05DFE2D444EC700D26DA6 /* Debug */,
 				47E05DFF2D444EC700D26DA6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5001DC522FCB98B000CAC678 /* Build configuration list for PBXNativeTarget "BasnWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5001DC4F2FCB98B000CAC678 /* Debug */,
+				5001DC502FCB98B000CAC678 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

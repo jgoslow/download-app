@@ -174,6 +174,10 @@ final class AppState {
             if let lang = settings.outputLanguage { options.language = lang }
             let results = try await wk.transcribe(audioPath: exportURL.path, decodeOptions: options)
             let text = results.map(\.text).joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else {
+                appLogger.notice("Empty transcription — skipping session save")
+                return
+            }
             let wordCount = text.split(whereSeparator: \.isWhitespace).count
             let session = Session(
                 device: UIDevice.current.name,
