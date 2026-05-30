@@ -72,6 +72,14 @@ private struct SessionRow: View {
         return String(text.prefix(100)) + "…"
     }
 
+    private var relativeTimestamp: String {
+        let days = Calendar.current.dateComponents([.day], from: session.timestamp, to: Date()).day ?? 0
+        if days >= 7 {
+            return session.timestamp.formatted(date: .abbreviated, time: .omitted)
+        }
+        return session.timestamp.formatted(.relative(presentation: .named))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -86,9 +94,7 @@ private struct SessionRow: View {
 
                 Spacer()
 
-                Text(session.timestamp, format: Calendar.current.isDateInToday(session.timestamp)
-                    ? .dateTime.hour().minute()
-                    : .dateTime.month().day().hour().minute())
+                Text(relativeTimestamp)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
