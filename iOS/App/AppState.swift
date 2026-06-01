@@ -22,6 +22,7 @@ final class AppState {
     var micPermissionGranted = false
     var isLoadingFlows = true
     var showOnboarding: Bool = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    var showSetupFlow: Bool = !UserDefaults.standard.bool(forKey: "hasCompletedSetupFlow")
     var downloadingModelVariant: String? = nil
     var modelDownloadProgress: Double = 0
     var isTranscribing = false
@@ -213,6 +214,11 @@ final class AppState {
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
         showOnboarding = false
         micPermissionGranted = AVAudioApplication.shared.recordPermission == .granted
+    }
+
+    func completeSetupFlow() {
+        UserDefaults.standard.set(true, forKey: "hasCompletedSetupFlow")
+        showSetupFlow = false
     }
 
     func deleteSession(_ session: Session) async {

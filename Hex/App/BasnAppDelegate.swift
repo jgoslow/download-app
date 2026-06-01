@@ -222,7 +222,19 @@ class BasnAppDelegate: NSObject, NSApplicationDelegate {
 					sortOrder: 0
 				)
 				context.insert(openFlow)
-				appLogger.info("Seeded default Open flow")
+
+				let setupFlow = FlowDefinition(
+					id: "setup",
+					name: "Setup",
+					intro: "A guided flow to get Basn ready for you.",
+					cadence: "on-demand",
+					sortOrder: -1,
+					isTemplate: false
+				)
+				setupFlow.prompts = FlowDefinition.setupPrompts
+				context.insert(setupFlow)
+
+				appLogger.info("Seeded default Open and Setup flows")
 			}
 
 			// Upsert default tools so new tools added to allDefaults appear in existing installs.

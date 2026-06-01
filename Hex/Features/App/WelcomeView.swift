@@ -47,6 +47,8 @@ struct WelcomeView: View {
         }
     }
 
+    @State private var showFlowSession = false
+
     var body: some View {
         Group {
             if step == 0 {
@@ -55,8 +57,14 @@ struct WelcomeView: View {
                         insertion: .move(edge: .leading),
                         removal: .move(edge: .leading)
                     ))
-            } else {
+            } else if step == 1 {
                 languageStep
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing),
+                        removal: .move(edge: .leading)
+                    ))
+            } else {
+                setupFlowStep
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing),
                         removal: .move(edge: .trailing)
@@ -64,6 +72,19 @@ struct WelcomeView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: step)
+        .sheet(isPresented: $showFlowSession) {
+            FlowSessionView(
+                prompts: FlowDefinition.setupPrompts,
+                onComplete: {
+                    showFlowSession = false
+                    markDoneAndContinue()
+                },
+                onSkip: {
+                    showFlowSession = false
+                    markDoneAndContinue()
+                }
+            )
+        }
         .frame(width: 480)
         .sheet(isPresented: $showAllModels) {
             allModelsSheet
@@ -96,10 +117,10 @@ struct WelcomeView: View {
                         .font(.system(size: 26, weight: .semibold, design: .rounded))
 
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Catch your stream of consciousness and put it to work.")
+                        Text("Capture your stream of consciousness and channel it..")
                             .font(.body)
                             .foregroundStyle(.primary)
-                        Text("Basn gives you a place to capture your free-form thoughts aloud and channel them to the right destination — mix work and life, simple notes or even complicated workstreams. Connect to the tools you already use.")
+                        Text("Basn gives you a place to capture your free-form thoughts aloud and put them to work — mix work and life, simple notes or even complicated workstreams. Connect to the tools you already use.")
                             .font(.body)
                             .foregroundStyle(.secondary)
                         Text("Basn — let your thoughts flow.")
@@ -281,8 +302,8 @@ struct WelcomeView: View {
                 .controlSize(.large)
                 .disabled(true)
         } else {
-            Button(isDownloaded ? "Open Basn" : "Skip for now") {
-                proceedToApp()
+            Button(isDownloaded ? "Next  →" : "Skip for now") {
+                proceedToLanguage()
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
@@ -417,6 +438,57 @@ struct WelcomeView: View {
         .frame(width: 480, height: 440)
     }
 
+    // MARK: - Step 2: Setup Flow Bridge
+
+    private var setupFlowStep: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 24) {
+                Image(systemName: "waveform.circle.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.blue)
+
+                VStack(spacing: 12) {
+                    Text("Let your thoughts flow.")
+                        .font(.system(size: 22, weight: .semibold, design: .rounded))
+
+                    Text("Basn works by capturing your thoughts as you speak (or type) and surfacing prompts for you during a flow session. Prompts can come from the flow, things you've said before, or other sources.")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: 360)
+
+                    Text("Let's try it out with a **setup flow**.")
+                        .font(.body)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: 360)
+                }
+            }
+
+            Spacer()
+
+            VStack(spacing: 12) {
+                Button("▶  Start Flow") {
+                    showFlowSession = true
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .frame(maxWidth: 260)
+
+                Button("skip setup") {
+                    markDoneAndContinue()
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+                .font(.subheadline)
+            }
+            .padding(.bottom, 40)
+        }
+        .padding(.horizontal, 48)
+        .frame(minHeight: 480)
+    }
+
     // MARK: - Actions
 
     private func isLanguageDownloaded(_ language: Language) -> Bool {
@@ -435,13 +507,13 @@ struct WelcomeView: View {
         }
     }
 
-    private func proceedToApp() {
+    private func proceedToLanguage() {
         let selectedModel = selectedLanguage?.modelName
         // Delete any models that finished downloading but weren't chosen.
         for model in modelStore.curatedModels where model.isDownloaded && model.internalName != selectedModel {
             modelStore.send(.deleteModel(model.internalName))
         }
-        markDoneAndContinue()
+        withAnimation { step = 2 }
     }
 
     private func markDoneAndContinue() {

@@ -34,9 +34,17 @@ struct OnboardingView: View {
                         .tag(0)
                     MicPermissionPage(
                         modelReady: appState.isModelDownloaded(variant: appState.settings.selectedModel),
-                        onComplete: { appState.completeOnboarding() }
+                        onComplete: { withAnimation { page = 2 } }
                     )
                     .tag(1)
+                    SetupFlowBridgePage(
+                        onFlowComplete: {
+                            appState.completeOnboarding()
+                            appState.completeSetupFlow()
+                        },
+                        modelReady: appState.isModelDownloaded(variant: appState.settings.selectedModel)
+                    )
+                    .tag(2)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .ignoresSafeArea()
@@ -125,11 +133,11 @@ private struct WelcomePage: View {
                         .multilineTextAlignment(.center)
 
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Catch your stream of consciousness and put it to work.")
+                        Text("Capture your stream of consciousness and channel it..")
                             .font(.body)
                             .foregroundStyle(.white)
 
-                        Text("Basn gives you a place to capture your free-form thoughts aloud and channel them to the right destination — mix work and life, simple notes or even complicated workstreams. Connect to the tools you already use.")
+                        Text("Basn gives you a place to capture your free-form thoughts aloud and put them to work — mix work and life, simple notes or even complicated workstreams. Connect to the tools you already use.")
                             .font(.body)
                             .foregroundStyle(.white.opacity(0.75))
 
@@ -332,6 +340,76 @@ private struct MicPermissionPage: View {
         if micStatus == .granted && modelReady {
             try? await Task.sleep(for: .milliseconds(500))
             onComplete()
+        }
+    }
+}
+
+// MARK: - Setup Flow Bridge Page
+
+private struct SetupFlowBridgePage: View {
+    let onFlowComplete: () -> Void
+    let modelReady: Bool
+
+    @State private var showFlowSession = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 36) {
+                VStack(spacing: 16) {
+                    Text("Let your thoughts flow.")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+
+                    Text("Basn listens while you speak and guides you with prompts.")
+                        .font(.body)
+                        .foregroundStyle(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 48)
+                }
+
+                Button {
+                    showFlowSession = true
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(modelReady ? Color.blue : Color.white.opacity(0.15))
+                            .frame(width: 72, height: 72)
+                        if !modelReady {
+                            ProgressView().tint(.white.opacity(0.6))
+                        } else {
+                            Image(systemName: "mic.fill")
+                                .font(.system(size: 28))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(!modelReady)
+            }
+
+            Spacer()
+
+            Button("skip for now", action: onFlowComplete)
+                .foregroundStyle(.white.opacity(0.4))
+                .font(.subheadline)
+                .padding(.bottom, 100)
+        }
+        .fullScreenCover(isPresented: $showFlowSession) {
+            FlowSessionView(
+                prompts: FlowPrompt.setupFlowPrompts,
+                onComplete: {
+                    showFlowSession = false
+                    onFlowComplete()
+                },
+                onSkip: {
+                    showFlowSession = false
+                    onFlowComplete()
+                },
+                autoStart: true
+            )
         }
     }
 }

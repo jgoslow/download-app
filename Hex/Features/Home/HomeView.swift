@@ -22,6 +22,8 @@ struct HomeView: View {
     @State private var selectedPromptID: Int? = nil
     @State private var showTextInput = false
     @State private var textInputContent = ""
+    @State private var setupFlowDone = UserDefaults.standard.bool(forKey: "hasCompletedSetupFlow")
+    @State private var showFlowSession = false
 
     var isRecording: Bool { store.transcription.isRecording }
     var isTranscribing: Bool { store.transcription.isTranscribing }
@@ -70,6 +72,12 @@ struct HomeView: View {
                             .frame(maxWidth: 360)
                             .padding(.bottom, 16)
                     }
+                }
+
+                // Setup checklist (shown until setup flow is completed)
+                if !isRecording && !isTranscribing && !setupFlowDone {
+                    macSetupChecklist
+                        .padding(.bottom, 16)
                 }
 
                 // Record button
@@ -317,6 +325,72 @@ struct HomeView: View {
             store.send(.transcription(.stopRecording))
         } else {
             store.send(.transcription(.startRecording))
+        }
+    }
+
+    // MARK: - Setup Checklist (macOS)
+
+    private var macSetupChecklist: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Get set up")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 4)
+
+            VStack(alignment: .leading, spacing: 8) {
+                macSetupRow(icon: "waveform.circle", title: "Run setup flow",
+                            detail: "Tell Basn about you and your tools", done: false) {
+                    showFlowSession = true
+                }
+            }
+            .padding(12)
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+        }
+        .frame(maxWidth: 340)
+        .padding(.horizontal, 32)
+        .sheet(isPresented: $showFlowSession) {
+            FlowSessionView(
+                prompts: FlowDefinition.setupPrompts,
+                onComplete: {
+                    showFlowSession = false
+                    UserDefaults.standard.set(true, forKey: "hasCompletedSetupFlow")
+                    setupFlowDone = true
+                },
+                onSkip: {
+                    showFlowSession = false
+                    UserDefaults.standard.set(true, forKey: "hasCompletedSetupFlow")
+                    setupFlowDone = true
+                }
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func macSetupRow(icon: String, title: String, detail: String, done: Bool, action: @escaping () -> Void) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: done ? "checkmark.circle.fill" : icon)
+                .foregroundStyle(done ? .green : .blue)
+                .font(.body)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .strikethrough(done)
+                    .foregroundStyle(done ? .secondary : .primary)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if !done {
+                Button("Start", action: action)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+            }
         }
     }
 }

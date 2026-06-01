@@ -184,6 +184,40 @@ import SwiftData
             promptsJSON = try? JSONEncoder().encode(newValue)
         }
     }
+
+    // MARK: - Setup flow
+
+    static let setupPrompts: [FlowPrompt] = [
+        FlowPrompt(id: 1, title: "Welcome to your first flow.", timerSeconds: 2),
+        FlowPrompt(id: 2, title: "Speaking out loud is the best way to use Basn — but you can always switch to text at any time.", timerSeconds: 6),
+        FlowPrompt(id: 3, title: "What would you like to use Basn for?", isRequired: true,
+                   choices: [
+                       .init(id: "work", label: "Work"),
+                       .init(id: "life", label: "Life"),
+                       .init(id: "growth", label: "Growth"),
+                       .init(id: "other", label: "Something else"),
+                   ]),
+        FlowPrompt(id: 4, title: "What does a typical day or week look like for you?", detail: "Share as much or as little as you like."),
+        FlowPrompt(id: 5, title: "Which tools do you use?", isRequired: true,
+                   choices: [
+                       .init(id: "jira", label: "Jira"),
+                       .init(id: "github", label: "GitHub"),
+                       .init(id: "slack", label: "Slack"),
+                       .init(id: "toggl", label: "Toggl"),
+                       .init(id: "google", label: "Google"),
+                       .init(id: "wave", label: "Wave"),
+                   ]),
+        FlowPrompt(id: 6, title: "Basn creates workflows for you automatically — connect the tools and it figures out where your thoughts should go.", timerSeconds: 8),
+        FlowPrompt(id: 7, title: "What outcomes matter most to you?", detail: "Tasks, messages, time logs, reminders, journal entries?"),
+        FlowPrompt(id: 8, title: "When do you usually want to capture your thoughts?",
+                   choices: [
+                       .init(id: "morning", label: "Morning"),
+                       .init(id: "evening", label: "Evening"),
+                       .init(id: "midday", label: "Midday"),
+                       .init(id: "whenever", label: "Whenever"),
+                   ]),
+        FlowPrompt(id: 9, title: "Anything else you want Basn to know about how you work — or what you're hoping to get out of it?", isRequired: true),
+    ]
 }
 
 /// A single guided prompt within a flow.
@@ -191,6 +225,56 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     var id: Int
     var title: String
     var detail: String
+    /// True → prompt must be answered or explicitly swiped past before advancing.
+    var isRequired: Bool
+    /// Seconds until the prompt auto-advances. Nil = no timer (swipe or answer to advance).
+    var timerSeconds: Double?
+    /// Tappable choice chips. Selecting one marks the prompt answered.
+    var choices: [PromptChoice]?
+    /// True → injected by Castellum at runtime. Drives a shimmer dot style; behavior is otherwise unchanged.
+    var isCastellumGenerated: Bool
+
+    struct PromptChoice: Codable, Sendable, Equatable, Identifiable {
+        var id: String
+        var label: String
+    }
+
+    init(
+        id: Int,
+        title: String,
+        detail: String = "",
+        isRequired: Bool = false,
+        timerSeconds: Double? = nil,
+        choices: [PromptChoice]? = nil,
+        isCastellumGenerated: Bool = false
+    ) {
+        self.id = id
+        self.title = title
+        self.detail = detail
+        self.isRequired = isRequired
+        self.timerSeconds = timerSeconds
+        self.choices = choices
+        self.isCastellumGenerated = isCastellumGenerated
+    }
+
+    // MARK: Codable — decode with defaults so existing stored JSON without the new fields
+    // round-trips safely.
+    enum CodingKeys: String, CodingKey {
+        case id, title, detail, isRequired, timerSeconds, choices, isCastellumGenerated
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        title = try c.decode(String.self, forKey: .title)
+        detail = try c.decodeIfPresent(String.self, forKey: .detail) ?? ""
+        isRequired = try c.decodeIfPresent(Bool.self, forKey: .isRequired) ?? false
+        timerSeconds = try c.decodeIfPresent(Double.self, forKey: .timerSeconds)
+        choices = try c.decodeIfPresent([PromptChoice].self, forKey: .choices)
+        isCastellumGenerated = try c.decodeIfPresent(Bool.self, forKey: .isCastellumGenerated) ?? false
+    }
+
+    static var setupFlowPrompts: [FlowPrompt] { FlowDefinition.setupPrompts }
 }
 
 // MARK: - Tools (mechanisms)

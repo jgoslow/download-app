@@ -38,7 +38,9 @@ struct HomeView: View {
     }
 
     private var needsSetup: Bool {
-        !appState.micPermissionGranted || !appState.isModelDownloaded(variant: appState.settings.selectedModel)
+        !appState.micPermissionGranted
+            || !appState.isModelDownloaded(variant: appState.settings.selectedModel)
+            || appState.showSetupFlow
     }
 
     var body: some View {
@@ -88,42 +90,41 @@ struct HomeView: View {
     // MARK: - Setup Checklist
 
     private var setupCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        let micDone = appState.micPermissionGranted
+        let modelDone = appState.isModelDownloaded(variant: appState.settings.selectedModel)
+        let setupDone = !appState.showSetupFlow
+
+        return VStack(alignment: .leading, spacing: 14) {
             Text("Get set up")
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
 
-            if !appState.isModelDownloaded(variant: appState.settings.selectedModel) {
-                SetupRow(
-                    icon: "arrow.down.circle.fill",
-                    title: "Download transcription model",
-                    subtitle: appState.downloadingModelVariant != nil
+            SetupRow(
+                icon: "mic.circle",
+                title: "Allow microphone",
+                subtitle: micDone ? "Access granted" : "Required to capture your voice",
+                done: micDone
+            )
+            SetupRow(
+                icon: "arrow.down.circle",
+                title: "Download transcription model",
+                subtitle: modelDone ? "Model ready"
+                    : (appState.downloadingModelVariant != nil
                         ? "Downloading… \(Int(appState.modelDownloadProgress * 100))%"
-                        : "Required for on-device voice transcription",
-                    done: false,
-                    inProgress: appState.downloadingModelVariant != nil,
-                    progressValue: appState.downloadingModelVariant != nil ? appState.modelDownloadProgress : nil
-                )
-            }
-
-            if !appState.micPermissionGranted {
-                SetupRow(
-                    icon: "mic.fill",
-                    title: "Allow microphone access",
-                    subtitle: "Required to capture your voice",
-                    done: false
-                )
-            }
-
-            if appState.isModelDownloaded(variant: appState.settings.selectedModel) && appState.micPermissionGranted {
-                SetupRow(
-                    icon: "checkmark.circle.fill",
-                    title: "You're all set",
-                    subtitle: "Tap Record to start your first capture",
-                    done: true
-                )
-            }
+                        : "Required for on-device transcription"),
+                done: modelDone,
+                inProgress: appState.downloadingModelVariant != nil,
+                progressValue: appState.downloadingModelVariant != nil ? appState.modelDownloadProgress : nil
+            )
+            SetupRow(
+                icon: "waveform.circle",
+                title: "Run setup flow",
+                subtitle: setupDone ? "Setup complete" : "Tell Basn about you and your tools",
+                done: setupDone,
+                actionLabel: setupDone ? nil : "Start",
+                onAction: setupDone ? nil : { appState.showSetupFlow = true }
+            )
         }
         .padding(16)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
@@ -290,14 +291,14 @@ private struct SetupRow: View {
     let done: Bool
     var inProgress: Bool = false
     var progressValue: Double? = nil
+    var actionLabel: String? = nil
+    var onAction: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 12) {
             Group {
                 if done {
                     Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                } else if inProgress {
-                    Image(systemName: icon).foregroundStyle(.blue)
                 } else {
                     Image(systemName: icon).foregroundStyle(.blue)
                 }
@@ -326,7 +327,11 @@ private struct SetupRow: View {
 
             Spacer()
 
-            if !done {
+            if let label = actionLabel, let action = onAction, !done {
+                Button(label, action: action)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+            } else if !done {
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
