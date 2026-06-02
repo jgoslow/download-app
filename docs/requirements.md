@@ -326,6 +326,22 @@ Uses `ASWebAuthenticationSession` via `OAuthClient.shared.startFlow()` — same 
 ### History Timestamps
 Show relative time ("5 minutes ago", "2 hours ago", "yesterday", "5 days ago") for captures within the last 7 days. Show abbreviated date ("May 23") for older captures. Do not use SwiftUI's `.relative` date style — it counts up like a timer and is visually indistinguishable from a recording duration.
 
+### AVAudioSession Must Be Activated Before Accessing `inputNode`
+In `FlowTranscriptionEngine.beginSession()`, `AVAudioSession.setCategory()` and `setActive(true)` must run **before** any access to `audioEngine.inputNode`. `inputNode.outputFormat(forBus:0)` returns 0 Hz if the session is not yet active, causing `installTap` to throw `IsFormatSampleRateAndChannelCountValid`. Additionally, `installTap` must pass `nil` for the `format:` parameter so AVAudioEngine picks up the hardware's native format — passing the explicit output format is redundant and fragile. Without both constraints, `FlowTranscriptionEngine.start()` crashes.
+
+### SwiftData `@Query` in Closures: Use `modelContext` Instead
+`@Query` returns a value-type array. Closures in SwiftUI structs capture that array at closure-creation time, not execution time. If `@Query` had not yet populated (e.g., the `fullScreenCover` was presented before the seed ran, or the environment wasn't forwarded), the closure silently operates on an empty array.
+
+Fix: use `@Environment(\.modelContext) private var modelContext` instead of `@Query` when records are needed inside a closure. Call `modelContext.fetch()` at execution time to always get live data. `ModelContext` is a reference type — capturing it in a closure and fetching later is safe and always reflects the current store.
+
+Applied in `iOS/Onboarding/OnboardingView.swift` `SetupFlowBridgePage.onResult` and `handleFlowEnd()` — previously `allTools` from `@Query` was captured stale and always empty, causing the tool onboarding wizard to skip straight to "All Set".
+
+### `fullScreenCover` Requires Explicit `.modelContainer()` Forwarding
+SwiftUI does not reliably propagate `.modelContainer()` to `fullScreenCover` content. Any view presented in a `fullScreenCover` that contains `@Query` or `@Environment(\.modelContext)` must receive `.modelContainer(Self.modelContainer)` explicitly on the presented view. See `iOS/App/BasnAppIOS.swift` — `OnboardingView()` in the cover explicitly gets `.modelContainer(Self.modelContainer)`.
+
+### `fullScreenCover` Must Be Anchored to a Persistent View
+Do not attach `.fullScreenCover(isPresented:)` to a view that is conditionally removed from the hierarchy during or after the cover's dismissal animation. If the anchor view disappears (e.g., `if needsSetup { setupCard }` removes the card when setup completes), SwiftUI may abort the dismissal mid-animation. Attach covers to a parent that is always present — for home-screen flows, that is the `NavigationStack` in `HomeView.body`.
+
 ---
 
 ## Logging
