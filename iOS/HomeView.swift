@@ -5,6 +5,8 @@ import SwiftUI
 struct HomeView: View {
     @Environment(AppState.self) private var appState
 
+    @State private var showingSetupFlow = false
+
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -72,6 +74,18 @@ struct HomeView: View {
                 }
             }
         }
+        .fullScreenCover(isPresented: $showingSetupFlow) {
+            FlowSessionView(
+                prompts: FlowPrompt.setupFlowPrompts,
+                onComplete: {
+                    showingSetupFlow = false
+                    appState.completeSetupFlow()
+                },
+                onSkip: { showingSetupFlow = false },
+                autoStart: true
+            )
+            .environment(appState)
+        }
     }
 
     // MARK: - Header
@@ -123,8 +137,18 @@ struct HomeView: View {
                 subtitle: setupDone ? "Setup complete" : "Tell Basn about you and your tools",
                 done: setupDone,
                 actionLabel: setupDone ? nil : "Start",
-                onAction: setupDone ? nil : { appState.showSetupFlow = true }
+                onAction: setupDone ? nil : { showingSetupFlow = true }
             )
+            SetupRow(
+                icon: "play.circle",
+                title: "Perform your first flow",
+                subtitle: "Choose a flow from the home screen and start capturing",
+                done: false,
+                actionLabel: nil,
+                onAction: nil
+            )
+            .opacity(setupDone ? 1 : 0.4)
+            .disabled(!setupDone)
         }
         .padding(16)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
