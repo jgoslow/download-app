@@ -1,4 +1,7 @@
+import AuthenticationServices
 import AVFoundation
+import Speech
+import SwiftData
 import SwiftUI
 
 // MARK: - OnboardingView
@@ -179,49 +182,92 @@ private struct MicPermissionPage: View {
 
     @Environment(\.openURL) private var openURL
     @State private var micStatus = AVAudioApplication.shared.recordPermission
-    @State private var requesting = false
+    @State private var speechStatus = SFSpeechRecognizer.authorizationStatus()
+    @State private var requestingMic = false
+    @State private var requestingSpeech = false
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: 32) {
-                ZStack {
-                    Circle()
-                        .fill(.white.opacity(0.12))
-                        .frame(width: 100, height: 100)
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 44))
-                        .foregroundStyle(.white)
-                }
-
-                VStack(spacing: 12) {
-                    Text("Microphone Access")
+            VStack(spacing: 20) {
+                VStack(spacing: 10) {
+                    Text("Two quick permissions")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
 
-                    Text("Basn needs your microphone to capture your voice notes. Your audio is processed on-device.")
+                    Text("Both make Basn work better. Neither leaves your device.")
                         .font(.body)
-                        .foregroundStyle(.white.opacity(0.75))
+                        .foregroundStyle(.white.opacity(0.6))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
                 }
 
-                statusCard
+                // Mic permission card
+                permissionCard(
+                    icon: "mic.fill",
+                    title: "Microphone",
+                    description: "Records your voice. Audio is transcribed on-device using Whisper — never uploaded. Deleted after transcription completed.",
+                    status: micStatusLabel,
+                    isGranted: micStatus == .granted,
+                    isDenied: micStatus == .denied,
+                    isRequesting: requestingMic,
+                    buttonLabel: micButtonLabel,
+                    onTap: {
+                        switch micStatus {
+                        case .undetermined: Task { await requestMic() }
+                        case .denied: openURL(URL(string: "app-settings:")!)
+                        default: break
+                        }
+                    }
+                )
+
+                // Speech recognition card
+                permissionCard(
+                    icon: "waveform",
+                    title: "Live Transcript",
+                    description: "Shows what you're saying in real time during a flow, and lets you say \"next\" to advance hands-free. Processed on-device by Apple.",
+                    status: speechStatusLabel,
+                    isGranted: speechStatus == .authorized,
+                    isDenied: speechStatus == .denied,
+                    isRequesting: requestingSpeech,
+                    buttonLabel: speechButtonLabel,
+                    onTap: {
+                        switch speechStatus {
+                        case .notDetermined: Task { await requestSpeech() }
+                        case .denied: openURL(URL(string: "app-settings:")!)
+                        default: break
+                        }
+                    }
+                )
             }
 
             Spacer()
 
-            VStack(spacing: 12) {
-                primaryButton
-
-                if micStatus == .denied {
-                    Button("Skip for now") {
-                        if modelReady { onComplete() }
+            VStack(spacing: 14) {
+                // Continue — enabled once mic is granted
+                Button(action: { if modelReady { onComplete() } }) {
+                    HStack(spacing: 8) {
+                        if !modelReady {
+                            ProgressView().controlSize(.small).tint(.white)
+                        }
+                        Text(modelReady ? "Continue" : "Waiting for model…")
+                            .font(.headline)
                     }
-                    .foregroundStyle(modelReady ? .white.opacity(0.6) : .white.opacity(0.3))
-                    .font(.subheadline)
-                    .disabled(!modelReady)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(micStatus == .granted && modelReady ? .blue : .white.opacity(0.15))
+                .foregroundStyle(.white)
+                .disabled(micStatus != .granted || !modelReady)
+
+                if micStatus != .granted {
+                    Button("skip for now") { if modelReady { onComplete() } }
+                        .foregroundStyle(modelReady ? .white.opacity(0.4) : .white.opacity(0.2))
+                        .font(.subheadline)
+                        .disabled(!modelReady)
                 }
             }
             .padding(.horizontal, 32)
@@ -229,118 +275,120 @@ private struct MicPermissionPage: View {
         }
         .onAppear {
             micStatus = AVAudioApplication.shared.recordPermission
+            speechStatus = SFSpeechRecognizer.authorizationStatus()
         }
     }
 
-    @ViewBuilder
-    private var statusCard: some View {
-        switch micStatus {
-        case .denied:
-            HStack(spacing: 12) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.red)
-                    .font(.title3)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Microphone access denied")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                    Text("Settings → Privacy → Microphone → allow Basn")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
-                }
-                Spacer()
-            }
-            .padding(16)
-            .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-            .padding(.horizontal, 32)
+    // MARK: - Permission Card
 
-        case .granted:
-            HStack(spacing: 12) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .font(.title3)
-                Text("Microphone access granted")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+    @ViewBuilder
+    private func permissionCard(
+        icon: String,
+        title: String,
+        description: String,
+        status: String?,
+        isGranted: Bool,
+        isDenied: Bool,
+        isRequesting: Bool,
+        buttonLabel: String,
+        onTap: @escaping () -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(isGranted ? .green : .white.opacity(0.9))
+                    .frame(width: 24)
+
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
+
                 Spacer()
-            }
-            .padding(16)
-            .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-            .padding(.horizontal, 32)
 
-        default:
-            EmptyView()
-        }
-    }
-
-    @ViewBuilder
-    private var primaryButton: some View {
-        switch micStatus {
-        case .undetermined:
-            Button(action: { Task { await requestPermission() } }) {
-                Group {
-                    if requesting {
-                        ProgressView().tint(.white)
-                    } else {
-                        Text("Allow Microphone").font(.headline)
-                    }
+                if let status {
+                    Text(status)
+                        .font(.caption)
+                        .foregroundStyle(isGranted ? .green : isDenied ? .red.opacity(0.8) : .white.opacity(0.4))
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.white.opacity(0.2))
-            .foregroundStyle(.white)
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.3), lineWidth: 1))
-            .disabled(requesting)
 
-        case .denied:
-            Button {
-                if let url = URL(string: "app-settings:") { openURL(url) }
-            } label: {
-                Text("Open Settings")
-                    .font(.headline)
+            Text(description)
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.55))
+                .fixedSize(horizontal: false, vertical: true)
+
+            if !isGranted {
+                Button(action: onTap) {
+                    Group {
+                        if isRequesting {
+                            ProgressView().controlSize(.mini).tint(.white)
+                        } else {
+                            Text(buttonLabel).font(.subheadline.weight(.medium))
+                        }
+                    }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.white.opacity(0.2))
-            .foregroundStyle(.white)
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.3), lineWidth: 1))
-
-        case .granted:
-            Button(action: { if modelReady { onComplete() } }) {
-                HStack(spacing: 8) {
-                    if !modelReady {
-                        ProgressView().controlSize(.small).tint(.white)
-                    }
-                    Text(modelReady ? "Start using Basn" : "Waiting for model…")
-                        .font(.headline)
+                    .padding(.vertical, 10)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .buttonStyle(.borderedProminent)
+                .tint(.white.opacity(0.18))
+                .foregroundStyle(.white)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white.opacity(0.25), lineWidth: 1))
+                .disabled(isRequesting)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(modelReady ? .blue : .white.opacity(0.15))
-            .foregroundStyle(.white)
-            .disabled(!modelReady)
+        }
+        .padding(16)
+        .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(isGranted ? Color.green.opacity(0.4) : Color.white.opacity(0.1), lineWidth: 1)
+        )
+        .padding(.horizontal, 28)
+        .animation(.easeInOut(duration: 0.25), value: isGranted)
+    }
 
-        @unknown default:
-            EmptyView()
+    // MARK: - Labels
+
+    private var micStatusLabel: String? {
+        switch micStatus {
+        case .granted: return "Granted ✓"
+        case .denied: return "Denied"
+        default: return nil
         }
     }
 
-    private func requestPermission() async {
-        requesting = true
+    private var micButtonLabel: String {
+        micStatus == .denied ? "Open Settings" : "Allow Microphone"
+    }
+
+    private var speechStatusLabel: String? {
+        switch speechStatus {
+        case .authorized: return "Enabled ✓"
+        case .denied, .restricted: return "Denied"
+        default: return nil
+        }
+    }
+
+    private var speechButtonLabel: String {
+        speechStatus == .denied ? "Open Settings" : "Enable Voice Transcript"
+    }
+
+    // MARK: - Permission requests
+
+    private func requestMic() async {
+        requestingMic = true
         await AVAudioApplication.requestRecordPermission()
         micStatus = AVAudioApplication.shared.recordPermission
-        requesting = false
-        if micStatus == .granted && modelReady {
-            try? await Task.sleep(for: .milliseconds(500))
-            onComplete()
+        requestingMic = false
+    }
+
+    private func requestSpeech() async {
+        requestingSpeech = true
+        let status = await withCheckedContinuation { continuation in
+            SFSpeechRecognizer.requestAuthorization { s in continuation.resume(returning: s) }
         }
+        speechStatus = status
+        requestingSpeech = false
     }
 }
 
@@ -350,7 +398,13 @@ private struct SetupFlowBridgePage: View {
     let onFlowComplete: () -> Void
     let modelReady: Bool
 
-    @State private var showFlowSession = false
+    @Environment(\.modelContext) private var modelContext
+
+    // Wizard state — one fullScreenCover drives all post-flow screens
+    @State private var activeCover: SetupCover?
+    @State private var toolsToConnect: [Tool] = []
+    @State private var connectedToolIDs: Set<String> = []
+    @State private var connectIndex = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -363,7 +417,7 @@ private struct SetupFlowBridgePage: View {
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
 
-                    Text("Basn listens while you speak and guides you with prompts.")
+                    Text("Basn listens while you speak and guides you with prompts. Click the button below to start a ”setup flow”.")
                         .font(.body)
                         .foregroundStyle(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
@@ -371,7 +425,7 @@ private struct SetupFlowBridgePage: View {
                 }
 
                 Button {
-                    showFlowSession = true
+                    activeCover = .flow
                 } label: {
                     ZStack {
                         Circle()
@@ -397,19 +451,534 @@ private struct SetupFlowBridgePage: View {
                 .font(.subheadline)
                 .padding(.bottom, 100)
         }
-        .fullScreenCover(isPresented: $showFlowSession) {
+        .fullScreenCover(item: $activeCover) { cover in
+            coverView(for: cover)
+        }
+    }
+
+    // MARK: - Cover routing
+
+    @ViewBuilder
+    private func coverView(for cover: SetupCover) -> some View {
+        switch cover {
+        case .flow:
             FlowSessionView(
                 prompts: FlowPrompt.setupFlowPrompts,
-                onComplete: {
-                    showFlowSession = false
-                    onFlowComplete()
-                },
-                onSkip: {
-                    showFlowSession = false
-                    onFlowComplete()
-                },
-                autoStart: true
+                onComplete: { handleFlowEnd() },
+                onSkip: { activeCover = nil; onFlowComplete() },
+                autoStart: true,
+                onResult: { choices, _ in
+                    let toolOrder = ["jira", "github", "slack", "toggl", "google", "wave"]
+                    let selected = choices[5, default: []]
+                    // Fetch from context at result time — avoids stale closure capture
+                    let stored = (try? modelContext.fetch(FetchDescriptor<Tool>())) ?? []
+                    let matched = toolOrder.filter { selected.contains($0) }
+                    let rest = toolOrder.filter { !selected.contains($0) }
+                    toolsToConnect = (matched + rest).compactMap { id in
+                        stored.first(where: { $0.id == id })
+                    }
+                    connectIndex = 0
+                    connectedToolIDs = []
+                }
             )
+
+        case .connectTool(let index):
+            if index < toolsToConnect.count {
+                let tool = toolsToConnect[index]
+                SetupToolConnectView(
+                    tool: tool,
+                    stepNumber: index + 1,
+                    totalSteps: toolsToConnect.count,
+                    onConnect: {
+                        connectedToolIDs.insert(tool.id)
+                        advanceTool()
+                    },
+                    onSkip: { advanceTool() }
+                )
+            } else {
+                SetupDoneView(connectedTools: [], onFinish: { activeCover = nil; onFlowComplete() })
+            }
+
+        case .workflows:
+            SetupWorkflowsView(
+                connectedTools: toolsToConnect.filter { connectedToolIDs.contains($0.id) },
+                onContinue: {
+                    activeCover = nil
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(450))
+                        activeCover = .suggestedFlow
+                    }
+                }
+            )
+
+        case .suggestedFlow:
+            SetupSuggestedFlowView(
+                onContinue: {
+                    activeCover = nil
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(450))
+                        activeCover = .done
+                    }
+                }
+            )
+
+        case .done:
+            SetupDoneView(
+                connectedTools: toolsToConnect.filter { connectedToolIDs.contains($0.id) },
+                onFinish: { activeCover = nil; onFlowComplete() }
+            )
+        }
+    }
+
+    // MARK: - Navigation
+
+    private func handleFlowEnd() {
+        activeCover = nil
+        Task {
+            try? await Task.sleep(for: .milliseconds(450))
+            // Always show tool screens — chip selections just determine sort order
+            if toolsToConnect.isEmpty {
+                // onResult hasn't fired (user skipped flow) — fetch from context now
+                let toolOrder = ["jira", "github", "slack", "toggl", "google", "wave"]
+                let stored = (try? modelContext.fetch(FetchDescriptor<Tool>())) ?? []
+                toolsToConnect = toolOrder.compactMap { id in stored.first(where: { $0.id == id }) }
+            }
+            activeCover = .connectTool(index: 0)
+        }
+    }
+
+    private func advanceTool() {
+        activeCover = nil
+        let next = connectIndex + 1
+        connectIndex = next
+        Task {
+            try? await Task.sleep(for: .milliseconds(600))
+            if next < toolsToConnect.count {
+                activeCover = .connectTool(index: next)
+            } else {
+                // After all tools: show workflow suggestions
+                activeCover = .workflows
+            }
+        }
+    }
+}
+
+// Drives which fullScreenCover is active in the setup wizard
+private enum SetupCover: Identifiable {
+    case flow
+    case connectTool(index: Int)
+    case workflows
+    case suggestedFlow
+    case done
+
+    var id: String {
+        switch self {
+        case .flow: return "flow"
+        case .connectTool(let i): return "connect-\(i)"
+        case .workflows: return "workflows"
+        case .suggestedFlow: return "suggested-flow"
+        case .done: return "done"
+        }
+    }
+}
+
+// MARK: - Setup Tool Connect View
+
+private struct SetupToolConnectView: View {
+    @Bindable var tool: Tool
+    let stepNumber: Int
+    let totalSteps: Int
+    let onConnect: () -> Void
+    let onSkip: () -> Void
+
+    @State private var apiKeyInput = ""
+    @State private var isAuthenticating = false
+    @State private var authError: String?
+
+    private var toolSpec: ToolDefinitionSpec? { ToolDefinitionLoader.load(tool.id) }
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Header: step counter + skip
+                HStack {
+                    Text("\(stepNumber) of \(totalSteps)")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.35))
+                    Spacer()
+                    Button("skip", action: onSkip)
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.4))
+                }
+                .padding(.horizontal, 32)
+                .padding(.top, 64)
+
+                Spacer()
+
+                // Tool identity
+                VStack(spacing: 28) {
+                    ZStack {
+                        Circle()
+                            .fill(.white.opacity(0.1))
+                            .frame(width: 96, height: 96)
+                        Image(systemName: toolSpec?.icon ?? tool.iconSystemName)
+                            .font(.system(size: 42))
+                            .foregroundStyle(.white)
+                    }
+
+                    VStack(spacing: 10) {
+                        Text("Connect \(tool.name)")
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+
+                        Text(toolDescription(tool.id))
+                            .font(.body)
+                            .foregroundStyle(.white.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 48)
+                    }
+                }
+
+                Spacer()
+
+                // Auth controls
+                VStack(spacing: 14) {
+                    if let error = authError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red.opacity(0.85))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
+
+                    if tool.effectiveSupportsOAuth {
+                        Button {
+                            Task { await connectOAuth() }
+                        } label: {
+                            HStack(spacing: 10) {
+                                if isAuthenticating { ProgressView().controlSize(.small).tint(.white) }
+                                Text(isAuthenticating ? "Connecting…" : "Connect with OAuth")
+                                    .font(.headline)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 32)
+                        .disabled(isAuthenticating)
+                    }
+
+                    if tool.effectiveSupportsAPIKey {
+                        VStack(spacing: 10) {
+                            if tool.effectiveSupportsOAuth {
+                                Text("or enter an API key")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.35))
+                            }
+
+                            SecureField(tool.apiKeyLabel ?? "API Key", text: $apiKeyInput)
+                                .padding(14)
+                                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                                .foregroundStyle(.white)
+                                .tint(.blue)
+                                .padding(.horizontal, 32)
+
+                            if !apiKeyInput.isEmpty {
+                                Button("Save key", action: connectAPIKey)
+                                    .font(.headline)
+                                    .padding(.horizontal, 32)
+                            }
+                        }
+                    }
+                }
+                .padding(.bottom, 80)
+            }
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            apiKeyInput = KeychainClient.load(toolID: tool.id, key: .apiKey) ?? ""
+        }
+    }
+
+    private func toolDescription(_ id: String) -> String {
+        switch id {
+        case "jira":   return "Create and update issues from your captures."
+        case "github": return "Turn captures into issues and pull requests."
+        case "slack":  return "Send messages and updates to your channels."
+        case "toggl":  return "Log time from what you capture."
+        case "google": return "Schedule events and draft emails."
+        case "wave":   return "Track expenses and income from your notes."
+        default:       return "Connect to use it in your workflows."
+        }
+    }
+
+    private func connectOAuth() async {
+        guard let provider = tool.oauthProvider else { return }
+        isAuthenticating = true
+        authError = nil
+        do {
+            let tokens = try await OAuthClient.shared.startFlow(provider: provider, toolID: tool.id, scopes: nil)
+            try? KeychainClient.save(tokens.accessToken, toolID: tool.id, key: .accessToken)
+            if let r = tokens.refreshToken { try? KeychainClient.save(r, toolID: tool.id, key: .refreshToken) }
+            if let exp = tokens.expiresIn {
+                try? KeychainClient.saveExpiry(Date().addingTimeInterval(TimeInterval(exp)), toolID: tool.id)
+            }
+            tool.oauthScopes = tokens.scope
+            tool.activeAuthMethod = "oauth"
+            tool.isConnected = true
+            tool.connectedAt = Date()
+            try? await Task.sleep(for: .milliseconds(600))
+            onConnect()
+        } catch {
+            authError = error.localizedDescription
+        }
+        isAuthenticating = false
+    }
+
+    private func connectAPIKey() {
+        guard !apiKeyInput.isEmpty else { return }
+        try? KeychainClient.save(apiKeyInput, toolID: tool.id, key: .apiKey)
+        tool.isConnected = true
+        tool.activeAuthMethod = "api_key"
+        tool.connectedAt = Date()
+        onConnect()
+    }
+}
+
+// MARK: - Setup Done View
+
+private struct SetupDoneView: View {
+    let connectedTools: [Tool]
+    let onFinish: () -> Void
+
+    @State private var appeared = false
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: 32) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 72))
+                        .foregroundStyle(.green)
+                        .scaleEffect(appeared ? 1.0 : 0.4)
+                        .opacity(appeared ? 1.0 : 0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.62), value: appeared)
+
+                    VStack(spacing: 12) {
+                        Text("You're all set.")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+
+                        if connectedTools.isEmpty {
+                            Text("You can connect tools any time in Settings.")
+                                .font(.body)
+                                .foregroundStyle(.white.opacity(0.55))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 48)
+                        } else {
+                            VStack(spacing: 8) {
+                                Text("Connected")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.4))
+
+                                HStack(spacing: 16) {
+                                    ForEach(connectedTools) { tool in
+                                        VStack(spacing: 4) {
+                                            Image(systemName: tool.iconSystemName)
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(.white.opacity(0.85))
+                                            Text(tool.name)
+                                                .font(.caption2)
+                                                .foregroundStyle(.white.opacity(0.5))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer()
+
+                Button(action: onFinish) {
+                    Text("Start using Basn")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 80)
+            }
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            Task {
+                try? await Task.sleep(for: .milliseconds(120))
+                appeared = true
+            }
+        }
+    }
+}
+
+// MARK: - Setup Workflows View (placeholder)
+
+private struct SetupWorkflowsView: View {
+    let connectedTools: [Tool]
+    let onContinue: () -> Void
+
+    @State private var appeared = false
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: 32) {
+                    ZStack {
+                        Circle()
+                            .fill(.white.opacity(0.1))
+                            .frame(width: 96, height: 96)
+                        Image(systemName: "arrow.triangle.branch")
+                            .font(.system(size: 42))
+                            .foregroundStyle(.white)
+                    }
+                    .scaleEffect(appeared ? 1.0 : 0.5)
+                    .opacity(appeared ? 1.0 : 0)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.65), value: appeared)
+
+                    VStack(spacing: 14) {
+                        Text("Your workflows")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+
+                        Text("Based on what you told us, Basn will suggest workflows that route your captures to the right places.")
+                            .font(.body)
+                            .foregroundStyle(.white.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 48)
+
+                        Text("Workflow suggestions coming soon.")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.3))
+                            .padding(.top, 8)
+                    }
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 12)
+                    .animation(.easeOut(duration: 0.4).delay(0.15), value: appeared)
+                }
+
+                Spacer()
+
+                Button(action: onContinue) {
+                    Text("Continue")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 80)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.3).delay(0.3), value: appeared)
+            }
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            Task {
+                try? await Task.sleep(for: .milliseconds(100))
+                appeared = true
+            }
+        }
+    }
+}
+
+// MARK: - Setup Suggested Flow View (placeholder)
+
+private struct SetupSuggestedFlowView: View {
+    let onContinue: () -> Void
+
+    @State private var appeared = false
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: 32) {
+                    ZStack {
+                        Circle()
+                            .fill(.white.opacity(0.1))
+                            .frame(width: 96, height: 96)
+                        Image(systemName: "drop.fill")
+                            .font(.system(size: 42))
+                            .foregroundStyle(.white)
+                            .symbolEffect(.pulse)
+                    }
+                    .scaleEffect(appeared ? 1.0 : 0.5)
+                    .opacity(appeared ? 1.0 : 0)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.65), value: appeared)
+
+                    VStack(spacing: 14) {
+                        Text("Your first flow")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+
+                        Text("Basn will suggest a flow that fits how you work — a regular capture ritual that keeps you moving.")
+                            .font(.body)
+                            .foregroundStyle(.white.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 48)
+
+                        Text("Flow suggestions coming soon.")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.3))
+                            .padding(.top, 8)
+                    }
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 12)
+                    .animation(.easeOut(duration: 0.4).delay(0.15), value: appeared)
+                }
+
+                Spacer()
+
+                Button(action: onContinue) {
+                    Text("Continue")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 80)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.3).delay(0.3), value: appeared)
+            }
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            Task {
+                try? await Task.sleep(for: .milliseconds(100))
+                appeared = true
+            }
         }
     }
 }

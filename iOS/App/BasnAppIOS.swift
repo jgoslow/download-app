@@ -29,6 +29,7 @@ struct BasnAppIOS: App {
                 )) {
                     OnboardingView()
                         .environment(appState)
+                        .modelContainer(Self.modelContainer)
                 }
         }
     }

@@ -35,6 +35,8 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Basn needs your microphone to capture your voice notes.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Basn uses on-device speech recognition to show your transcript in real time during a flow.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

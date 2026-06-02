@@ -189,7 +189,7 @@ import SwiftData
 
     static let setupPrompts: [FlowPrompt] = [
         FlowPrompt(id: 1, title: "Welcome to your first flow.", timerSeconds: 2),
-        FlowPrompt(id: 2, title: "Speaking out loud is the best way to use Basn — but you can always switch to text at any time.", timerSeconds: 6),
+        FlowPrompt(id: 2, title: "Speaking out loud is the best way to use Basn — but you can always switch to text at any time by hitting the keyboard icon at the bottom.", timerSeconds: 6),
         FlowPrompt(id: 3, title: "What would you like to use Basn for?", isRequired: true,
                    choices: [
                        .init(id: "work", label: "Work"),

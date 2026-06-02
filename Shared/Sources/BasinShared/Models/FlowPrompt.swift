@@ -74,7 +74,7 @@ extension FlowPrompt {
         ),
         FlowPrompt(
             id: 2,
-            title: "Speaking out loud is the best way to use Basn — but you can always switch to text at any time.",
+            title: "Speaking out loud is the best way to use Basn — but you can always switch to text at any time by hitting the keyboard icon at the bottom.",
             timerSeconds: 6
         ),
         FlowPrompt(
@@ -114,7 +114,13 @@ extension FlowPrompt {
         FlowPrompt(
             id: 7,
             title: "What outcomes matter most to you?",
-            detail: "Tasks, messages, time logs, reminders, journal entries?"
+            choices: [
+                PromptChoice(id: "tasks",     label: "Tasks"),
+                PromptChoice(id: "messages",  label: "Messages"),
+                PromptChoice(id: "time_logs", label: "Time logs"),
+                PromptChoice(id: "reminders", label: "Reminders"),
+                PromptChoice(id: "journal",   label: "Journal"),
+            ]
         ),
         FlowPrompt(
             id: 8,

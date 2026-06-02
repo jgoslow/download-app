@@ -1,5 +1,6 @@
 import AVFoundation
 import BasinShared
+import Speech
 import SwiftUI
 
 // MARK: - FlowSessionView
@@ -13,14 +14,23 @@ struct FlowSessionView: View {
     let onComplete: () -> Void
     let onSkip: () -> Void
     let autoStart: Bool
+    /// Optional: fires with chip selections + transcript just before `onComplete`.
+    let onResult: (([Int: Set<String>], [String]) -> Void)?
 
     @State private var model: FlowSessionViewModel
 
-    init(prompts: [FlowPrompt], onComplete: @escaping () -> Void, onSkip: @escaping () -> Void, autoStart: Bool = false) {
+    init(
+        prompts: [FlowPrompt],
+        onComplete: @escaping () -> Void,
+        onSkip: @escaping () -> Void,
+        autoStart: Bool = false,
+        onResult: (([Int: Set<String>], [String]) -> Void)? = nil
+    ) {
         self.prompts = prompts
         self.onComplete = onComplete
         self.onSkip = onSkip
         self.autoStart = autoStart
+        self.onResult = onResult
         _model = State(initialValue: FlowSessionViewModel(prompts: prompts))
     }
 
@@ -28,55 +38,141 @@ struct FlowSessionView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                // Live transcript strip
-                LiveTranscriptView(
-                    sentences: model.transcriptSentences,
-                    isExpanded: $model.isTranscriptExpanded
-                )
+            // Pre-start: centered waveform button only
+            if !model.isStarted {
+                preStartView
+                    .transition(.asymmetric(
+                        insertion: .opacity,
+                        removal: .opacity.combined(with: .offset(y: -60))
+                    ))
+            }
 
-                Spacer(minLength: 0)
-
-                // Active prompt
-                if !model.isComplete {
-                    PromptCarouselView(model: model)
-                        .padding(.horizontal, 32)
-                } else {
-                    completionView
-                        .padding(.horizontal, 32)
-                }
-
-                Spacer(minLength: 0)
-
-                // Dot nav + controls
-                VStack(spacing: 20) {
-                    PromptDotNavView(model: model)
-
-                    bottomControls
-                }
-                .padding(.bottom, 48)
+            // Main flow layout — appears after start
+            if model.isStarted {
+                startedLayout
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .offset(y: 28)),
+                        removal: .opacity
+                    ))
             }
         }
         .preferredColorScheme(.dark)
         .task {
             await model.startTimers()
-            if autoStart { model.startFlow() }
+
+            // Request speech recognition permission; fall back to keyboard if denied
+            let speechStatus = await FlowTranscriptionEngine.requestAuthorization()
+            if speechStatus != .authorized || AVAudioApplication.shared.recordPermission != .granted {
+                model.useTextInput = true
+            }
+
+            if autoStart {
+                try? await Task.sleep(for: .milliseconds(350))
+                withAnimation(.spring(response: 0.55, dampingFraction: 0.72)) {
+                    model.startFlow()
+                }
+            }
+        }
+        .onDisappear {
+            model.stopTranscription()
         }
         .gesture(
             DragGesture(minimumDistance: 40)
                 .onEnded { value in
-                    // Swipe left → next prompt, swipe right → previous prompt
-                    guard !model.isTranscriptExpanded else { return }
+                    guard model.isStarted, !model.isTranscriptExpanded else { return }
                     if value.translation.width < -40 { model.advance() }
                     else if value.translation.width > 40 { model.goBack() }
                 }
         )
     }
 
-    // MARK: - Bottom Controls
+    // MARK: - Pre-start View
 
-    private var bottomControls: some View {
-        RecordToggleButton(model: model, onEnd: onComplete)
+    private var preStartView: some View {
+        Button {
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.72)) {
+                model.startFlow()
+            }
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(.white.opacity(0.1))
+                    .frame(width: 88, height: 88)
+                Image(systemName: "waveform")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.white)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Started Layout
+
+    private var startedLayout: some View {
+        VStack(spacing: 0) {
+            LiveTranscriptView(
+                entries: model.transcriptEntries,
+                partialText: model.currentPartialText,
+                speechDenied: model.isSpeechRecognitionDenied,
+                isExpanded: $model.isTranscriptExpanded
+            )
+
+            Spacer(minLength: 0)
+
+            if !model.isComplete {
+                PromptCarouselView(model: model)
+                    .padding(.horizontal, 32)
+            } else {
+                completionView
+                    .padding(.horizontal, 32)
+            }
+
+            Spacer(minLength: 0)
+
+            flowBottomBar
+        }
+    }
+
+    // MARK: - Flow Bottom Bar
+
+    private var flowBottomBar: some View {
+        VStack(spacing: 14) {
+            PromptDotNavView(model: model)
+
+            HStack(alignment: .center) {
+                // Input mode toggles (left)
+                HStack(spacing: 18) {
+                    Button {
+                        withAnimation { model.useTextInput = false }
+                        model.startTranscriptionIfNeeded()
+                    } label: {
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(!model.useTextInput ? .white : .white.opacity(0.28))
+                    }
+
+                    Button {
+                        withAnimation { model.useTextInput = true }
+                        model.stopTranscription()
+                    } label: {
+                        Image(systemName: "keyboard.fill")
+                            .font(.system(size: 17))
+                            .foregroundStyle(model.useTextInput ? .white : .white.opacity(0.28))
+                    }
+                }
+
+                Spacer()
+
+                // Flow name (right, tappable for future flow switching)
+                Button(action: {}) {
+                    Text("Setup Flow")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.28))
+                }
+            }
+            .padding(.horizontal, 32)
+        }
+        .padding(.bottom, 52)
     }
 
     // MARK: - Completion View
@@ -97,6 +193,7 @@ struct FlowSessionView: View {
                 .multilineTextAlignment(.center)
 
             Button("Finish Setup") {
+                onResult?(model.selectedChoices, model.transcriptEntries.map(\.sentence))
                 onComplete()
             }
             .buttonStyle(.borderedProminent)
@@ -106,6 +203,15 @@ struct FlowSessionView: View {
     }
 }
 
+// MARK: - TranscriptEntry
+
+struct TranscriptEntry: Identifiable {
+    let id = UUID()
+    let sentence: String
+    let promptIndex: Int
+    let promptTitle: String
+}
+
 // MARK: - FlowSessionViewModel
 
 @Observable
@@ -113,7 +219,8 @@ struct FlowSessionView: View {
 final class FlowSessionViewModel {
     let prompts: [FlowPrompt]
     var activeIndex: Int = 0
-    var transcriptSentences: [String] = []
+    var transcriptEntries: [TranscriptEntry] = []
+    var currentPartialText: String = ""
     var isTranscriptExpanded: Bool = false
     var selectedChoices: [Int: Set<String>] = [:]
     var answeredPromptIDs: Set<Int> = []
@@ -122,22 +229,69 @@ final class FlowSessionViewModel {
     var showPrompt: Bool = true
     var useTextInput: Bool = false
     var textInputDraft: String = ""
+    var showCheckmark: Bool = false
+    var isStarted: Bool = false
+    var isSpeechRecognitionDenied: Bool = false
 
     private var timerTask: Task<Void, Never>?
-
-    var isStarted: Bool = false
+    private var transcriptionEngine: FlowTranscriptionEngine?
 
     init(prompts: [FlowPrompt]) {
         self.prompts = prompts
-        // Pre-fill timerRemaining so the active dot shows a full ring in the "ready" state
         timerRemaining = prompts.first?.timerSeconds ?? 0
     }
 
     func startFlow() {
         guard !isStarted else { return }
         isStarted = true
+        // Default to keyboard if mic permission hasn't been granted
+        if AVAudioApplication.shared.recordPermission != .granted {
+            useTextInput = true
+        }
+        let speechAuth = SFSpeechRecognizer.authorizationStatus()
+        isSpeechRecognitionDenied = speechAuth == .denied || speechAuth == .restricted
         startCurrentTimer()
+        if !useTextInput {
+            startTranscriptionIfNeeded()
+        }
     }
+
+    // MARK: - Transcription
+
+    func startTranscriptionIfNeeded() {
+        guard transcriptionEngine == nil,
+              !useTextInput,
+              AVAudioApplication.shared.recordPermission == .granted,
+              SFSpeechRecognizer.authorizationStatus() == .authorized
+        else { return }
+
+        let engine = FlowTranscriptionEngine()
+        engine.onPartialUpdate = { [weak self] text in
+            self?.currentPartialText = text
+        }
+        engine.onSentenceComplete = { [weak self] sentence in
+            self?.appendTranscriptSentence(sentence)
+            self?.currentPartialText = ""
+        }
+        engine.onNextCommand = { [weak self] in
+            self?.advance()
+        }
+        do {
+            try engine.start()
+            transcriptionEngine = engine
+        } catch {
+            // Transcription unavailable — fall back to keyboard silently
+            useTextInput = true
+        }
+    }
+
+    func stopTranscription() {
+        transcriptionEngine?.stop()
+        transcriptionEngine = nil
+        currentPartialText = ""
+    }
+
+    // MARK: - Properties
 
     var activePrompt: FlowPrompt? {
         guard activeIndex < prompts.count else { return nil }
@@ -151,10 +305,23 @@ final class FlowSessionViewModel {
 
     // MARK: - Navigation
 
+    func advanceWithCheckmark() {
+        guard !isComplete, isStarted, !showCheckmark else { return }
+        timerTask?.cancel()
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) { showCheckmark = true }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(380))
+            withAnimation { showCheckmark = false }
+            try? await Task.sleep(for: .milliseconds(100))
+            advance()
+        }
+    }
+
     func advance() {
         guard !isComplete, isStarted else { return }
         let nextIndex = activeIndex + 1
         if nextIndex >= prompts.count {
+            stopTranscription()
             withAnimation(.easeInOut(duration: 0.4)) { isComplete = true }
             return
         }
@@ -164,6 +331,11 @@ final class FlowSessionViewModel {
     func goBack() {
         guard activeIndex > 0, isStarted else { return }
         transitionToPrompt(activeIndex - 1)
+    }
+
+    func jumpToPrompt(_ index: Int) {
+        guard index >= 0, index < prompts.count, isStarted else { return }
+        transitionToPrompt(index)
     }
 
     private func transitionToPrompt(_ index: Int) {
@@ -186,7 +358,6 @@ final class FlowSessionViewModel {
         else { current.insert(choiceID) }
         selectedChoices[promptID] = current
 
-        // Update dot styling only — don't auto-advance so the user can select multiple chips
         if current.isEmpty { answeredPromptIDs.remove(promptID) }
         else { answeredPromptIDs.insert(promptID) }
     }
@@ -194,7 +365,6 @@ final class FlowSessionViewModel {
     func markAnswered(promptID: Int) {
         guard !answeredPromptIDs.contains(promptID) else { return }
         answeredPromptIDs.insert(promptID)
-        // Short delay then auto-advance for required prompts that have been answered
         if activePrompt?.id == promptID && activePrompt?.isRequired == true {
             Task {
                 try? await Task.sleep(for: .milliseconds(1200))
@@ -213,15 +383,18 @@ final class FlowSessionViewModel {
     }
 
     func appendTranscriptSentence(_ sentence: String) {
-        transcriptSentences.append(sentence)
-        if transcriptSentences.count > 20 { transcriptSentences.removeFirst() }
+        let entry = TranscriptEntry(
+            sentence: sentence,
+            promptIndex: activeIndex,
+            promptTitle: activePrompt?.title ?? ""
+        )
+        transcriptEntries.append(entry)
+        if transcriptEntries.count > 20 { transcriptEntries.removeFirst() }
     }
 
     // MARK: - Timers
 
-    func startTimers() async {
-        // No-op for now — timer management is handled inline via startCurrentTimer()
-    }
+    func startTimers() async {}
 
     private func startCurrentTimer() {
         timerTask?.cancel()
@@ -241,8 +414,27 @@ final class FlowSessionViewModel {
 // MARK: - LiveTranscriptView
 
 private struct LiveTranscriptView: View {
-    let sentences: [String]
+    let entries: [TranscriptEntry]
+    let partialText: String
+    let speechDenied: Bool
     @Binding var isExpanded: Bool
+
+    @Environment(\.openURL) private var openURL
+
+    private var isEmpty: Bool { entries.isEmpty && partialText.isEmpty }
+
+    /// Collapse consecutive entries from the same prompt into groups.
+    private func grouped(_ items: [TranscriptEntry]) -> [(title: String, sentences: [String])] {
+        var result: [(title: String, sentences: [String])] = []
+        for entry in items {
+            if let last = result.indices.last, result[last].title == entry.promptTitle {
+                result[last].sentences.append(entry.sentence)
+            } else {
+                result.append((title: entry.promptTitle, sentences: [entry.sentence]))
+            }
+        }
+        return result
+    }
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -250,13 +442,46 @@ private struct LiveTranscriptView: View {
                 ScrollViewReader { proxy in
                     ScrollView(isExpanded ? .vertical : []) {
                         VStack(alignment: .leading, spacing: 6) {
-                            let visible = isExpanded ? sentences : Array(sentences.suffix(3))
-                            ForEach(Array(visible.enumerated()), id: \.offset) { _, sentence in
-                                Text(sentence)
-                                    .font(.callout)
-                                    .foregroundStyle(.white.opacity(0.3))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .id(sentence)
+                            if isEmpty && speechDenied {
+                                // Option B nudge: contextual, non-blocking
+                                Button {
+                                    openURL(URL(string: "app-settings:")!)
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "waveform.slash")
+                                            .font(.caption2)
+                                        Text("Voice transcript off · Enable in Settings →")
+                                            .font(.caption)
+                                    }
+                                    .foregroundStyle(.white.opacity(0.28))
+                                }
+                                .buttonStyle(.plain)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            } else {
+                                let visible = isExpanded ? entries : Array(entries.suffix(3))
+                                let groups = grouped(visible)
+                                ForEach(Array(groups.enumerated()), id: \.offset) { _, group in
+                                    if !group.title.isEmpty {
+                                        Text(group.title)
+                                            .font(.caption2)
+                                            .foregroundStyle(.white.opacity(0.22))
+                                            .padding(.top, 4)
+                                    }
+                                    ForEach(Array(group.sentences.enumerated()), id: \.offset) { _, sentence in
+                                        Text(sentence)
+                                            .font(.callout)
+                                            .foregroundStyle(.white.opacity(0.3))
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                }
+                                // Live in-progress speech — slightly brighter to show it's active
+                                if !partialText.isEmpty {
+                                    Text(partialText)
+                                        .font(.callout)
+                                        .foregroundStyle(.white.opacity(0.5))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .id("partial")
+                                }
                             }
                         }
                         .padding(.horizontal, 20)
@@ -264,10 +489,11 @@ private struct LiveTranscriptView: View {
                         .padding(.bottom, 8)
                         .frame(minWidth: geo.size.width)
                     }
-                    .onChange(of: sentences.count) { _, _ in
-                        if let last = sentences.last {
-                            withAnimation { proxy.scrollTo(last, anchor: .bottom) }
-                        }
+                    .onChange(of: entries.count) { _, _ in
+                        withAnimation { proxy.scrollTo("partial", anchor: .bottom) }
+                    }
+                    .onChange(of: partialText) { _, _ in
+                        withAnimation { proxy.scrollTo("partial", anchor: .bottom) }
                     }
                 }
             }
@@ -343,22 +569,13 @@ private struct PromptCarouselView: View {
                     .transition(.opacity)
                 }
 
-                // Text input field (when useTextInput mode)
+                // Text input field (keyboard mode)
                 if model.useTextInput {
                     textInputField
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-
-                // Pre-start hint
-                if !model.isStarted {
-                    Text("tap the mic to begin")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.3))
-                        .padding(.top, 8)
-                        .transition(.opacity)
-                }
             } else {
-                // Beat gap between prompts — intentionally blank
+                // Beat gap between prompts
                 Color.clear.frame(height: 60)
             }
         }
@@ -419,31 +636,93 @@ private struct ChoiceChipsView: View {
 
 // MARK: - PromptDotNavView
 
+/// Dot navigation where the active dot is the main action button.
+/// - Tap active dot: checkmark flash → advance to next prompt
+/// - Tap inactive dot: jump to that prompt
+/// - Long press + drag: enter preview mode — swipe to browse prompts, release to navigate
 private struct PromptDotNavView: View {
     @Bindable var model: FlowSessionViewModel
 
-    private let activeDotSize: CGFloat = 20
+    private let activeDotSize: CGFloat = 56
     private let inactiveDotSize: CGFloat = 8
-    private let dotSpacing: CGFloat = 10
+    private let dotSpacing: CGFloat = 14
+
+    @State private var requiredPulse: Double = 1.0
+    @State private var isPreviewMode: Bool = false
+    @State private var previewIndex: Int = 0
 
     var body: some View {
-        GeometryReader { geo in
-            HStack(spacing: dotSpacing) {
-                ForEach(Array(model.prompts.enumerated()), id: \.offset) { index, prompt in
-                    dotView(for: prompt, index: index)
-                        .onTapGesture {
-                            if index < model.activeIndex { model.goBack() }
-                            else if index > model.activeIndex { model.advance() }
-                        }
+        ZStack(alignment: .top) {
+            // Preview card — floats above the dot nav when in preview mode
+            if isPreviewMode, previewIndex < model.prompts.count {
+                let previewPrompt = model.prompts[previewIndex]
+                VStack(spacing: 4) {
+                    Text(previewPrompt.title)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .multilineTextAlignment(.center)
+                    if previewIndex != model.activeIndex {
+                        Text(previewIndex < model.activeIndex ? "← back" : "forward →")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.4))
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 40)
+                .offset(y: -(activeDotSize + 24))
+                .transition(.scale(scale: 0.85).combined(with: .opacity))
+                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isPreviewMode)
+                .zIndex(1)
             }
-            .offset(x: centeringOffset(screenWidth: geo.size.width))
-            .animation(.spring(response: 0.35, dampingFraction: 0.7), value: model.activeIndex)
+
+            // Dot row
+            GeometryReader { geo in
+                HStack(spacing: dotSpacing) {
+                    ForEach(Array(model.prompts.enumerated()), id: \.offset) { index, prompt in
+                        dotView(for: prompt, index: index)
+                    }
+                }
+                .offset(x: centeringOffset(screenWidth: geo.size.width))
+                .animation(.spring(response: 0.35, dampingFraction: 0.7), value: model.activeIndex)
+                // Long press → enter preview mode
+                .simultaneousGesture(
+                    LongPressGesture(minimumDuration: 0.3)
+                        .onEnded { _ in
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                                isPreviewMode = true
+                                previewIndex = model.activeIndex
+                            }
+                        }
+                )
+                // Drag while in preview mode → update preview index; release → navigate
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 4)
+                        .onChanged { value in
+                            guard isPreviewMode else { return }
+                            let stride = inactiveDotSize + dotSpacing
+                            let offset = Int((-value.translation.width / stride).rounded())
+                            let raw = model.activeIndex + offset
+                            previewIndex = max(0, min(model.prompts.count - 1, raw))
+                        }
+                        .onEnded { _ in
+                            guard isPreviewMode else { return }
+                            let target = previewIndex
+                            withAnimation { isPreviewMode = false }
+                            if target != model.activeIndex {
+                                model.jumpToPrompt(target)
+                            }
+                        }
+                )
+            }
+            .frame(height: activeDotSize + 8)
         }
-        .frame(height: activeDotSize + 8)
+        // Extra height to accommodate the floating preview card
+        .frame(height: activeDotSize + 8 + (isPreviewMode ? activeDotSize + 24 : 0))
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isPreviewMode)
     }
 
-    // Keeps the active dot centered: dot[a] center = a*(inactiveSize+spacing) + activeSize/2
     private func centeringOffset(screenWidth: CGFloat) -> CGFloat {
         let activeDotCenter = CGFloat(model.activeIndex) * (inactiveDotSize + dotSpacing) + activeDotSize / 2
         return screenWidth / 2 - activeDotCenter
@@ -456,150 +735,86 @@ private struct PromptDotNavView: View {
 
         ZStack {
             if isActive {
-                activeDot(for: prompt)
+                activeDotButton(for: prompt)
             } else {
                 inactiveDot(for: prompt, isAnswered: isAnswered)
+                    .onTapGesture {
+                        guard !isPreviewMode else { return }
+                        if index < model.activeIndex { model.goBack() }
+                        else if index > model.activeIndex { model.advance() }
+                    }
             }
         }
-        .frame(width: isActive ? activeDotSize : inactiveDotSize,
-               height: isActive ? activeDotSize : inactiveDotSize)
+        .frame(
+            width: isActive ? activeDotSize : inactiveDotSize,
+            height: isActive ? activeDotSize : inactiveDotSize
+        )
         .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isActive)
     }
 
     @ViewBuilder
-    private func activeDot(for prompt: FlowPrompt) -> some View {
+    private func activeDotButton(for prompt: FlowPrompt) -> some View {
         let hasTimer = prompt.timerSeconds != nil
         let isRequired = prompt.isRequired
 
-        ZStack {
-            if hasTimer {
-                // Liquid drain ring
+        Button(action: {
+            guard !isPreviewMode else { return }
+            model.advanceWithCheckmark()
+        }) {
+            ZStack {
                 Circle()
-                    .stroke(Color.white.opacity(0.2), lineWidth: 2.5)
+                    .fill(.white.opacity(0.08))
 
-                Circle()
-                    .trim(from: 0, to: model.timerProgress)
-                    .stroke(
-                        prompt.isCastellumGenerated ? Color.purple : Color.white,
-                        style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 0.05), value: model.timerProgress)
+                if hasTimer {
+                    Circle()
+                        .stroke(Color.white.opacity(0.18), lineWidth: 2.5)
+                    Circle()
+                        .trim(from: 0, to: model.timerProgress)
+                        .stroke(
+                            prompt.isCastellumGenerated ? Color.purple : Color.white,
+                            style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                        .animation(.linear(duration: 0.05), value: model.timerProgress)
+                } else if isRequired {
+                    Circle()
+                        .stroke(Color.white.opacity(0.8), lineWidth: 2)
+                        .scaleEffect(requiredPulse)
+                        .animation(
+                            .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
+                            value: requiredPulse
+                        )
+                } else {
+                    Circle()
+                        .stroke(Color.white.opacity(0.35), lineWidth: 1.5)
+                }
 
-            } else if isRequired {
-                // Solid bright with scale pulse
-                Circle()
-                    .stroke(Color.white, lineWidth: 2.5)
-                    .scaleEffect(requiredPulse)
-                    .animation(
-                        .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
-                        value: requiredPulse
-                    )
+                if prompt.isCastellumGenerated {
+                    Circle().fill(Color.purple.opacity(0.15))
+                }
 
-            } else {
-                // Optional — dim
-                Circle()
-                    .stroke(Color.white.opacity(0.5), lineWidth: 2)
-            }
-
-            // Castellum shimmer overlay
-            if prompt.isCastellumGenerated {
-                Circle()
-                    .fill(Color.purple.opacity(0.2))
+                if model.showCheckmark {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                        .transition(.scale(scale: 0.5).combined(with: .opacity))
+                }
             }
         }
-        .onAppear { startPulse() }
-    }
-
-    @State private var requiredPulse: Double = 1.0
-
-    private func startPulse() {
-        requiredPulse = 1.05
+        .buttonStyle(.plain)
+        .allowsHitTesting(!isPreviewMode)
+        .onAppear { requiredPulse = 1.05 }
     }
 
     @ViewBuilder
     private func inactiveDot(for prompt: FlowPrompt, isAnswered: Bool) -> some View {
-        Circle()
-            .fill(dotColor(for: prompt, isAnswered: isAnswered))
+        Circle().fill(dotColor(for: prompt, isAnswered: isAnswered))
     }
 
     private func dotColor(for prompt: FlowPrompt, isAnswered: Bool) -> Color {
         if isAnswered { return .white.opacity(0.6) }
         if prompt.isRequired { return .white.opacity(0.4) }
         return .white.opacity(0.2)
-    }
-}
-
-// MARK: - RecordToggleButton
-
-private struct RecordToggleButton: View {
-    @Bindable var model: FlowSessionViewModel
-    let onEnd: () -> Void
-
-    @State private var recordingPulse = false
-
-    var body: some View {
-        HStack(spacing: 20) {
-            Button {
-                withAnimation { model.useTextInput = false }
-            } label: {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(model.useTextInput ? .white.opacity(0.4) : .white)
-                    .frame(width: 36, height: 36)
-            }
-
-            // Main record/stop button
-            ZStack {
-                // Pulsing ring while recording
-                if model.isStarted {
-                    Circle()
-                        .stroke(Color.red.opacity(recordingPulse ? 0.45 : 0.12), lineWidth: 2.5)
-                        .frame(width: 88, height: 88)
-                        .scaleEffect(recordingPulse ? 1.0 : 0.9)
-                        .animation(.easeInOut(duration: 1.3).repeatForever(autoreverses: true), value: recordingPulse)
-                        .onAppear { recordingPulse = true }
-                }
-
-                Button {
-                    if model.isStarted {
-                        onEnd()
-                    } else {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            model.startFlow()
-                        }
-                    }
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(model.isStarted ? Color.red : Color.blue)
-                            .frame(width: 68, height: 68)
-                            .animation(.easeInOut(duration: 0.25), value: model.isStarted)
-
-                        if model.useTextInput {
-                            Image(systemName: "keyboard.fill")
-                                .font(.system(size: 24))
-                                .foregroundStyle(.white)
-                        } else {
-                            Image(systemName: model.isStarted ? "stop.fill" : "mic.fill")
-                                .font(.system(size: model.isStarted ? 22 : 26))
-                                .foregroundStyle(.white)
-                                .animation(.easeInOut(duration: 0.2), value: model.isStarted)
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-            }
-
-            Button {
-                withAnimation { model.useTextInput = true }
-            } label: {
-                Image(systemName: "keyboard.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(model.useTextInput ? .white : .white.opacity(0.4))
-                    .frame(width: 36, height: 36)
-            }
-        }
     }
 }
 
