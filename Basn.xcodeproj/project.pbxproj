@@ -45,8 +45,8 @@
 		F220B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = F210B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift */; };
 		F320B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F310B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift */; };
 		F420B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F410B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift */; };
-		FF20B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift */; };
 		FE10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE00B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift */; };
+		FF20B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -109,9 +109,9 @@
 		F410B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Clients/ToolActions/ToolDefinitionLoader.swift; sourceTree = "<group>"; };
 		F99ACD2512699EC978D1BD59 /* iOS/SettingsView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/SettingsView.swift; sourceTree = "<group>"; };
 		FD9F920EA43B2E6DB17375E2 /* iOS/HomeView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/HomeView.swift; sourceTree = "<group>"; };
+		FE00B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Flow/FlowTranscriptionEngine.swift; sourceTree = "<group>"; };
 		FEB7ED1A7AE043D70F0C0931 /* iOS/SessionHistoryView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/SessionHistoryView.swift; sourceTree = "<group>"; };
 		FF10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Flow/FlowSessionView.swift; sourceTree = "<group>"; };
-		FE00B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Flow/FlowTranscriptionEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */

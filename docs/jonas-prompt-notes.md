@@ -1,3 +1,67 @@
+Onboarding questions:
+* This latest version is pretty good - and I want to generate a few different versions of the onboarding workflow to determine how well they do against eachother.  So keep this as a version (use letters and numbers to identify them)
+* New Version
+  * "Welcome to your first flow." (2s auto-advance)
+  * "Speaking out loud is the best way to use Basn — but you can always switch to text at any time by hitting the keyboard icon at the bottom." (6s auto-advance)
+  * "What would you like to use Basn for?" — chips: Work / Life / Growth / Something else (required)
+  * "What does a typical day or week look like for you?" — detail: "Share as much or as little as you   * like."
+  * "Which tools do you use?" — chips: Jira / GitHub / Slack / Toggl / Google / Wave (required)
+  * "Basn creates workflows for you automatically — connect the tools and it figures out where your   * thoughts should go." (8s auto-advance)
+  * "What outcomes matter most to you?" — chips: Tasks / Messages / Time logs / Reminders / Journal   * (just added)
+  * "When do you usually want to capture your thoughts?" — chips: Morning / Evening / Midday / Whenever
+  * "Anything else you want Basn to know about how you work — or what you're hoping to get out of it?" (required)
+
+Use the first flow as a baseline to generate a number of new onboarding flows with the following goals:
+1. Get the user used to a Basn flow so they can do it again.
+2. Establish a connection to at least one tool, though ideally a few (since many will be free).
+3. Setup a simple, achievable daily or weekly flow.
+4. 
+
+"Welcome to your first flow." (2s auto-advance)
+"Speaking out loud is the best way to use Basn — but you can always switch to text at any time by hitting the keyboard icon at the bottom." (6s auto-advance)
+"What would you like to use Basn for?" — chips: Work / Life / Growth / Something else (required)
+"What does a typical day or week look like for you?" — detail: "Share as much or as little as you like."
+"Which tools do you use?" — chips: Jira / GitHub / Slack / Toggl / Google / Wave (required)
+"Basn creates workflows for you automatically — connect the tools and it figures out where your thoughts should go." (8s auto-advance)
+"What outcomes matter most to you?" — chips: Tasks / Messages / Time logs / Reminders / Journal (just added)
+"When do you usually want to capture your thoughts?" — chips: Morning / Evening / Midday / Whenever
+"Anything else you want Basn to know about how you work — or what you're hoping to get out of it?" (required)
+
+Daily Tasks, expectations, goals
+* Basn is geared strongly towards helping people make good use of their day, and therefore a morning flow should result in a list of tasks, meetings, subjects, goals...etc and we can provide some easy ways to follow up on them.  That list of tasks or daily goals becomes global context for any subsequent flow, but also could be a widget on the Basn home screen, or maybe in iOS to take stock of what you said you were going to do that day.
+* Do we generate a shortlist of daily tasks that resets each day and just gets amalgamated into the following flow you run?
+* Do we generate a list of daily goals or objectives and check in at the end of the day or sometime during the next flow to see whether they've been completed/accomplished?
+
+
+---
+
+Feeedback:
+* 
+
+---
+
+Feedback
+* THe Transcript should be separated out by prompt (if there's one showing), and definitely be chronological, that way the context can be set against the prompt.
+* What outcomes matter most to you - should use chips to show the common ones.
+* Still skipping the tools onboarding phases, went straight to "All Set"
+
+---
+
+* The start flow button should be disabled until the transcription model download completes
+* Ending with "You can connect tools any time in settings" is not really the outcome I was going for.  Instead, it should go BACK to the onboarding screens with a screen for each tool to integrate it.  Look at my original onboarding flow list. We should connect one tool at a time INSIDE the onboarding screens. Basically the onboarding experience extends to match whatever the user talks about and wants to connect, including surfacing the workflows extrapolated from the transcript AND and initial suggested flow.  You can drop in some placeholders for those parts but the tools should be straightforward to add now.
+* Gonna make a change to the flow screen layout: 
+  * Let's make the main flow button live in the center of where the dot nav is - so the "current" dot is the main flow button, and would change slightly based on the type of prompt.  Pressing the main flow button no longer ends the flow, but instead it will proceed to the next one (it's like marking that prompt step complete). Pressing the main flow button should first change it to a checkmark and then move to the next one.
+  * Move the Mic and Keyboard icons to the lower left below the dot nav.
+  * In the lower right of the flow experience is the flow name, which you can click to select a different flow while the flow is recording.
+  * If the user does NOT give mic permissions, then keyboard becomes the default flow input until they do.
+  * I'm not seeing the transcription show up at the top of the flow experience, was that built yet?
+  * Can we read the flow transcript in real time without sending it to Claude?  For instance, if the user says "next prompt" or "next." (important that we distinguish between the word "next" on it's own or in a sentence) it could go to the next prompt.
+  * pressing and swiping side to side anywhere on the dotnav (even on the main button) should advance/retreat the prompt-nav state.  When pressed down on the dotnav after a short delay a small preview of the currently selected prompt question should appear above the main button - if you swipe at all the main while pressed down then the preview updates would update as you move the dotnav - once you let up then the preview disappears and the main prompt updates.
+  * Remove the keyboard switch from the main nav area and change the start flow button to a "flow" icon.  Clicking it moves the flow button up as the dark background navigates in to cover the rest of the interface, then the dots and the first prompt flow in.
+
+
+---
+
 Let's add some further flow definition and add more steps to the Basn onboarding "Welcome" flow and automate some of the setup for tools and workflows. These steps will apply to both apps. I'm also defining flows more and a new flow prompt logic.
 
 "Welcome Flow"

@@ -9,17 +9,21 @@ public struct ExecutionPlan: Codable, Sendable, Equatable, Identifiable {
     public let captureID: String
     public var actions: [PlannedAction]
     public let createdAt: Date
+    /// Which model produced this plan. "heuristic" = no API call; nil = legacy path.
+    public let modelUsed: String?
 
     public init(
         id: String = UUID().uuidString,
         captureID: String,
         actions: [PlannedAction],
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        modelUsed: String? = nil
     ) {
         self.id = id
         self.captureID = captureID
         self.actions = actions
         self.createdAt = createdAt
+        self.modelUsed = modelUsed
     }
 
     public var hasActionableItems: Bool {

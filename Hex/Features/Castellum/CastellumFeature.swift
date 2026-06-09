@@ -97,6 +97,8 @@ struct CastellumFeature {
         case planExecution(SessionAnalysis, captureID: String)
         case planReceived(ExecutionPlan)
         case planningFailed(String)
+        /// Accept a fully pre-built plan from the unified CastellumClient call in TranscriptionFeature.
+        case planReadyFromTranscription(ExecutionPlan)
 
         // User interaction
         case toggleAction(String)
@@ -163,6 +165,21 @@ struct CastellumFeature {
                         }
                     } catch {
                         await send(.planningFailed(error.localizedDescription))
+                    }
+                }
+
+            case let .planReadyFromTranscription(plan):
+                guard plan.hasActionableItems else { return .none }
+                state.isPlanning = false
+                state.currentPlan = plan
+                state.selectedActions = Set(plan.actions.map(\.id))
+                state.actionResults = [:]
+                return .run { send in
+                    let tools = try await basinDB.fetchTools()
+                    let toolIDs = Set(plan.actions.map(\.toolID))
+                    let involved = tools.filter { toolIDs.contains($0.id) }
+                    if !involved.isEmpty && involved.allSatisfy(\.autoExecute) {
+                        await send(.executeSelected)
                     }
                 }
 

@@ -109,8 +109,8 @@ struct AppFeature {
           await send(.settings(.set(\.shouldFlashModelSection, false)))
         }
 
-      case let .transcription(.analysisReceived(analysis, captureID)):
-        return .send(.castellum(.planExecution(analysis, captureID: captureID)))
+      case let .transcription(.castellumResultReceived(_, plan, _)):
+        return .send(.castellum(.planReadyFromTranscription(plan)))
 
       case .transcription:
         return .none

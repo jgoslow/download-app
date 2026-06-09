@@ -59,6 +59,8 @@ struct TranscriptionFeature {
     case transcriptionResult(String, URL)
     case transcriptionError(Error, URL?)
     case analysisReceived(SessionAnalysis, captureID: String)
+    /// Unified result from CastellumClient: analysis + plan in one call.
+    case castellumResultReceived(SessionAnalysis, ExecutionPlan, captureID: String)
     case submitTextCapture(String)
     case periodicParseUpdate(partialText: String, promptsAddressed: [Int])
     case setFlow(String, promptTitles: [String])
@@ -80,7 +82,7 @@ struct TranscriptionFeature {
   @Dependency(\.date.now) var now
   @Dependency(\.transcriptPersistence) var transcriptPersistence
   @Dependency(\.destinationRouter) var destinationRouter
-  @Dependency(\.anthropic) var anthropic
+  @Dependency(\.castellumClient) var castellumClient
   @Dependency(\.modelContext) var basinDB
 
   var body: some ReducerOf<Self> {
@@ -136,6 +138,10 @@ struct TranscriptionFeature {
         state.lastAnalysis = analysis
         return .none
 
+      case let .castellumResultReceived(analysis, _, _):
+        state.lastAnalysis = analysis
+        return .none
+
       case let .submitTextCapture(text):
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return .none }
@@ -143,12 +149,11 @@ struct TranscriptionFeature {
         let flowID = state.selectedFlowID
         let promptTitles = state.promptTitles
 
-        return .run { [basinDB = self.basinDB, router = self.destinationRouter, aiClient = self.anthropic] send in
+        return .run { [basinDB = self.basinDB, router = self.destinationRouter, castellum = self.castellumClient] send in
           @Shared(.basnSettings) var basnSettings: BasnSettings
           let basinSettings = basnSettings.basinSettings
 
           let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-          let selectedModel = basnSettings.selectedModel
 
           let session = Session(
             device: Host.current().localizedName ?? "mac",
@@ -160,8 +165,7 @@ struct TranscriptionFeature {
             metadata: .init(appVersion: appVersion, whisperModel: "text-input", language: nil)
           )
 
-          // Save to SwiftData
-          let capture = CaptureRecord(
+          let captureRecord = CaptureRecord(
             id: session.id,
             device: Host.current().localizedName ?? "mac",
             flowID: flowID,
@@ -171,17 +175,21 @@ struct TranscriptionFeature {
             appVersion: appVersion,
             whisperModel: "text-input"
           )
-          try? await basinDB.saveCapture(capture)
-
-          // Route to server if configured
+          try? await basinDB.saveCapture(captureRecord)
           _ = await router.route(session)
 
-          // AI analysis
+          guard !basinSettings.anthropicAPIKey.isEmpty else { return }
+          let tools = (try? await basinDB.fetchTools()) ?? []
+          let workflows = (try? await basinDB.fetchWorkflows()) ?? []
           let sessionContext = await router.fetchContext(flowID)
-          if let analysis = await aiClient.analyze(session, basinSettings.anthropicAPIKey, promptTitles, sessionContext) {
-            await send(.analysisReceived(analysis, captureID: session.id))
-            await router.postAnalysis(session.id, analysis)
+          let structuredCapture = StructuredCapture.from(session: session)
 
+          do {
+            let (analysis, plan) = try await castellum.analyzeAndPlan(
+              structuredCapture, promptTitles, sessionContext, tools, workflows, basinSettings.anthropicAPIKey
+            )
+            await send(.castellumResultReceived(analysis, plan, captureID: session.id))
+            await router.postAnalysis(session.id, analysis)
             let captureAnalysis = CaptureAnalysis(
               summary: analysis.summary,
               moodTag: analysis.moodTag,
@@ -191,7 +199,9 @@ struct TranscriptionFeature {
               integrations: analysis.integrations.map(\.rawValue),
               promptsAddressed: analysis.promptsAddressed
             )
-            try? await basinDB.saveAnalysis(captureAnalysis, capture)
+            try? await basinDB.saveAnalysis(captureAnalysis, captureRecord)
+          } catch {
+            BasnLog.app.error("Castellum error (text capture): \(error.localizedDescription)")
           }
         }
 
@@ -559,7 +569,7 @@ private extension TranscriptionFeature {
     let selectedModel = state.basnSettings.selectedModel
     let outputLanguage = state.basnSettings.outputLanguage
     let router = destinationRouter
-    let aiClient = anthropic
+    let castellum = castellumClient
 
     return .run { send in
       do {
@@ -612,12 +622,30 @@ private extension TranscriptionFeature {
       )
       try? await basinDB.saveCapture(capture)
 
-      let sessionContext = await router.fetchContext(flowID)
-      if let analysis = await aiClient.analyze(session, basinSettings.anthropicAPIKey, promptTitlesForAI, sessionContext) {
-        await send(.analysisReceived(analysis, captureID: session.id))
-        await router.postAnalysis(session.id, analysis)
+      guard !basinSettings.anthropicAPIKey.isEmpty else { return }
+      let tools = (try? await basinDB.fetchTools()) ?? []
+      let enabledWorkflows = (try? await basinDB.fetchWorkflows())?.filter(\.isEnabled) ?? []
+      let connectedTools = tools.filter(\.isConnected)
+      let connectedToolIDs = Set(connectedTools.map(\.id))
 
-        // Save analysis to SwiftData
+      // Heuristic bypass: skip Claude for clear single-intent captures
+      if let heuristicActions = HeuristicRouter.route(transcript: modifiedResult, connectedToolIDs: connectedToolIDs) {
+        let plan = ExecutionPlan(captureID: session.id, actions: heuristicActions, modelUsed: "heuristic")
+        let minimalAnalysis = SessionAnalysis(summary: String(modifiedResult.prefix(100)))
+        await send(.castellumResultReceived(minimalAnalysis, plan, captureID: session.id))
+        transcriptionFeatureLogger.info("Heuristic bypass for capture \(session.id)")
+        return
+      }
+
+      let sessionContext = await router.fetchContext(flowID)
+      let structuredCapture = StructuredCapture.from(session: session)
+
+      do {
+        let (analysis, plan) = try await castellum.analyzeAndPlan(
+          structuredCapture, promptTitlesForAI, sessionContext, tools, enabledWorkflows, basinSettings.anthropicAPIKey
+        )
+        await send(.castellumResultReceived(analysis, plan, captureID: session.id))
+        await router.postAnalysis(session.id, analysis)
         let captureAnalysis = CaptureAnalysis(
           summary: analysis.summary,
           moodTag: analysis.moodTag,
@@ -628,6 +656,8 @@ private extension TranscriptionFeature {
           promptsAddressed: analysis.promptsAddressed
         )
         try? await basinDB.saveAnalysis(captureAnalysis, capture)
+      } catch {
+        transcriptionFeatureLogger.error("Castellum error: \(error.localizedDescription)")
       }
     }
     .cancellable(id: CancelID.transcription)
