@@ -2,9 +2,37 @@
 
 This file provides guidance for coding agents working in this repo.
 
+## Vault Layout
+
+Project knowledge lives in `docs/`. Agents resolve paths from this table:
+
+| Role | Path | What goes here |
+|------|------|---------------|
+| logs | `docs/captures/` | Captures, meeting notes, session summaries |
+| plans | `docs/reference/planning/` | Active / in-progress plans |
+| plans-archive | `docs/captures/plans/` | Completed plans — linked from session log |
+| requirements | `docs/reference/` | REQ-*.md and distilled project knowledge |
+| summary | `docs/reference/planning-summary.md` | Distilled planning overview |
+| resources | `docs/reference/` | Architecture, ops, integration docs |
+| templates | `.claude/templates/` | Document templates |
+
+## Requirements
+
+Before making changes in any area, read the relevant file in `docs/reference/`. Read `docs/reference/REQ-global.md` before any structural change. See `docs/reference/CONTEXT.md` for the routing table (task → what to read first).
+
+Run `/vault distill` after any session with significant decisions. Run `/vault close` to end a session and commit context files.
+
+## Related Vaults
+
+| Slug | Relationship | Description |
+|------|-------------|-------------|
+| basin-planning | source | Product vision, architecture docs, flow definitions, pathway specs, server prototype. Distills requirements into this repo. |
+
 ## Memory
 
-All project memory lives in `.claude/memory/` within this repo — **not** in `~/.claude/projects/…`. Always read from and write memory files to `/Users/jonasgoslow/localhost/basin/.claude/memory/`, including `MEMORY.md` as the index. Never write project memories to the global Claude directory.
+Project memory has been migrated to the vault. Claude-behavioral files remain in `.claude/memory/` — read them for session guidance but write new project knowledge to `docs/reference/` instead.
+
+- `feedback_tool_definitions.md` — coding rule: tool integrations must be declarative JSON, not per-file Swift
 
 ## Project Overview
 

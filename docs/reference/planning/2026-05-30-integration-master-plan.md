@@ -1,6 +1,670 @@
 # Basn — Integration Master Plan + Token Efficiency Architecture
 
-**Status:** Execution-ready. Covers Apple native, extended core tools (Toggl/Atlassian/Google/Microsoft 365), server/infra, and non-native third-party apps. Includes token analysis, model tiering, and heuristic routing design. Each section is self-contained enough for a separate agent to implement.
+**Status:** Execution-ready. Covers Tool Marketplace architecture, Apple native integrations, extended core tools (Toggl/Atlassian/Google/Microsoft 365), server/infra, and non-native third-party apps. Includes token analysis, model tiering, and heuristic routing design. Each section is self-contained enough for a separate agent to implement.
+
+---
+
+## 0. Tool Marketplace Architecture
+
+> **This section is a prerequisite for all integration work.** The marketplace infrastructure must exist before any third-party tool definitions are written — they live in the registry, not the app bundle.
+
+### 0.1 Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Registry host | GitHub — `LyraDesigns/basn-marketplace` | Source-controlled, community-friendly, no backend needed. Raw GitHub serves JSON directly. |
+| Pre-installed tools | Native Apple only | Everything requiring auth setup comes from the marketplace. Cleanest separation. |
+| Publishing | Open from day one, with Lyra review | Anyone submits via GitHub Issue; Lyra approves before going live. Verified badge for Lyra-authored tools. |
+
+### 0.2 Repository Structure (`LyraDesigns/basn-marketplace`)
+
+```
+basn-marketplace/
+├── manifest.json                    ← master index — Basn fetches this on launch
+├── tools/
+│   ├── jira.json                    ← Lyra-verified tool definitions
+│   ├── google.json
+│   ├── slack.json
+│   ├── toggl.json
+│   ├── github.json
+│   ├── confluence.json
+│   ├── microsoft365.json
+│   ├── notion.json
+│   ├── things3.json
+│   ├── day-one.json
+│   └── ...
+├── community/
+│   └── (PRs from community submissions land here for review)
+├── schemas/
+│   └── tool-definition.schema.json  ← JSON Schema for validation (CI checks submissions)
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   └── tool-submission.md       ← pre-filled template for in-app submit flow
+│   └── workflows/
+│       └── validate.yml             ← CI: validates JSON schema on every PR
+└── README.md
+```
+
+**Raw content URLs (what the app fetches):**
+- Manifest: `https://raw.githubusercontent.com/LyraDesigns/basn-marketplace/main/manifest.json`
+- Tool: `https://raw.githubusercontent.com/LyraDesigns/basn-marketplace/main/tools/{id}.json`
+
+### 0.3 `manifest.json` Format
+
+```json
+{
+  "version": "1",
+  "updated_at": "2026-06-09T00:00:00Z",
+  "tools": [
+    {
+      "id": "jira",
+      "name": "Jira",
+      "description": "Create and update Jira issues from voice captures",
+      "icon": "list.clipboard",
+      "category": "project-management",
+      "tags": ["jira", "atlassian", "development"],
+      "author": "Lyra Designs",
+      "verified": true,
+      "version": "1.0.0",
+      "minimum_basn_version": "1.0.0",
+      "definition_url": "https://raw.githubusercontent.com/LyraDesigns/basn-marketplace/main/tools/jira.json",
+      "updated_at": "2026-06-09"
+    }
+  ],
+  "categories": [
+    { "id": "project-management", "label": "Project Management", "icon": "chart.bar.doc.horizontal" },
+    { "id": "notes-pkm",          "label": "Notes & PKM",        "icon": "note.text" },
+    { "id": "tasks",              "label": "Task Managers",       "icon": "checklist" },
+    { "id": "communication",      "label": "Communication",       "icon": "bubble.left.and.bubble.right" },
+    { "id": "crm",                "label": "CRM & Sales",         "icon": "person.2" },
+    { "id": "calendar",           "label": "Scheduling",          "icon": "calendar" },
+    { "id": "finance",            "label": "Finance",             "icon": "dollarsign.circle" },
+    { "id": "dev",                "label": "Development",         "icon": "curlybraces" },
+    { "id": "design",             "label": "Design",              "icon": "paintbrush" },
+    { "id": "infra",              "label": "Infrastructure",      "icon": "server.rack" },
+    { "id": "automation",         "label": "Automation",          "icon": "gearshape.2" },
+    { "id": "media",              "label": "Media & Music",       "icon": "music.note" },
+    { "id": "custom",             "label": "Custom",              "icon": "hammer" }
+  ]
+}
+```
+
+### 0.4 Extended Tool Definition Schema — `registry` Block
+
+Each tool JSON gains a `registry` top-level block (optional — native bundled tools don't have it):
+
+```json
+{
+  "id": "jira",
+  "name": "Jira",
+  "icon": "list.clipboard",
+  "registry": {
+    "version": "1.0.0",
+    "author": "Lyra Designs",
+    "verified": true,
+    "category": "project-management",
+    "tags": ["jira", "atlassian"],
+    "description": "Create and update Jira issues from voice captures",
+    "minimum_basn_version": "1.0.0",
+    "pricing": "free",
+    "homepage_url": "https://www.atlassian.com/software/jira"
+  },
+  "auth": { ... },
+  "actions": { ... }
+}
+```
+
+**`ToolDefinitionSpec` Swift changes** (`ToolDefinitionLoader.swift`):
+```swift
+struct RegistrySpec: Codable {
+    let version: String
+    let author: String
+    let verified: Bool?
+    let category: String
+    let tags: [String]?
+    let description: String
+    let minimumBasnVersion: String?
+    let pricing: String?          // "free" | "pro"
+    let homepageUrl: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case version, author, verified, category, tags, description, pricing
+        case minimumBasnVersion = "minimum_basn_version"
+        case homepageUrl = "homepage_url"
+    }
+}
+// Add to ToolDefinitionSpec:
+let registry: RegistrySpec?
+let type: String?  // "native" for bundled Apple tools
+```
+
+### 0.5 Pre-installed vs Marketplace Split
+
+**Bundled in app (native, no auth, no marketplace entry):**
+- Apple Reminders, Calendar, Notes, Files, Contacts, Clipboard, Spotlight, Mail, Messages, Maps, Safari, Photos, Music, App Intents, Widgets
+
+**Marketplace — Lyra-verified (ships in `tools/` at launch):**
+- Jira, Confluence, Google (Calendar + Gmail + Docs + Sheets + Tasks), Slack, Toggl, GitHub
+- Microsoft 365, Notion, Things 3, Day One, OmniFocus, Obsidian, Fantastical
+- Linear, Todoist, Asana, Zoom, HubSpot, Salesforce, Pipedrive
+- Stripe, Harvest, Spotify, Discord, Telegram, Readwise, Raindrop
+- Zapier, Make, Vercel, Netlify, Render, Railway, Supabase
+
+**Community (submitted by users, reviewed by Lyra):**
+- Long-tail niche tools, company-internal systems, industry-specific apps
+
+### 0.6 Local Installation Model
+
+Installed tool definitions are cached on-device in Application Support, not the app bundle:
+
+```
+~/Library/Containers/com.lyra.basn/Data/Library/Application Support/Basn/
+  InstalledTools/
+    jira.json           ← downloaded from marketplace
+    notion.json
+    things3.json
+    user-custom-crm.json  ← user-built tool, never published
+  marketplace-manifest.json  ← cached manifest (refreshed on launch)
+  marketplace-manifest-etag.txt  ← for conditional GET (304 Not Modified)
+```
+
+**Loading order in `ToolDefinitionLoader`:**
+1. Check `InstalledTools/{toolID}.json` (marketplace or user-built)
+2. Fall back to `Bundle.main` (native Apple tool definitions)
+3. Return `nil` if not found
+
+**Update check:** On app launch, `MarketplaceClient` does a conditional GET on `manifest.json` using the stored ETag. If the manifest changed, it checks each installed tool's version against the cached version and silently re-downloads any that have updates. No user action required.
+
+### 0.7 `Tool` SwiftData Model Changes
+
+Add to `Tool` in `BasinModels.swift`:
+
+```swift
+// Marketplace provenance
+var installedFromMarketplace: Bool   // false for native bundled tools
+var marketplaceVersion: String?      // semver of installed definition (e.g. "1.2.0")
+var marketplaceSource: String?       // definition_url from manifest (for updates)
+var isUserCreated: Bool              // true for in-app builder tools
+```
+
+**Tool object lifecycle with marketplace:**
+- **Install:** User taps "Install" in marketplace → `MarketplaceClient` downloads JSON → writes to `InstalledTools/` → creates `Tool` SwiftData object with `installedFromMarketplace = true`
+- **Update:** Silent on launch — re-downloads JSON if version changed, updates `marketplaceVersion`
+- **Uninstall:** Delete `InstalledTools/{id}.json` + delete `Tool` SwiftData object + wipe Keychain entries for that tool ID
+- **Native tools:** `Tool` objects seeded at first launch as before, `installedFromMarketplace = false`
+
+### 0.8 `MarketplaceClient` Specification
+
+**New file:** `Hex/Clients/MarketplaceClient.swift`
+
+```swift
+@DependencyClient
+struct MarketplaceClient {
+    /// Fetch (or return cached) manifest. Uses ETag for conditional GET.
+    var fetchManifest: @Sendable () async throws -> MarketplaceManifest
+    
+    /// Download and install a tool. Returns the parsed spec.
+    var installTool: @Sendable (_ entry: MarketplaceManifest.Entry) async throws -> ToolDefinitionSpec
+    
+    /// Uninstall a tool — removes local JSON file. Caller deletes Tool SwiftData object.
+    var uninstallTool: @Sendable (_ toolID: String) async throws -> Void
+    
+    /// Check installed tools for available updates. Returns entries with newer versions.
+    var checkForUpdates: @Sendable () async -> [MarketplaceManifest.Entry]
+    
+    /// Write a user-created tool definition to InstalledTools/.
+    var saveUserTool: @Sendable (_ spec: ToolDefinitionSpec) async throws -> Void
+    
+    /// Open GitHub issue submission for a tool spec. Returns the issue URL.
+    var submitForReview: @Sendable (_ spec: ToolDefinitionSpec) -> URL
+}
+```
+
+**`MarketplaceManifest` model:**
+```swift
+struct MarketplaceManifest: Codable {
+    let version: String
+    let updatedAt: String
+    let tools: [Entry]
+    let categories: [Category]
+    
+    struct Entry: Codable, Identifiable {
+        let id: String
+        let name: String
+        let description: String
+        let icon: String
+        let category: String
+        let tags: [String]
+        let author: String
+        let verified: Bool
+        let version: String
+        let minimumBasnVersion: String
+        let definitionUrl: String
+        let updatedAt: String
+    }
+    
+    struct Category: Codable, Identifiable {
+        let id: String
+        let label: String
+        let icon: String
+    }
+}
+```
+
+### 0.9 `MarketplaceFeature` (TCA) — Browse + Install
+
+**New files:**
+- `Hex/Features/Marketplace/MarketplaceFeature.swift` (TCA Reducer)
+- `Hex/Features/Marketplace/MarketplaceView.swift`
+- `Hex/Features/Marketplace/ToolDetailView.swift`
+
+**Entry point:** Settings → Tools → "Browse Marketplace" button (add to `ToolsSectionView`)
+
+**State:**
+```swift
+@ObservableState struct State {
+    var manifest: MarketplaceManifest?
+    var installedToolIDs: Set<String>
+    var selectedCategory: String?
+    var searchText: String
+    var isLoading: Bool
+    var installingID: String?
+    var error: String?
+    
+    var filteredTools: [MarketplaceManifest.Entry] { ... }
+}
+```
+
+**UX flow:**
+```
+Settings → Tools
+  [Browse Marketplace →]               ← new button in ToolsSectionView header
+
+Marketplace sheet:
+  ┌─────────────────────────────────┐
+  │ 🔍 Search tools...              │
+  ├─────────────────────────────────┤
+  │ [All] [Tasks] [Notes] [CRM] ... │  ← category filter chips
+  ├─────────────────────────────────┤
+  │ ✓ Jira          Lyra · verified │  ← installed (checkmark)
+  │   Notion        Lyra · verified │  ← not installed (tap to install)
+  │   Things 3      Lyra · verified │
+  │   My Custom CRM community       │
+  └─────────────────────────────────┘
+```
+
+**Tool Detail sheet (tap any tool):**
+- Icon, name, author, verified badge
+- Description
+- Action list (what Basn can do with this tool)
+- Auth method required
+- Install / Uninstall button
+- Link to homepage
+
+**Install action:**
+1. Tap "Install" → `MarketplaceClient.installTool(entry)` downloads JSON
+2. Creates `Tool` SwiftData object with `installedFromMarketplace = true`
+3. Returns to Settings → Tools → new tool row appears
+4. User taps "Connect" to authenticate
+
+### 0.10 ⚡ HIGH PRIORITY — `AIToolBuilderFeature` — Conversational Integration Builder + Automatic PR
+
+> **Priority rationale:** This is a core differentiator. Normal users — not just developers — describe an integration in plain language, Basn builds the JSON definition using Claude, the user validates it with real API calls, and the working integration is automatically submitted to `LyraDesigns/basn-marketplace` as a GitHub PR. No JSON editing, no GitHub account, no manual steps.
+
+#### Overview
+
+```
+User: "I want Basn to create contacts in my company's CRM, Copper"
+         ↓
+   Claude conversation (3–6 turns)
+         ↓
+   Claude generates complete tool definition JSON
+         ↓
+   User connects their API key → app fires test calls
+         ↓
+   All actions pass → "Share with community?" → automatic GitHub PR
+         ↓
+   Lyra reviews PR → merges → tool appears in marketplace for everyone
+```
+
+#### Phase 1: Conversational Discovery (Claude)
+
+**Entry point:** Settings → Tools → [+] → "Describe an integration..."
+
+The conversation uses Claude Sonnet (quality critical here — this generates code) with a dedicated system prompt. The conversation is multi-turn, stored in `AIToolBuilderFeature` state.
+
+**System prompt for tool builder (separate from Castellum):**
+```
+You are Basn's integration builder. Help the user create a tool integration 
+that lets Basn connect to a third-party app or service.
+
+Your goal is to produce a valid Basn Tool Definition JSON. Ask clarifying 
+questions one at a time — don't overwhelm the user. You need to understand:
+1. What service they want to connect (name, website, API docs URL if they have it)
+2. What actions Basn should take (create a record, send a message, log something)
+3. The API's base URL and auth method (API key, OAuth, or URL scheme)
+4. The specific endpoint, HTTP method, and request body for each action
+
+Use your knowledge of common SaaS APIs. If you know the API (e.g. Copper CRM, 
+HubSpot, Notion), generate the definition directly without asking for the endpoint.
+If you don't know it, ask for the base URL and one example API call.
+
+When you have enough information, output the complete JSON definition inside 
+<tool_definition> tags. Always generate at least one action. Follow this schema exactly:
+
+[embed compact ToolDefinitionSpec schema]
+
+If the user reports that a test failed with an error, read the error and generate
+a corrected JSON definition. Output corrections inside <tool_definition> tags.
+```
+
+**Conversation UX (chat-style bubbles, not a form):**
+```
+┌─────────────────────────────────────────────┐
+│ ✦ Create Integration                    [×] │
+├─────────────────────────────────────────────┤
+│                                             │
+│  ┌─ Basn ──────────────────────────────┐   │
+│  │ What app do you want to connect?    │   │
+│  │ You can describe it in plain        │   │
+│  │ language — no technical knowledge   │   │
+│  │ needed.                             │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  ┌─ You ───────────────────────────────┐   │
+│  │ I use Copper CRM and want Basn to   │   │
+│  │ log calls and create contacts       │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  ┌─ Basn ──────────────────────────────┐   │
+│  │ Got it — I know Copper's API. I'll  │   │
+│  │ need your API key. You can find it  │   │
+│  │ at Settings → Integrations in       │   │
+│  │ Copper.                             │   │
+│  │                                     │   │
+│  │ [Paste API key here…          ]     │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│ [Type a message…                    ] [→]  │
+└─────────────────────────────────────────────┘
+```
+
+**When Claude outputs `<tool_definition>` XML:** The feature's response parser detects the tag, extracts and validates the JSON against `ToolDefinitionSpec`, then transitions the UI to Phase 2 (testing).
+
+**Token usage for builder sessions:**
+- Per conversation turn: ~1,000–3,000 tokens in, ~500–2,000 tokens out
+- Full session (5 turns + generation): ~15,000–40,000 tokens
+- Cost per tool build: ~$0.05–$0.20 on Sonnet
+- This is a one-time cost per integration, completely acceptable
+- Model: always Sonnet (quality matters; this generates persistent configuration)
+
+#### Phase 2: Action Testing
+
+Once `<tool_definition>` is parsed, the UI transitions to a testing view:
+
+```
+┌─────────────────────────────────────────────┐
+│ ✦ Testing: Copper CRM               [Back] │
+├─────────────────────────────────────────────┤
+│                                             │
+│  Actions generated:                         │
+│                                             │
+│  ✓ log_activity    "Log a call or meeting" │
+│    [Tested ✓ 200 OK]                        │
+│                                             │
+│  ○ create_contact  "Add a new contact"      │
+│    [Test →]                                 │
+│                                             │
+│  API Key: [●●●●●●●●●●●●●●●●     ] [Edit]  │
+│                                             │
+│  ┌─ Test: create_contact ──────────────┐   │
+│  │ name: "Jane Smith"                  │   │
+│  │ email: "jane@example.com"           │   │
+│  │ company: "Acme Corp"                │   │
+│  │                                     │   │
+│  │ [Run test →]                        │   │
+│  └─────────────────────────────────────┘   │
+└─────────────────────────────────────────────┘
+```
+
+**`ToolActionTestRunner`** — new file `Hex/Features/Marketplace/ToolActionTestRunner.swift`:
+```swift
+struct ToolActionTestRunner {
+    /// Fire a real HTTP call for an action using sample parameters.
+    /// Returns the HTTP status, response body, and a pass/fail verdict.
+    static func test(
+        action: ToolDefinitionSpec.ActionSpec,
+        spec: ToolDefinitionSpec,
+        apiKey: String,
+        sampleParams: [String: String]
+    ) async -> TestResult {
+        // Uses GenericToolExecutor logic but returns raw response for inspection
+    }
+    
+    struct TestResult {
+        let statusCode: Int
+        let responseBody: String
+        let passed: Bool  // 200-299
+        let errorSummary: String?
+    }
+}
+```
+
+**If a test fails**, the error is passed back to Claude automatically:
+```
+[Basn sends to Claude]:
+The create_contact action returned a 422 error:
+{"error": "phone_numbers must be an array of objects with {number, category}"}
+
+Please fix the tool definition and output a corrected <tool_definition>.
+```
+
+Claude regenerates the JSON → UI updates → user re-runs the test. Repeat until all pass.
+
+**"All actions tested" state:**
+```
+┌─────────────────────────────────────────────┐
+│ ✦ Copper CRM — Ready                        │
+├─────────────────────────────────────────────┤
+│  ✓ log_activity        [200 OK]             │
+│  ✓ create_contact      [201 Created]        │
+│                                             │
+│  ┌─────────────────────────────────────┐   │
+│  │  This integration works locally.    │   │
+│  │  Share it with other Basn users?    │   │
+│  │                                     │   │
+│  │  [Keep private]  [Share with ✦]    │   │
+│  └─────────────────────────────────────┘   │
+└─────────────────────────────────────────────┘
+```
+
+#### Phase 3: Automatic PR Submission
+
+**"Share with ✦" flow (fully automatic, no GitHub account needed):**
+
+1. App sends the validated tool JSON to `https://marketplace.basn.app/submit`
+2. The submission service creates a GitHub PR to `LyraDesigns/basn-marketplace`
+3. App shows the PR URL: "Submitted! Usually live within 2–3 days. [View PR →]"
+
+**`MarketplaceClient` — new method:**
+```swift
+/// Submit a validated tool definition as a GitHub PR.
+/// Returns the PR URL on success.
+var submitAsPR: @Sendable (_ spec: ToolDefinitionSpec, _ testResults: [TestResult]) async throws -> URL
+```
+
+#### Phase 4: Submission Service (`marketplace.basn.app`)
+
+**Infrastructure:** Cloudflare Worker — ~80 lines of TypeScript, free tier, no server to maintain.
+
+**Deploy to:** `marketplace.basn.app` (Cloudflare Workers custom domain)
+
+**New repo:** `LyraDesigns/basn-marketplace-service` (separate from the registry repo)
+
+**Worker logic:**
+```typescript
+// src/index.ts
+import { Octokit } from '@octokit/rest'
+
+interface SubmissionRequest {
+  toolDefinition: Record<string, unknown>
+  testResults: Array<{ actionId: string; statusCode: number; passed: boolean }>
+  submitterDevice?: string   // anonymized device fingerprint — no PII
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
+
+    const body: SubmissionRequest = await request.json()
+    const { toolDefinition } = body
+    const toolId = String(toolDefinition.id ?? '').replace(/[^a-z0-9-]/g, '')
+    const toolName = String(toolDefinition.name ?? 'Unknown')
+
+    if (!toolId) return Response.json({ error: 'Missing tool id' }, { status: 400 })
+
+    // Basic schema validation (id, name, auth, actions present)
+    if (!toolDefinition.auth || !toolDefinition.actions) {
+      return Response.json({ error: 'Invalid tool definition: missing auth or actions' }, { status: 400 })
+    }
+
+    const octokit = new Octokit({ auth: env.GITHUB_BOT_TOKEN })
+    const branchName = `community/${toolId}-${Date.now()}`
+
+    // Get main SHA
+    const { data: ref } = await octokit.git.getRef({
+      owner: 'LyraDesigns', repo: 'basn-marketplace', ref: 'heads/main'
+    })
+
+    // Create branch
+    await octokit.git.createRef({
+      owner: 'LyraDesigns', repo: 'basn-marketplace',
+      ref: `refs/heads/${branchName}`,
+      sha: ref.object.sha
+    })
+
+    // Write tool file to community/
+    const content = JSON.stringify(toolDefinition, null, 2)
+    await octokit.repos.createOrUpdateFileContents({
+      owner: 'LyraDesigns', repo: 'basn-marketplace',
+      path: `community/${toolId}.json`,
+      message: `Community tool: ${toolName}`,
+      content: Buffer.from(content).toString('base64'),
+      branch: branchName
+    })
+
+    // Open PR
+    const passCount = body.testResults.filter(r => r.passed).length
+    const { data: pr } = await octokit.pulls.create({
+      owner: 'LyraDesigns', repo: 'basn-marketplace',
+      title: `Community Tool: ${toolName}`,
+      head: branchName,
+      base: 'main',
+      body: [
+        `## ${toolName}`,
+        `Submitted via Basn in-app tool builder.`,
+        ``,
+        `**Actions:** ${Object.keys(toolDefinition.actions as object).join(', ')}`,
+        `**Auth:** ${(toolDefinition.auth as any)?.methods?.join(' / ') ?? 'unknown'}`,
+        `**Tests passed:** ${passCount} / ${body.testResults.length}`,
+        ``,
+        `<details><summary>Tool Definition JSON</summary>`,
+        ``,
+        '```json',
+        content,
+        '```',
+        `</details>`
+      ].join('\n')
+    })
+
+    return Response.json({ prUrl: pr.html_url })
+  }
+}
+```
+
+**Review workflow on Lyra's side:**
+1. PR arrives in `LyraDesigns/basn-marketplace` with label `community`
+2. CI runs JSON schema validation automatically
+3. Lyra manually reviews: does the tool make sense? Is the auth safe? Are endpoint patterns correct?
+4. If approved: move file from `community/` → `tools/`, add `registry.verified = false`, update `manifest.json`, merge PR
+5. Tool appears in marketplace with "Community" badge (not "Verified")
+6. After enough install + positive usage signal → Lyra upgrades to "Verified"
+
+#### New Files for AI Tool Builder
+
+```
+Hex/Features/Marketplace/AIToolBuilderFeature.swift    ← TCA reducer + conversation state
+Hex/Features/Marketplace/AIToolBuilderView.swift       ← chat bubble UI
+Hex/Features/Marketplace/ToolActionTestRunner.swift    ← HTTP test harness
+Hex/Features/Marketplace/ToolTestResultView.swift      ← per-action test result display
+Hex/Clients/MarketplaceSubmissionClient.swift          ← POSTs to marketplace.basn.app/submit
+```
+
+**Separate repo (infrastructure):**
+```
+LyraDesigns/basn-marketplace-service/
+  src/index.ts       ← Cloudflare Worker
+  wrangler.toml      ← deployment config
+  package.json
+```
+
+### 0.11 Existing Tool Migration
+
+The 5 currently bundled tools (`jira.json`, `google.json`, `slack.json`, `toggl.json`, `github.json`) move to the marketplace repo. In the app:
+
+1. Remove them from `Hex/Resources/Data/tool-definitions/` bundle
+2. Add `registry` block to each (author: "Lyra Designs", verified: true)
+3. Publish to `LyraDesigns/basn-marketplace/tools/`
+4. Update `manifest.json`
+5. On first launch after update: `MarketplaceClient` auto-installs these 5 tools (they're in a `"default_install"` array in the manifest)
+6. `ToolDefinitionLoader` loading order change handles everything else transparently
+
+**`manifest.json` — `default_install` field:**
+```json
+{
+  "default_install": ["jira", "google", "slack", "toggl", "github"],
+  ...
+}
+```
+
+On first launch (detected by `hasInstalledDefaultTools` UserDefaults flag), `MarketplaceClient` downloads and installs these silently before showing Settings → Tools.
+
+### 0.12 Marketplace Branches (Must Come First)
+
+Ship in this order — each unblocks the next.
+
+**Branch: `marketplace/registry-init`** — repo work, not app code
+- Initialize `LyraDesigns/basn-marketplace`: `manifest.json`, `schemas/tool-definition.schema.json`, `README.md`, CI validation workflow (`validate.yml`), PR template for review queue
+- Migrate 5 existing tool JSONs from the app bundle → `tools/` in this repo (add `registry` block to each)
+- Update `manifest.json` with `default_install` array
+
+**Branch: `marketplace/submission-service`** — infra, not app code
+- Create `LyraDesigns/basn-marketplace-service` repo
+- Implement Cloudflare Worker (`src/index.ts`) — receives tool JSON, creates branch + file + PR via GitHub bot token
+- Deploy to `marketplace.basn.app` via `wrangler deploy`
+- Smoke-test: `curl -X POST https://marketplace.basn.app/submit` with a sample tool JSON → verify PR appears in marketplace repo
+
+**Branch: `marketplace/client`** — app code
+- `MarketplaceClient.swift` — manifest fetch (ETag caching), install, uninstall, update check
+- `MarketplaceSubmissionClient.swift` — POSTs validated JSON to `marketplace.basn.app/submit`, returns PR URL
+- `ToolDefinitionLoader` changes — check `InstalledTools/` directory before app bundle
+- `Tool` SwiftData model additions: `installedFromMarketplace`, `marketplaceVersion`, `marketplaceSource`, `isUserCreated`
+- `MarketplaceSeeder.swift` — runs once on first launch, silently installs `default_install` tools from manifest
+
+**Branch: `marketplace/browse-ui`** — app code
+- `MarketplaceFeature.swift` + `MarketplaceView.swift` + `ToolDetailView.swift`
+- Category filter chips, search, verified/community badges
+- "Browse Marketplace" button in `ToolsSectionView` header
+- Install → ToolConnectSheet → running
+
+**Branch: `marketplace/ai-tool-builder`** — ⚡ HIGH PRIORITY — app code + infra
+- `AIToolBuilderFeature.swift` + `AIToolBuilderView.swift` — chat-style conversation with Claude
+- `ToolActionTestRunner.swift` — HTTP test harness per action (real API calls, returns status + body)
+- `ToolTestResultView.swift` — per-action pass/fail display with error relay back to Claude
+- Auto-submit on all-pass → `MarketplaceSubmissionClient.submitAsPR()` → show PR URL
+- Entry point: Settings → Tools → [+] → "Describe an integration..."
+
+> After these 5 branches, every subsequent integration tool in this plan is a **marketplace PR** to `LyraDesigns/basn-marketplace/tools/` — not an app commit. The app never needs to be released to add a new integration.
 
 ---
 

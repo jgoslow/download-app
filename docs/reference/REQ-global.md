@@ -1,3 +1,13 @@
+---
+type: requirement
+subtype: global
+status: active
+created: 2026-03-19
+updated: 2026-06-25
+req_id: REQ-global
+tags: [requirement]
+---
+
 # Basin — Product & Technical Requirements
 
 A living document. Every entry here exists because there is a reason that isn't obvious from reading the code. Add the WHY, not just the what. Update rather than delete — removed requirements should be marked `[REMOVED]` with the reason.
