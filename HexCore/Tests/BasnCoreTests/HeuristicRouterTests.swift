@@ -20,8 +20,8 @@ struct HeuristicRouterTests {
     @Test
     func startTimerCapturesDescriptionAfterTrigger() {
         let actions = HeuristicRouter.route(transcript: "start timer for deep work", connectedToolIDs: togglConnected)
-        // "start timer" is stripped; the remainder "for deep work" becomes the description
-        #expect(actions?.first?.parameters["description"] == "for deep work")
+        // "start timer" is stripped; leading "for" is also stripped → clean description
+        #expect(actions?.first?.parameters["description"] == "deep work")
     }
 
     @Test

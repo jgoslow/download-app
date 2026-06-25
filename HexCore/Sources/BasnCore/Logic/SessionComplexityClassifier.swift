@@ -1,11 +1,11 @@
 import Foundation
 
-enum SessionComplexity {
+public enum SessionComplexity {
     case simple     // → Haiku 4.5
     case standard   // → Haiku 4.5
     case complex    // → Sonnet 4.6
 
-    var modelID: String {
+    public var modelID: String {
         switch self {
         case .simple, .standard: return "claude-haiku-4-5-20251001"
         case .complex: return "claude-sonnet-4-6"
@@ -13,8 +13,8 @@ enum SessionComplexity {
     }
 }
 
-struct SessionComplexityClassifier {
-    static func classify(wordCount: Int, connectedToolCount: Int, rawText: String) -> SessionComplexity {
+public struct SessionComplexityClassifier {
+    public static func classify(wordCount: Int, connectedToolCount: Int, rawText: String) -> SessionComplexity {
         if wordCount < 100, connectedToolCount <= 2 { return .simple }
         if wordCount > 500 { return .complex }
         if connectedToolCount > 4 { return .complex }

@@ -110,6 +110,7 @@ enum JiraActionClient {
                 jiraLogger.info("Atlassian token expired, refreshing...")
                 if let refreshed = await refreshAtlassianToken(tool: tool, refreshToken: refreshToken) {
                     oauthToken = refreshed
+                    await MainActor.run { tool.tokenLastRefreshedAt = Date() }
                 } else {
                     jiraLogger.error("Failed to refresh Atlassian token")
                     return nil
@@ -132,7 +133,10 @@ enum JiraActionClient {
                 jiraLogger.info("Cloud ID fetch failed (possible expired token), trying refresh...")
                 if let refreshed = await refreshAtlassianToken(tool: tool, refreshToken: refreshToken) {
                     if let cloudBase = await fetchAtlassianCloudBaseURL(token: refreshed) {
-                        await MainActor.run { tool.baseURL = cloudBase }
+                        await MainActor.run {
+                            tool.baseURL = cloudBase
+                            tool.tokenLastRefreshedAt = Date()
+                        }
                         return ("Bearer \(refreshed)", cloudBase)
                     }
                 }
