@@ -1,0 +1,34 @@
+{
+  "name": "Google Calendar Event",
+  "description": "Single-intent Castellum capture scheduling a calendar event. Tests that the parser extracts a create_event action with the correct parameters.",
+  "rawText": "Schedule a 30 minute call with Diego tomorrow afternoon",
+  "connectedToolIDs": ["google"],
+  "routedVia": "castellum",
+  "rawContentBlocks": [
+    {
+      "type": "text",
+      "text": "I'll schedule a 30-minute call with Diego for tomorrow afternoon.\n\n{\"summary\": \"Schedule 30-minute call with Diego tomorrow afternoon\", \"mood_tag\": null, \"tasks\": [\"Schedule call with Diego\"], \"routing\": [\"calendar\"], \"delegations\": [], \"integrations\": [\"calendar\"], \"prompts_addressed\": []}"
+    },
+    {
+      "type": "tool_use",
+      "name": "google_create_event",
+      "input": {
+        "summary": "Call with Diego",
+        "description": "30-minute call scheduled via Basn.",
+        "start_time": "2026-06-24T14:00:00",
+        "end_time": "2026-06-24T14:30:00"
+      }
+    }
+  ],
+  "expected": {
+    "actions": [
+      {
+        "toolID": "google",
+        "actionType": "create_event",
+        "parameters": {
+          "summary": "Call with Diego"
+        }
+      }
+    ]
+  }
+}

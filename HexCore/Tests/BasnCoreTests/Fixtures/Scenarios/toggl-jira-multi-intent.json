@@ -1,0 +1,51 @@
+{
+  "name": "Toggl + Jira Multi-Intent",
+  "description": "Multi-intent capture with both a time log and a ticket. HeuristicRouter returns nil (2 intents matched), so Castellum handles it. Tests that both a Toggl and Jira action are parsed from a single response.",
+  "rawText": "Log 1 hour on the auth bug fix and create a Jira ticket to track it",
+  "connectedToolIDs": ["jira", "toggl"],
+  "routedVia": "castellum",
+  "rawContentBlocks": [
+    {
+      "type": "text",
+      "text": "I'll log 1 hour in Toggl for the auth bug fix and create a Jira ticket to track the work.\n\n{\"summary\": \"1 hour logged in Toggl and Jira ticket created for auth bug fix\", \"mood_tag\": null, \"tasks\": [\"Log 1 hour in Toggl for auth bug fix\", \"Create Jira ticket for auth bug\"], \"routing\": [\"toggl\", \"jira\"], \"delegations\": [], \"integrations\": [\"toggl\", \"jira\"], \"prompts_addressed\": []}"
+    },
+    {
+      "type": "tool_use",
+      "name": "toggl_create_time_entry",
+      "input": {
+        "description": "Auth bug fix",
+        "duration_minutes": "60"
+      }
+    },
+    {
+      "type": "tool_use",
+      "name": "jira_create_issue",
+      "input": {
+        "project_key": "BASN",
+        "summary": "Auth bug fix",
+        "description": "Fix the authentication bug identified during development.",
+        "issue_type": "Bug"
+      }
+    }
+  ],
+  "expected": {
+    "actions": [
+      {
+        "toolID": "toggl",
+        "actionType": "create_time_entry",
+        "parameters": {
+          "description": "Auth bug fix",
+          "duration_minutes": "60"
+        }
+      },
+      {
+        "toolID": "jira",
+        "actionType": "create_issue",
+        "parameters": {
+          "summary": "Auth bug fix",
+          "project_key": "BASN"
+        }
+      }
+    ]
+  }
+}

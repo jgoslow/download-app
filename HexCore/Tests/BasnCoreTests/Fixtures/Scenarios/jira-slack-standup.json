@@ -1,0 +1,50 @@
+{
+  "name": "Jira Ticket + Slack Standup",
+  "description": "Multi-intent Castellum capture producing two actions: a Jira ticket and a Slack message. Tests that the parser handles multiple sequential tool_use blocks correctly.",
+  "rawText": "Create a Jira ticket for the auth refactor and post a standup update to Slack",
+  "connectedToolIDs": ["jira", "slack"],
+  "routedVia": "castellum",
+  "rawContentBlocks": [
+    {
+      "type": "text",
+      "text": "I'll create a Jira ticket for the auth refactor and send a standup update to Slack.\n\n{\"summary\": \"Auth refactor tracked in Jira and standup posted to Slack\", \"mood_tag\": null, \"tasks\": [\"Create Jira ticket for auth refactor\", \"Post standup update to Slack\"], \"routing\": [\"jira\", \"slack\"], \"delegations\": [], \"integrations\": [\"jira\", \"slack\"], \"prompts_addressed\": []}"
+    },
+    {
+      "type": "tool_use",
+      "name": "jira_create_issue",
+      "input": {
+        "project_key": "BASN",
+        "summary": "Auth refactor",
+        "description": "Refactor the authentication layer to improve maintainability and security.",
+        "issue_type": "Task"
+      }
+    },
+    {
+      "type": "tool_use",
+      "name": "slack_send_message",
+      "input": {
+        "channel": "#standup",
+        "text": "Working on the auth refactor today — tracking in Jira."
+      }
+    }
+  ],
+  "expected": {
+    "actions": [
+      {
+        "toolID": "jira",
+        "actionType": "create_issue",
+        "parameters": {
+          "summary": "Auth refactor",
+          "project_key": "BASN"
+        }
+      },
+      {
+        "toolID": "slack",
+        "actionType": "send_message",
+        "parameters": {
+          "channel": "#standup"
+        }
+      }
+    ]
+  }
+}

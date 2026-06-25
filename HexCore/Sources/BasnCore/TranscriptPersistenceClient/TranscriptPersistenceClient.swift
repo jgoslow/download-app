@@ -35,14 +35,16 @@ extension TranscriptPersistenceClient: DependencyKey {
                 )
             },
             deleteAudio: { transcript in
-                FileManager.default.removeItemIfExists(at: transcript.audioPath)
+                if let path = transcript.audioPath {
+                    FileManager.default.removeItemIfExists(at: path)
+                }
             }
         )
     }()
-    
+
     public static let testValue = TranscriptPersistenceClient(
         save: { _, _, _, _, _ in
-            Transcript(timestamp: Date(), text: "", audioPath: URL(fileURLWithPath: "/"), duration: 0)
+            Transcript(timestamp: Date(), text: "", duration: 0)
         },
         deleteAudio: { _ in }
     )

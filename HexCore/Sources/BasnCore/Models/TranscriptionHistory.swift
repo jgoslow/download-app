@@ -4,16 +4,17 @@ public struct Transcript: Codable, Equatable, Identifiable, Sendable {
     public var id: UUID
     public var timestamp: Date
     public var text: String
-    public var audioPath: URL
+    /// Nil for text-input captures (no audio recorded).
+    public var audioPath: URL?
     public var duration: TimeInterval
     public var sourceAppBundleID: String?
     public var sourceAppName: String?
-    
+
     public init(
         id: UUID = UUID(),
         timestamp: Date,
         text: String,
-        audioPath: URL,
+        audioPath: URL? = nil,
         duration: TimeInterval,
         sourceAppBundleID: String? = nil,
         sourceAppName: String? = nil

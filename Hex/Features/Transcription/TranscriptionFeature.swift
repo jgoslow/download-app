@@ -148,6 +148,7 @@ struct TranscriptionFeature {
 
         let flowID = state.selectedFlowID
         let promptTitles = state.promptTitles
+        let transcriptionHistory = state.$transcriptionHistory
 
         return .run { [basinDB = self.basinDB, router = self.destinationRouter, castellum = self.castellumClient] send in
           @Shared(.basnSettings) var basnSettings: BasnSettings
@@ -178,8 +179,26 @@ struct TranscriptionFeature {
           try? await basinDB.saveCapture(captureRecord)
           _ = await router.route(session)
 
-          guard !basinSettings.anthropicAPIKey.isEmpty else { return }
+          // Always add to transcript history so HomeView "Last transcript" section updates.
+          // (saveTranscriptionHistory only gates audio-file persistence, not text captures.)
+          let textTranscript = Transcript(timestamp: Date(), text: trimmed, audioPath: nil, duration: 0)
+          transcriptionHistory.withLock { $0.history.insert(textTranscript, at: 0) }
+
+          // Heuristic bypass: same single-intent check as the voice path.
           let tools = (try? await basinDB.fetchTools()) ?? []
+          let connectedToolIDs = Set(tools.filter(\.isConnected).map(\.id))
+          if let heuristicActions = HeuristicRouter.route(transcript: trimmed, connectedToolIDs: connectedToolIDs) {
+            let plan = ExecutionPlan(captureID: session.id, actions: heuristicActions, modelUsed: "heuristic")
+            let minimalAnalysis = SessionAnalysis(summary: String(trimmed.prefix(100)))
+            #if DEBUG
+            recordHeuristicScenario(rawText: trimmed, connectedToolIDs: connectedToolIDs, actions: heuristicActions)
+            #endif
+            await send(.castellumResultReceived(minimalAnalysis, plan, captureID: session.id))
+            transcriptionFeatureLogger.info("Heuristic bypass (text) for capture \(session.id)")
+            return
+          }
+
+          guard !basinSettings.anthropicAPIKey.isEmpty else { return }
           let workflows = (try? await basinDB.fetchWorkflows()) ?? []
           let sessionContext = await router.fetchContext(flowID)
           let structuredCapture = StructuredCapture.from(session: session)
@@ -632,6 +651,9 @@ private extension TranscriptionFeature {
       if let heuristicActions = HeuristicRouter.route(transcript: modifiedResult, connectedToolIDs: connectedToolIDs) {
         let plan = ExecutionPlan(captureID: session.id, actions: heuristicActions, modelUsed: "heuristic")
         let minimalAnalysis = SessionAnalysis(summary: String(modifiedResult.prefix(100)))
+        #if DEBUG
+        recordHeuristicScenario(rawText: modifiedResult, connectedToolIDs: connectedToolIDs, actions: heuristicActions)
+        #endif
         await send(.castellumResultReceived(minimalAnalysis, plan, captureID: session.id))
         transcriptionFeatureLogger.info("Heuristic bypass for capture \(session.id)")
         return

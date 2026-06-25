@@ -1,0 +1,20 @@
+{
+  "name": "Start Toggl Timer",
+  "description": "Single-intent capture using 'start timer' trigger. HeuristicRouter matches and extracts the description. No duration mentioned so default of 30 minutes applies.",
+  "rawText": "start timer for Basn iOS work",
+  "connectedToolIDs": ["toggl"],
+  "routedVia": "heuristic",
+  "rawContentBlocks": null,
+  "expected": {
+    "actions": [
+      {
+        "toolID": "toggl",
+        "actionType": "create_time_entry",
+        "parameters": {
+          "description": "Basn iOS work",
+          "duration_minutes": "30"
+        }
+      }
+    ]
+  }
+}

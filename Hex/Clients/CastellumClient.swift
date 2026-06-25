@@ -75,12 +75,18 @@ extension CastellumClient: DependencyKey {
                 workflows: workflows.filter(\.isEnabled)
             )
 
-            let content = try await callClaude(
+            let (rawData, content) = try await callClaude(
                 model: model,
                 tools: toolSchemas,
                 userMessage: userMessage,
                 apiKey: apiKey
             )
+
+            #if DEBUG
+            if UserDefaults.standard.bool(forKey: "BasnRecordScenarios") {
+                recordScenario(rawText: capture.rawText, connectedToolIDs: connectedIDs, responseData: rawData)
+            }
+            #endif
 
             let (analysis, actions) = parseResponse(content, captureID: capture.captureID)
             let plan = ExecutionPlan(captureID: capture.captureID, actions: actions, modelUsed: model)
@@ -154,7 +160,7 @@ private func callClaude(
     tools: [[String: Any]],
     userMessage: String,
     apiKey: String
-) async throws -> [[String: Any]] {
+) async throws -> (data: Data, content: [[String: Any]]) {
     guard let url = URL(string: "https://api.anthropic.com/v1/messages") else {
         throw CastellumError.apiError("Invalid URL")
     }
@@ -215,64 +221,17 @@ private func callClaude(
         castellumLog.info("Castellum [\(model)] input=\(input) cache_read=\(cacheRead) cache_write=\(cacheWrite)")
     }
 
-    return content
+    return (data, content)
 }
 
 // MARK: - Response parsing
 
 private func parseResponse(_ content: [[String: Any]], captureID: String) -> (SessionAnalysis, [PlannedAction]) {
-    var analysis: SessionAnalysis?
-    var actions: [PlannedAction] = []
-
-    for block in content {
-        guard let type = block["type"] as? String else { continue }
-
-        if type == "text", let text = block["text"] as? String {
-            // Extract JSON object from text — Claude may include surrounding text
-            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            if let start = trimmed.firstIndex(of: "{"),
-               let end = trimmed.lastIndex(of: "}") {
-                let jsonStr = String(trimmed[start...end])
-                if let data = jsonStr.data(using: .utf8),
-                   let decoded = try? JSONDecoder().decode(SessionAnalysis.self, from: data) {
-                    analysis = decoded
-                    castellumLog.info("Castellum analysis: \(decoded.summary)")
-                }
-            }
-
-        } else if type == "tool_use",
-                  let name = block["name"] as? String,
-                  let input = block["input"] as? [String: Any] {
-            let parts = name.split(separator: "_", maxSplits: 1)
-            guard parts.count == 2 else { continue }
-            let toolID = String(parts[0])
-            let actionType = String(parts[1])
-
-            var params: [String: String] = [:]
-            for (k, v) in input {
-                if let s = v as? String { params[k] = s }
-                else if let n = v as? NSNumber { params[k] = "\(n)" }
-                else if let a = v as? [String] { params[k] = a.joined(separator: ", ") }
-            }
-
-            let actionDef = ToolActionRegistry.action(toolID: toolID, actionType: actionType)
-            let toolName = actionDef?.displayName ?? actionType.replacingOccurrences(of: "_", with: " ").capitalized
-            let summary = params["summary"] ?? params["title"] ?? params["text"] ?? params["description"] ?? ""
-            let label = summary.isEmpty ? toolName : "\(toolName): \(summary.prefix(60))"
-
-            actions.append(PlannedAction(
-                toolID: toolID,
-                actionType: actionType,
-                label: label,
-                parameters: params
-            ))
-        }
+    let result = CastellumResponseParser.parse(content, captureID: captureID) { toolID, actionType in
+        ToolActionRegistry.action(toolID: toolID, actionType: actionType)?.displayName
     }
-
-    castellumLog.info("Castellum planned \(actions.count) actions for capture \(captureID)")
-
-    let finalAnalysis = analysis ?? SessionAnalysis(summary: "Capture processed")
-    return (finalAnalysis, actions)
+    castellumLog.info("Castellum planned \(result.1.count) actions for capture \(captureID)")
+    return result
 }
 
 // MARK: - User message
@@ -346,6 +305,79 @@ private func buildServiceContext(tools: [Tool], matchedIDs: Set<String>) -> Stri
     }
     return ctx
 }
+
+#if DEBUG
+// MARK: - Scenario recorder
+//
+// Toggle via the debug panel in the app's home screen (bottom bar, debug builds only).
+// Files land in the app container's Documents folder:
+//   ~/Library/Containers/com.lyra.basn.debug/Data/Documents/basin-scenario-<id>.json
+// See docs/plans/2026-06-09-fixture-based-capture-testing.md for how to use the output.
+private func recordScenario(rawText: String, connectedToolIDs: Set<String>, responseData: Data) {
+    guard let json = try? JSONSerialization.jsonObject(with: responseData) as? [String: Any],
+          let content = json["content"] as? [[String: Any]]
+    else { return }
+
+    let id = UUID().uuidString.prefix(8)
+    let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        ?? FileManager.default.temporaryDirectory
+    let url = docsDir.appendingPathComponent("basin-scenario-\(id).json")
+
+    let blocks: [[String: Any]] = content.compactMap { block in
+        guard let type = block["type"] as? String else { return nil }
+        var out: [String: Any] = ["type": type]
+        if let text = block["text"] as? String { out["text"] = text }
+        if let name = block["name"] as? String { out["name"] = name }
+        if let input = block["input"] as? [String: Any] { out["input"] = input }
+        return out
+    }
+
+    let scenario: [String: Any] = [
+        "name": "Recorded \(id)",
+        "description": "Auto-exported. Edit name/description and fill in expected.actions.",
+        "rawText": rawText,
+        "connectedToolIDs": Array(connectedToolIDs).sorted(),
+        "routedVia": "castellum",
+        "rawContentBlocks": blocks,
+        "expected": ["actions": [[String: Any]]()]
+    ]
+
+    if let data = try? JSONSerialization.data(withJSONObject: scenario, options: [.prettyPrinted, .sortedKeys]) {
+        try? data.write(to: url)
+        castellumLog.info("[ScenarioRecorder] Exported to \(url.path)")
+    }
+}
+
+/// Record a heuristic-path capture. Unlike Castellum recordings, `expected.actions`
+/// is pre-populated from the actual matched actions — no manual fill-in needed.
+func recordHeuristicScenario(rawText: String, connectedToolIDs: Set<String>, actions: [PlannedAction]) {
+    guard UserDefaults.standard.bool(forKey: "BasnRecordScenarios") else { return }
+
+    let id = UUID().uuidString.prefix(8)
+    let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        ?? FileManager.default.temporaryDirectory
+    let url = docsDir.appendingPathComponent("basin-scenario-\(id).json")
+
+    let scenario = CaptureScenario(
+        name: "Recorded \(id)",
+        description: "Auto-exported heuristic capture. Edit name/description as needed.",
+        rawText: rawText,
+        connectedToolIDs: Array(connectedToolIDs).sorted(),
+        routedVia: .heuristic,
+        rawContentBlocks: nil,
+        expected: .init(actions: actions.map {
+            .init(toolID: $0.toolID, actionType: $0.actionType, parameters: $0.parameters)
+        })
+    )
+
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+    if let data = try? encoder.encode(scenario) {
+        try? data.write(to: url)
+        castellumLog.info("[ScenarioRecorder] Heuristic exported to \(url.path)")
+    }
+}
+#endif
 
 private func chipSelectedToolIDs(from capture: StructuredCapture) -> Set<String> {
     let knownToolChipIDs: Set<String> = ["jira", "github", "slack", "toggl", "google", "wave"]

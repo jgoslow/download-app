@@ -6,6 +6,9 @@ struct HomeView: View {
     @Environment(AppState.self) private var appState
 
     @State private var showingSetupFlow = false
+    @State private var showTextInput = false
+    @State private var textInputContent = ""
+    @FocusState private var textInputFocused: Bool
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -52,6 +55,7 @@ struct HomeView: View {
                     header
                     if needsSetup { setupCard }
                     if !appState.isLoadingFlows { recentFlowsSection }
+                    textInputSection
                     if let session = mostRecentSession { lastCaptureCard(session) }
                     if !appState.sessions.isEmpty { weekStatsCard }
                 }
@@ -179,6 +183,55 @@ struct HomeView: View {
                 .padding(.horizontal)
             }
         }
+    }
+
+    // MARK: - Text Input
+
+    private var textInputSection: some View {
+        VStack(spacing: 8) {
+            if showTextInput {
+                VStack(spacing: 10) {
+                    TextField("Type your flow…", text: $textInputContent, axis: .vertical)
+                        .lineLimit(1...8)
+                        .padding(12)
+                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+                        .focused($textInputFocused)
+
+                    HStack(spacing: 12) {
+                        Button("Cancel") {
+                            withAnimation {
+                                showTextInput = false
+                                textInputContent = ""
+                            }
+                        }
+                        .foregroundStyle(.secondary)
+
+                        Spacer()
+
+                        Button("Submit") {
+                            let text = textInputContent
+                            withAnimation { showTextInput = false; textInputContent = "" }
+                            Task { await appState.submitTextCapture(text) }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(textInputContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+                .padding(.horizontal)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            } else {
+                Button {
+                    withAnimation { showTextInput = true }
+                    textInputFocused = true
+                } label: {
+                    Text("or type your flow")
+                        .font(.subheadline)
+                        .foregroundStyle(.blue)
+                }
+                .padding(.horizontal)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: showTextInput)
     }
 
     // MARK: - Last Capture

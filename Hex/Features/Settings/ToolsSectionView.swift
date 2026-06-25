@@ -70,6 +70,9 @@ private struct ToolRowView: View {
             }
             .padding(.top, 6)
             .padding(.bottom, 4)
+            .task(id: tool.id) {
+                await silentlyRefreshIfExpired()
+            }
         } label: {
             HStack {
                 // TODO: Replace SF Symbol with branded asset (e.g. Image("tool-\(tool.id)"))
@@ -115,7 +118,17 @@ private struct ToolRowView: View {
             }
 
             if let expiresAt = KeychainClient.loadExpiry(toolID: tool.id) {
-                tokenHealthView(expiresAt: expiresAt)
+                let expired = expiresAt < Date()
+                HStack(spacing: 8) {
+                    tokenHealthView(expiresAt: expiresAt)
+                    if expired {
+                        Spacer()
+                        Button("Reconnect") { onConnect() }
+                            .font(.caption2)
+                            .buttonStyle(.borderless)
+                            .foregroundStyle(Color.accentColor)
+                    }
+                }
             }
 
             HStack(spacing: 8) {
@@ -160,6 +173,34 @@ private struct ToolRowView: View {
                     .font(.caption2)
                     .foregroundStyle(.red)
             }
+        }
+    }
+
+    private func silentlyRefreshIfExpired() async {
+        guard tool.isConnected, tool.effectiveAuthMethod == "oauth" else { return }
+        guard let expiresAt = KeychainClient.loadExpiry(toolID: tool.id), expiresAt < Date() else { return }
+        guard let refreshToken = KeychainClient.load(toolID: tool.id, key: .refreshToken) else { return }
+        guard let provider = tool.oauthProvider else { return }
+        let clientID = OAuthProviderConfig.config(for: provider)?.clientID ?? ""
+
+        do {
+            let response = try await OAuthClient.shared.refreshToken(
+                provider: provider,
+                refreshToken: refreshToken,
+                clientID: clientID
+            )
+            try? KeychainClient.save(response.accessToken, toolID: tool.id, key: .accessToken)
+            if let newRefresh = response.refreshToken {
+                try? KeychainClient.save(newRefresh, toolID: tool.id, key: .refreshToken)
+            }
+            if let expiresIn = response.expiresIn {
+                try? KeychainClient.saveExpiry(Date().addingTimeInterval(TimeInterval(expiresIn)), toolID: tool.id)
+            }
+            // Updating tokenLastRefreshedAt triggers a SwiftUI re-render, which re-reads the
+            // keychain expiry and clears the "Token expired" warning in the UI.
+            tool.tokenLastRefreshedAt = Date()
+        } catch {
+            // Silent — if refresh fails, the "Token expired / Reconnect" UI stays visible.
         }
     }
 

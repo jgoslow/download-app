@@ -1,0 +1,20 @@
+{
+  "name": "Simple Toggl Timer",
+  "description": "Single-intent capture to log time with an explicit duration. HeuristicRouter matches 'log time for', extracts the description (everything after the trigger), and parses the duration. No Anthropic API call is made.",
+  "rawText": "log time for 2 hours working on the Basn iOS pipeline",
+  "connectedToolIDs": ["toggl"],
+  "routedVia": "heuristic",
+  "rawContentBlocks": null,
+  "expected": {
+    "actions": [
+      {
+        "toolID": "toggl",
+        "actionType": "create_time_entry",
+        "parameters": {
+          "description": "2 hours working on the Basn iOS pipeline",
+          "duration_minutes": "120"
+        }
+      }
+    ]
+  }
+}

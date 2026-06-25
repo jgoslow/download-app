@@ -1,0 +1,36 @@
+{
+  "name": "Jira Only Ticket",
+  "description": "Single-intent Castellum capture creating one Jira issue. Tests that the parser extracts a create_issue action from a tool_use block.",
+  "rawText": "Create a ticket for the login screen crash on iOS",
+  "connectedToolIDs": ["jira"],
+  "routedVia": "castellum",
+  "rawContentBlocks": [
+    {
+      "type": "text",
+      "text": "I'll create a bug ticket for the iOS login screen crash.\n\n{\"summary\": \"Create Jira ticket for login screen crash\", \"mood_tag\": null, \"tasks\": [\"Create bug ticket for login screen crash on iOS\"], \"routing\": [\"jira\"], \"delegations\": [], \"integrations\": [\"jira\"], \"prompts_addressed\": []}"
+    },
+    {
+      "type": "tool_use",
+      "name": "jira_create_issue",
+      "input": {
+        "project_key": "BASN",
+        "summary": "Login screen crash on iOS",
+        "description": "The login screen crashes on iOS when attempting to authenticate.",
+        "issue_type": "Bug"
+      }
+    }
+  ],
+  "expected": {
+    "actions": [
+      {
+        "toolID": "jira",
+        "actionType": "create_issue",
+        "parameters": {
+          "summary": "Login screen crash on iOS",
+          "issue_type": "Bug",
+          "project_key": "BASN"
+        }
+      }
+    ]
+  }
+}

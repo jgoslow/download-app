@@ -22,6 +22,7 @@ struct HomeView: View {
     @State private var selectedPromptID: Int? = nil
     @State private var showTextInput = false
     @State private var textInputContent = ""
+    @FocusState private var textInputFocused: Bool
     @State private var setupFlowDone = UserDefaults.standard.bool(forKey: "hasCompletedSetupFlow")
     @State private var showFlowSession = false
 
@@ -115,6 +116,7 @@ struct HomeView: View {
                                 .textFieldStyle(.plain)
                                 .font(.body)
                                 .lineLimit(1...10)
+                                .focused($textInputFocused)
                                 .padding(10)
                                 .background(
                                     RoundedRectangle(cornerRadius: 8)
@@ -151,6 +153,7 @@ struct HomeView: View {
                             withAnimation {
                                 showTextInput = true
                             }
+                            textInputFocused = true
                         } label: {
                             Text("or type your flow")
                                 .font(.caption)
@@ -247,6 +250,12 @@ struct HomeView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
                 }
+
+                #if DEBUG
+                DebugBar()
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                #endif
 
                 Spacer().frame(height: 20)
             }

@@ -318,6 +318,11 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     /// When Basin last successfully executed an action using this tool.
     var lastUsedAt: Date?
 
+    /// When the OAuth access token was last silently refreshed in the background.
+    /// Updated by resolveAuth after each successful token refresh; triggers SwiftUI
+    /// re-renders so the Settings token-health indicator stays accurate.
+    var tokenLastRefreshedAt: Date?
+
     /// Cached service metadata (e.g., Jira project list, Slack channels).
     /// Stored as JSON. Fetched after OAuth connect and refreshed periodically.
     var serviceMetadata: Data?

@@ -1,0 +1,16 @@
+{
+  "name": "No Actions Journal Entry",
+  "description": "Pure journaling capture with no tool actions. Tests that Castellum correctly returns an empty action list rather than forcing tool calls on reflective content.",
+  "rawText": "Today was a good day, finished the iOS pipeline design, feeling good about the direction",
+  "connectedToolIDs": ["jira", "toggl", "slack"],
+  "routedVia": "castellum",
+  "rawContentBlocks": [
+    {
+      "type": "text",
+      "text": "This appears to be a personal reflection with no specific tool actions needed.\n\n{\"summary\": \"Productive day — iOS pipeline design complete, positive momentum\", \"mood_tag\": \"productive\", \"tasks\": [], \"routing\": [], \"delegations\": [], \"integrations\": [], \"prompts_addressed\": []}"
+    }
+  ],
+  "expected": {
+    "actions": []
+  }
+}

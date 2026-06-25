@@ -221,6 +221,28 @@ final class AppState {
         showSetupFlow = false
     }
 
+    func submitTextCapture(_ text: String) async {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let wordCount = trimmed.split(separator: " ").count
+        let session = Session(
+            device: UIDevice.current.name,
+            platform: .ios,
+            flowID: activeFlow.id,
+            rawText: trimmed,
+            durationSeconds: 0,
+            wordCount: wordCount,
+            metadata: Session.Metadata(
+                appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0",
+                whisperModel: "text-input",
+                language: settings.outputLanguage
+            )
+        )
+        try? await sessionStore.save(session)
+        await reloadSessions()
+        appLogger.notice("Text capture saved: \(session.id, privacy: .public)")
+    }
+
     func deleteSession(_ session: Session) async {
         try? await sessionStore.delete(session.id)
         await reloadSessions()
