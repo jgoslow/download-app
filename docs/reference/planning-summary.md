@@ -1,12 +1,12 @@
 ---
 type: planning
 status: active
-updated: 2026-06-25
+updated: 2026-06-26
 tags: [planning, summary]
 ---
 
 # Planning Summary
-<!-- Maintained by /vault distill. Last distilled: 2026-06-25 -->
+<!-- Maintained by /vault distill. Last distilled: 2026-06-26 -->
 
 ## Outstanding
 
@@ -17,12 +17,14 @@ tags: [planning, summary]
 - [ ] Setup Flow Onboarding + Flow Session Screen — source: [reference/planning/2026-05-31-setup-flow-onboarding.md](planning/2026-05-31-setup-flow-onboarding.md)
 - [ ] Language support for input/output (model selection driven by language config) — source: [roadmap.md](roadmap.md)
 - [ ] Integration master plan — tool marketplace, Apple native integrations, extended tools (Toggl/Atlassian/Google/Microsoft 365), server/infra — source: [reference/planning/2026-05-30-integration-master-plan.md](planning/2026-05-30-integration-master-plan.md)
+- [ ] Build full iOS capture pipeline — wire `HeuristicRouter` + Castellum into iOS `AppState`; move `CastellumClient` to HexCore — source: [captures/2026-06-26-session-fixture-pipeline.md](../captures/2026-06-26-session-fixture-pipeline.md)
 - [ ] Meeting note inputs (Google Gemini Notes or similar as capture source) — source: [roadmap.md](roadmap.md)
 
 ## Recent Plans
 
 | Date | Plan | Status | Key Decisions |
 |------|------|--------|---------------|
+| 2026-06-26 | [fixture-pipeline](../captures/2026-06-26-session-fixture-pipeline.md) | complete | Duration parsing, text capture fix, iOS text input stub, 7 synthetic fixtures |
 | 2026-06-25 | [vault-init](planning/init-cuddly-torvalds.md) | complete | Vault structure scaffolded; memory migrated to docs/reference/ |
 | 2026-06-12 | [how-to-create-scenario-fixture](../captures/plans/2026-06-12-how-to-create-scenario-fixture.md) | complete | Fixture authoring SOP documented |
 | 2026-06-09 | [fixture-based-capture-testing](../captures/plans/2026-06-09-fixture-based-capture-testing.md) | complete | JSON fixture layer built; synthetic fixtures for all current scenarios |
@@ -40,6 +42,8 @@ tags: [planning, summary]
 - [2026-05-22] Tool definitions are declarative JSON in `tool-definitions/*.json`, not per-tool Swift — source: [REQ-global.md](REQ-global.md)
 - [2026-03-22] SwiftData + CloudKit private database for cross-device sync; on-device first — source: [architecture.md](architecture.md)
 - [2026-06-25] basin-planning registered as `source` vault; server component question open (prototype exists in basin-planning/server/) — see Open Decisions in CLAUDE.md
+- [2026-06-26] HeuristicRouter strips leading "for " from descriptions; adds `duration_minutes` param (defaults 30 min) — source: [session-fixture-pipeline](../captures/2026-06-26-session-fixture-pipeline.md)
+- [2026-06-26] `saveTranscriptionHistory` gates audio file persistence only; text captures always reach history — source: [session-fixture-pipeline](../captures/2026-06-26-session-fixture-pipeline.md)
 
 ## Visual Identity Notes
 
