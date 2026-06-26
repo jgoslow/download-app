@@ -34,17 +34,17 @@
 		B5045C972D78DED500D0A119 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = B5045C962D78DED500D0A119 /* MarkdownUI */; };
 		B53356002D7B8D4900E5F542 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */; };
 		BB20B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB10B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift */; };
-		CC20B001C2D3E4F5A6B7C8D9 /* Hex/Clients/RecordingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC10B001C2D3E4F5A6B7C8D9 /* Hex/Clients/RecordingClient.swift */; };
+		CC20B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC10B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift */; };
 		CE6912B2450BA958CF950A06 /* BasinShared in Frameworks */ = {isa = PBXBuildFile; productRef = 97C217B4F9F266C110BF4C4A /* BasinShared */; };
 		DD20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift */; };
 		E54A87A814009F29D1BF2517 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 023AFB1663046E6B5406ED0A /* Foundation.framework */; };
 		E57671F45CACD836B316BF1F /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 3140CBD592178F42DE84B97F /* Dependencies */; };
 		EE20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift */; };
-		F020B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F010B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift */; };
-		F120B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F110B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift */; };
+		F020B001C2D3E4F5A6B7C8D9 /* Basn/Models/BasinModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F010B001C2D3E4F5A6B7C8D9 /* Basn/Models/BasinModels.swift */; };
+		F120B001C2D3E4F5A6B7C8D9 /* Basn/Clients/OAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F110B001C2D3E4F5A6B7C8D9 /* Basn/Clients/OAuthClient.swift */; };
 		F220B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = F210B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift */; };
-		F320B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F310B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift */; };
-		F420B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F410B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift */; };
+		F320B001C2D3E4F5A6B7C8D9 /* Basn/Clients/KeychainClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F310B001C2D3E4F5A6B7C8D9 /* Basn/Clients/KeychainClient.swift */; };
+		F420B001C2D3E4F5A6B7C8D9 /* Basn/Clients/ToolActions/ToolDefinitionLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F410B001C2D3E4F5A6B7C8D9 /* Basn/Clients/ToolActions/ToolDefinitionLoader.swift */; };
 		FE10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE00B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift */; };
 		FF20B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift */; };
 /* End PBXBuildFile section */
@@ -96,17 +96,17 @@
 		AA10B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/AppState.swift; sourceTree = "<group>"; };
 		AC10B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/IOSAppSettings.swift; sourceTree = "<group>"; };
 		B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		B5A1C7E22E6A1C5B00AB1234 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.icon; name = AppIcon.icon; path = Hex/AppIcon.icon; sourceTree = "<group>"; };
+		B5A1C7E22E6A1C5B00AB1234 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.icon; name = AppIcon.icon; path = Basn/AppIcon.icon; sourceTree = "<group>"; };
 		BB10B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Clients/RecordingClientIOS.swift; sourceTree = "<group>"; };
 		C4E4F1F66630C09F632AB633 /* iOS/App/ContentView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/ContentView.swift; sourceTree = "<group>"; };
-		CC10B001C2D3E4F5A6B7C8D9 /* Hex/Clients/RecordingClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Clients/RecordingClient.swift; sourceTree = "<group>"; };
+		CC10B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Basn/Clients/RecordingClient.swift; sourceTree = "<group>"; };
 		DD10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Onboarding/OnboardingView.swift; sourceTree = "<group>"; };
 		EE10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Onboarding/LoopingVideoView.swift; sourceTree = "<group>"; };
-		F010B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Models/BasinModels.swift; sourceTree = "<group>"; };
-		F110B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Clients/OAuthClient.swift; sourceTree = "<group>"; };
+		F010B001C2D3E4F5A6B7C8D9 /* Basn/Models/BasinModels.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Basn/Models/BasinModels.swift; sourceTree = "<group>"; };
+		F110B001C2D3E4F5A6B7C8D9 /* Basn/Clients/OAuthClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Basn/Clients/OAuthClient.swift; sourceTree = "<group>"; };
 		F210B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Clients/OAuthClientIOS.swift; sourceTree = "<group>"; };
-		F310B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Clients/KeychainClient.swift; sourceTree = "<group>"; };
-		F410B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Hex/Clients/ToolActions/ToolDefinitionLoader.swift; sourceTree = "<group>"; };
+		F310B001C2D3E4F5A6B7C8D9 /* Basn/Clients/KeychainClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Basn/Clients/KeychainClient.swift; sourceTree = "<group>"; };
+		F410B001C2D3E4F5A6B7C8D9 /* Basn/Clients/ToolActions/ToolDefinitionLoader.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Basn/Clients/ToolActions/ToolDefinitionLoader.swift; sourceTree = "<group>"; };
 		F99ACD2512699EC978D1BD59 /* iOS/SettingsView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/SettingsView.swift; sourceTree = "<group>"; };
 		FD9F920EA43B2E6DB17375E2 /* iOS/HomeView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/HomeView.swift; sourceTree = "<group>"; };
 		FE00B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Flow/FlowTranscriptionEngine.swift; sourceTree = "<group>"; };
@@ -115,7 +115,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		476BAD402D47E8500088C61F /* Exceptions for "Hex" folder in "Basn" target */ = {
+		476BAD402D47E8500088C61F /* Exceptions for "Basn" folder in "Basn" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -132,12 +132,12 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		47E05DF02D444EC600D26DA6 /* Hex */ = {
+		47E05DF02D444EC600D26DA6 /* Basn */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				476BAD402D47E8500088C61F /* Exceptions for "Hex" folder in "Basn" target */,
+				476BAD402D47E8500088C61F /* Exceptions for "Basn" folder in "Basn" target */,
 			);
-			path = Hex;
+			path = Basn;
 			sourceTree = "<group>";
 		};
 		5001DC3F2FCB98AF00CAC678 /* BasnWidget */ = {
@@ -217,7 +217,7 @@
 			children = (
 				B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */,
 				B5A1C7E22E6A1C5B00AB1234 /* AppIcon.icon */,
-				47E05DF02D444EC600D26DA6 /* Hex */,
+				47E05DF02D444EC600D26DA6 /* Basn */,
 				5001DC3F2FCB98AF00CAC678 /* BasnWidget */,
 				4735444F2D445936001FBCB5 /* Frameworks */,
 				47E05DEF2D444EC600D26DA6 /* Products */,
@@ -240,11 +240,11 @@
 		5001DB742FCB95A100CAC678 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
-				F010B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift */,
-				F110B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift */,
+				F010B001C2D3E4F5A6B7C8D9 /* Basn/Models/BasinModels.swift */,
+				F110B001C2D3E4F5A6B7C8D9 /* Basn/Clients/OAuthClient.swift */,
 				F210B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift */,
-				F310B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift */,
-				F410B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift */,
+				F310B001C2D3E4F5A6B7C8D9 /* Basn/Clients/KeychainClient.swift */,
+				F410B001C2D3E4F5A6B7C8D9 /* Basn/Clients/ToolActions/ToolDefinitionLoader.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -260,7 +260,7 @@
 				AA10B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift */,
 				AC10B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift */,
 				BB10B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift */,
-				CC10B001C2D3E4F5A6B7C8D9 /* Hex/Clients/RecordingClient.swift */,
+				CC10B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift */,
 				DD10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift */,
 				EE10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift */,
 				F99ACD2512699EC978D1BD59 /* iOS/SettingsView.swift */,
@@ -313,7 +313,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				47E05DF02D444EC600D26DA6 /* Hex */,
+				47E05DF02D444EC600D26DA6 /* Basn */,
 			);
 			name = Basn;
 			packageProductDependencies = (
@@ -419,7 +419,7 @@
 				B5045C952D78DED500D0A119 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
 				47C08AB42DE9F61B00564AE6 /* XCRemoteSwiftPackageReference "Inject" */,
 				47512ABD2E14D8C9000E25BA /* XCRemoteSwiftPackageReference "WhisperKit" */,
-				476316252E5FB31400913CDE /* XCLocalSwiftPackageReference "HexCore" */,
+				476316252E5FB31400913CDE /* XCLocalSwiftPackageReference "BasnCore" */,
 				47E16A602EC6C9D300885CF7 /* XCRemoteSwiftPackageReference "FluidAudio" */,
 				8517ACCCC2D7F6F5CD53C753 /* XCLocalSwiftPackageReference "Shared" */,
 			);
@@ -503,15 +503,15 @@
 				AA20B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift in Sources */,
 				AC20B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift in Sources */,
 				BB20B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift in Sources */,
-				CC20B001C2D3E4F5A6B7C8D9 /* Hex/Clients/RecordingClient.swift in Sources */,
+				CC20B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift in Sources */,
 				DD20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift in Sources */,
 				EE20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift in Sources */,
 				9DF2A700AD437BBDB5AE9084 /* iOS/SettingsView.swift in Sources */,
-				F020B001C2D3E4F5A6B7C8D9 /* Hex/Models/BasinModels.swift in Sources */,
-				F120B001C2D3E4F5A6B7C8D9 /* Hex/Clients/OAuthClient.swift in Sources */,
+				F020B001C2D3E4F5A6B7C8D9 /* Basn/Models/BasinModels.swift in Sources */,
+				F120B001C2D3E4F5A6B7C8D9 /* Basn/Clients/OAuthClient.swift in Sources */,
 				F220B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift in Sources */,
-				F320B001C2D3E4F5A6B7C8D9 /* Hex/Clients/KeychainClient.swift in Sources */,
-				F420B001C2D3E4F5A6B7C8D9 /* Hex/Clients/ToolActions/ToolDefinitionLoader.swift in Sources */,
+				F320B001C2D3E4F5A6B7C8D9 /* Basn/Clients/KeychainClient.swift in Sources */,
+				F420B001C2D3E4F5A6B7C8D9 /* Basn/Clients/ToolActions/ToolDefinitionLoader.swift in Sources */,
 				FF20B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift in Sources */,
 				FE10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift in Sources */,
 			);
@@ -535,7 +535,7 @@
 /* Begin XCBuildConfiguration section */
 		478637AC2D48725900319BFA /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 47E05DF02D444EC600D26DA6 /* Hex */;
+			baseConfigurationReferenceAnchor = 47E05DF02D444EC600D26DA6 /* Basn */;
 			baseConfigurationReferenceRelativePath = Config/Secrets.xcconfig;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -571,7 +571,7 @@
 		};
 		47E05DFB2D444EC700D26DA6 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 47E05DF02D444EC600D26DA6 /* Hex */;
+			baseConfigurationReferenceAnchor = 47E05DF02D444EC600D26DA6 /* Basn */;
 			baseConfigurationReferenceRelativePath = Config/Secrets.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -697,19 +697,19 @@
 		};
 		47E05DFE2D444EC700D26DA6 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 47E05DF02D444EC600D26DA6 /* Hex */;
+			baseConfigurationReferenceAnchor = 47E05DF02D444EC600D26DA6 /* Basn */;
 			baseConfigurationReferenceRelativePath = Config/Secrets.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = YES;
-				CODE_SIGN_ENTITLEMENTS = Hex/Hex.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Basn/Basn.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 81;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Hex/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Basn/Preview Content\"";
 				DEVELOPMENT_TEAM = 8T86GRZ5M9;
 				EMIT_FRONTEND_COMMAND_LINES = YES;
 				ENABLE_APP_SANDBOX = YES;
@@ -725,7 +725,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Hex/Info.plist;
+				INFOPLIST_FILE = Basn/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Basn needs microphone access in order to transcribe your voice.";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -757,13 +757,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = YES;
-				CODE_SIGN_ENTITLEMENTS = Hex/Hex.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Basn/Basn.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 81;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Hex/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Basn/Preview Content\"";
 				DEVELOPMENT_TEAM = QC99C9JE59;
 				EMIT_FRONTEND_COMMAND_LINES = NO;
 				ENABLE_APP_SANDBOX = YES;
@@ -778,7 +778,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Hex/Info.plist;
+				INFOPLIST_FILE = Basn/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Basn needs microphone access in order to transcribe your voice.";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -971,9 +971,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		476316252E5FB31400913CDE /* XCLocalSwiftPackageReference "HexCore" */ = {
+		476316252E5FB31400913CDE /* XCLocalSwiftPackageReference "BasnCore" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = HexCore;
+			relativePath = BasnCore;
 		};
 		8517ACCCC2D7F6F5CD53C753 /* XCLocalSwiftPackageReference "Shared" */ = {
 			isa = XCLocalSwiftPackageReference;

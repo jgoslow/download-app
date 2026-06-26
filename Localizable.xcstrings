@@ -43,6 +43,9 @@
     "~/Library/Application Support/Basin/captures/" : {
 
     },
+    "▶  Start Flow" : {
+
+    },
     "50" : {
 
     },
@@ -100,6 +103,9 @@
 
     },
     "All models" : {
+
+    },
+    "All set." : {
 
     },
     "Allow" : {
@@ -168,10 +174,13 @@
     "Basn will download the best transcription model for your needs." : {
 
     },
+    "Basn works by capturing your thoughts as you speak (or type) and surfacing prompts for you during a flow session. Prompts can come from the flow, things you've said before, or other sources." : {
+
+    },
     "Bearer token" : {
 
     },
-    "Built on Hex (MIT)" : {
+    "Built with inspiration from HEX (MIT)" : {
 
     },
     "Cancel" : {
@@ -416,14 +425,14 @@
     "Enables AI analysis after each capture (summary, tasks, routing). Leave blank to skip." : {
 
     },
-    "Ensure Hex can access your microphone and system accessibility features." : {
+    "Ensure Basn can access your microphone and system accessibility features." : {
       "comment" : "Footer for permissions section in settings",
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sicherstellen, dass Hex dein Mikrofon und Systemweite Bedienungshilfen benutzen kann."
+            "value" : "Sicherstellen, dass Basn dein Mikrofon und Systemweite Bedienungshilfen benutzen kann."
           }
         }
       }
@@ -454,6 +463,9 @@
     "Find your API token at track.toggl.com/profile (bottom of the page)." : {
 
     },
+    "Finish Setup" : {
+
+    },
     "Flows" : {
 
     },
@@ -471,6 +483,9 @@
         }
       }
     },
+    "Get set up" : {
+
+    },
     "Grant" : {
 
     },
@@ -486,14 +501,14 @@
         }
       }
     },
-    "Hex is open source" : {
+    "Basn is open source" : {
       "comment" : "In about section in settings.",
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hex ist Open Source"
+            "value" : "Basn ist Open Source"
           }
         }
       }
@@ -557,6 +572,12 @@
     "Last used %@" : {
 
     },
+    "Let your thoughts flow." : {
+
+    },
+    "Let's try it out with a **setup flow**." : {
+
+    },
     "LIVE" : {
 
     },
@@ -593,6 +614,9 @@
 
     },
     "Next" : {
+
+    },
+    "Next  →" : {
 
     },
     "Next: Choose your language  →" : {
@@ -644,9 +668,6 @@
 
     },
     "Open" : {
-
-    },
-    "Open Basn" : {
 
     },
     "Open Flow" : {
@@ -764,6 +785,9 @@
     "Quit" : {
 
     },
+    "Reconnect" : {
+
+    },
     "Reconnect to change" : {
 
     },
@@ -842,6 +866,9 @@
         }
       }
     },
+    "Send" : {
+
+    },
     "Sent as Authorization: Bearer <token>. Leave blank for unauthenticated." : {
 
     },
@@ -915,6 +942,9 @@
     "Skip for now" : {
 
     },
+    "skip setup" : {
+
+    },
     "Sound" : {
       "comment" : "sound section in general settings.",
       "localizations" : {
@@ -938,6 +968,9 @@
       }
     },
     "Speed" : {
+
+    },
+    "Start" : {
 
     },
     "Stop playback" : {
@@ -990,6 +1023,9 @@
 
     },
     "Type your flow..." : {
+
+    },
+    "Type your response…" : {
 
     },
     "Unlimited" : {
@@ -1052,6 +1088,9 @@
 
     },
     "Waiting for authorization..." : {
+
+    },
+    "We've captured your setup. Give us a moment to prepare your flows and workflows." : {
 
     },
     "Welcome to Basn" : {
