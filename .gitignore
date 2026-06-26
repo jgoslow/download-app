@@ -12,8 +12,8 @@ bin
 scripts
 tools
 ExportOptions.plist
-HexCore/.build
-HexCore/.swiftpm/xcode/xcuserdata/kit.xcuserdatad/xcschemes
+BasnCore/.build
+BasnCore/.swiftpm/xcode/xcuserdata/kit.xcuserdatad/xcschemes
 Shared/.build
 Shared/.swiftpm
 FluidAudio/
@@ -22,7 +22,7 @@ node_modules/
 .tmp/
 
 # Secrets (OAuth credentials)
-Hex/Config/Secrets.xcconfig
+Basn/Config/Secrets.xcconfig
 
 # Claude
 .claude/
