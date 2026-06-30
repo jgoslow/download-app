@@ -1,0 +1,4 @@
+# Audio test corpus — large, varied recordings tracked via git-LFS.
+# Takes effect once git-lfs is installed and the matching .gitignore rule
+# (which currently keeps these out of history) is removed.
+BasnTests/Fixtures/AudioCorpus/**/*.wav filter=lfs diff=lfs merge=lfs -text

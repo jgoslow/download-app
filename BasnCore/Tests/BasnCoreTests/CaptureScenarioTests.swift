@@ -8,13 +8,14 @@ import Testing
 /// asserts the expected output.
 ///
 /// To add a new scenario:
-/// 1. Enable "Record scenarios" in the DebugBar (debug build, bottom of HomeView).
-/// 2. Trigger a capture (voice or text input).
-/// 3. Collect the JSON from ~/Library/Containers/com.lyra.basn.debug/Data/Documents/
-/// 4. For Castellum fixtures: fill in `expected.actions` from `rawContentBlocks`.
-///    For heuristic fixtures: `expected.actions` is pre-populated automatically.
-/// 5. Rename the file and move it to `BasnCore/Tests/BasnCoreTests/Fixtures/Scenarios/`.
-/// 6. Add a `@Test` function here following the pattern below.
+/// 1. Enable "Archive captures" in the DebugBar (debug build, bottom of HomeView).
+/// 2. Trigger a capture (voice or text input). Each is archived to
+///    ~/Library/Containers/com.lyra.basn.debug/Data/Documents/BasnCaptures/<date>/<time-id>/
+/// 3. For Castellum fixtures: fill in `expected.actions` from `rawContentBlocks`
+///    in that folder's scenario.json. For heuristic fixtures it's pre-populated.
+/// 4. Promote it: `bun run tools/scripts/archive-to-fixture.ts <folder> --scenario`
+///    (lands it in `BasnCore/Tests/BasnCoreTests/Fixtures/Scenarios/`).
+/// 5. Add a `@Test` function here following the pattern below.
 struct CaptureScenarioTests {
 
     // MARK: - Heuristic path

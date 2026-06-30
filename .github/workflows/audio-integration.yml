@@ -1,0 +1,58 @@
+name: Audio Integration Tests
+
+# End-to-end audio pipeline tests (audio → transcript → router → ExecutionPlan)
+# with fuzzy WER assertions. Heavy: pulls the LFS audio corpus and runs real
+# on-device transcription, so this is NOT part of PR CI — it runs on a schedule
+# and on demand. With no corpus / model present, the suite skips cleanly.
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Transcription model variant (BASN_TEST_MODEL)"
+        required: false
+        default: "parakeet"
+  schedule:
+    # Weekly, Monday 06:00 UTC
+    - cron: "0 6 * * 1"
+
+jobs:
+  audio-integration:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      BASN_TEST_MODEL: ${{ github.event.inputs.model || 'parakeet' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Pull audio corpus (git-LFS)
+        run: git lfs pull || echo "git-lfs not configured yet; tests will skip"
+
+      # Optional: hydrate the corpus from S3 instead of / in addition to LFS.
+      # - name: Sync corpus from S3
+      #   run: aws s3 sync "s3://basn-audio-corpus/" BasnTests/Fixtures/AudioCorpus/
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app || true
+
+      # NOTE: the transcription model must be available on the runner. If a cache
+      # or pre-download step isn't configured, AudioPipelineTests XCTSkips.
+      - name: Run audio integration tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -scheme Basn \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -only-testing:BasnTests/AudioPipelineTests \
+            CODE_SIGNING_ALLOWED=NO | xcpretty || xcodebuild test \
+            -scheme Basn \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -only-testing:BasnTests/AudioPipelineTests \
+            CODE_SIGNING_ALLOWED=NO

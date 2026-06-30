@@ -191,7 +191,13 @@ struct TranscriptionFeature {
             let plan = ExecutionPlan(captureID: session.id, actions: heuristicActions, modelUsed: "heuristic")
             let minimalAnalysis = SessionAnalysis(summary: String(trimmed.prefix(100)))
             #if DEBUG
-            recordHeuristicScenario(rawText: trimmed, connectedToolIDs: connectedToolIDs, actions: heuristicActions)
+            recordHeuristicScenario(
+              captureID: session.id,
+              timestamp: session.timestamp,
+              rawText: trimmed,
+              connectedToolIDs: connectedToolIDs,
+              actions: heuristicActions
+            )
             #endif
             await send(.castellumResultReceived(minimalAnalysis, plan, captureID: session.id))
             transcriptionFeatureLogger.info("Heuristic bypass (text) for capture \(session.id)")
@@ -590,7 +596,22 @@ private extension TranscriptionFeature {
     let router = destinationRouter
     let castellum = castellumClient
 
+    // Stable capture identity, generated up front so the debug archive folder
+    // (audio + scenario + grade) keys consistently to the Session id.
+    let captureID = UUID().uuidString
+    let captureTimestamp = Date()
+
     return .run { send in
+      #if DEBUG
+      // Archive the raw audio + quality metrics BEFORE finalize, which may delete
+      // the file when history saving is off.
+      var archiveAudioMetrics: AudioQualityMetrics?
+      if DebugCaptureArchive.isEnabled {
+        archiveAudioMetrics = DebugCaptureAudio.metrics(forFileAt: audioURL)
+        DebugCaptureArchive.writeAudio(from: audioURL, captureID: captureID, timestamp: captureTimestamp)
+      }
+      #endif
+
       do {
         try await finalizeRecordingAndStoreTranscript(
           result: modifiedResult,
@@ -609,7 +630,27 @@ private extension TranscriptionFeature {
       let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
       let wordCount = modifiedResult.split(separator: " ").count
 
+      #if DEBUG
+      // Auto-grade the capture's value as a test recording (audio metrics +
+      // routing yield). Human accuracy feedback is merged later via the UI.
+      func archiveGrade(actionCount: Int, routedVia: String, errored: Bool) {
+        guard DebugCaptureArchive.isEnabled else { return }
+        let grade = CaptureGrade(
+          actionCount: actionCount,
+          routedVia: routedVia,
+          castellumErrored: errored,
+          durationSeconds: duration,
+          wordCount: wordCount,
+          appVersion: appVersion,
+          audio: archiveAudioMetrics
+        )
+        DebugCaptureArchive.writeGrade(grade, captureID: captureID, timestamp: captureTimestamp)
+      }
+      #endif
+
       let session = Session(
+        id: captureID,
+        timestamp: captureTimestamp,
         device: Host.current().localizedName ?? "mac",
         platform: .macos,
         flowID: flowID,
@@ -641,18 +682,52 @@ private extension TranscriptionFeature {
       )
       try? await basinDB.saveCapture(capture)
 
-      guard !basinSettings.anthropicAPIKey.isEmpty else { return }
       let tools = (try? await basinDB.fetchTools()) ?? []
-      let enabledWorkflows = (try? await basinDB.fetchWorkflows())?.filter(\.isEnabled) ?? []
       let connectedTools = tools.filter(\.isConnected)
       let connectedToolIDs = Set(connectedTools.map(\.id))
+
+      #if DEBUG
+      if DebugCaptureArchive.isEnabled {
+        let metadata = CaptureArchiveMetadata(
+          captureID: captureID,
+          timestamp: captureTimestamp,
+          device: Host.current().localizedName ?? "mac",
+          flowID: flowID,
+          durationSeconds: duration,
+          wordCount: wordCount,
+          whisperModel: selectedModel,
+          language: outputLanguage,
+          sourceAppBundleID: sourceAppBundleID,
+          sourceAppName: sourceAppName,
+          appVersion: appVersion,
+          connectedToolIDs: Array(connectedToolIDs).sorted()
+        )
+        DebugCaptureArchive.writeMetadata(metadata, captureID: captureID, timestamp: captureTimestamp)
+      }
+      #endif
+
+      guard !basinSettings.anthropicAPIKey.isEmpty else {
+        #if DEBUG
+        archiveGrade(actionCount: 0, routedVia: "none", errored: false)
+        #endif
+        return
+      }
+      let enabledWorkflows = (try? await basinDB.fetchWorkflows())?.filter(\.isEnabled) ?? []
 
       // Heuristic bypass: skip Claude for clear single-intent captures
       if let heuristicActions = HeuristicRouter.route(transcript: modifiedResult, connectedToolIDs: connectedToolIDs) {
         let plan = ExecutionPlan(captureID: session.id, actions: heuristicActions, modelUsed: "heuristic")
         let minimalAnalysis = SessionAnalysis(summary: String(modifiedResult.prefix(100)))
         #if DEBUG
-        recordHeuristicScenario(rawText: modifiedResult, connectedToolIDs: connectedToolIDs, actions: heuristicActions)
+        recordHeuristicScenario(
+          captureID: captureID,
+          timestamp: captureTimestamp,
+          rawText: modifiedResult,
+          connectedToolIDs: connectedToolIDs,
+          actions: heuristicActions
+        )
+        DebugCaptureArchive.writePlan(plan, captureID: captureID, timestamp: captureTimestamp)
+        archiveGrade(actionCount: heuristicActions.count, routedVia: "heuristic", errored: false)
         #endif
         await send(.castellumResultReceived(minimalAnalysis, plan, captureID: session.id))
         transcriptionFeatureLogger.info("Heuristic bypass for capture \(session.id)")
@@ -678,8 +753,18 @@ private extension TranscriptionFeature {
           promptsAddressed: analysis.promptsAddressed
         )
         try? await basinDB.saveAnalysis(captureAnalysis, capture)
+        #if DEBUG
+        // scenario.json was written by CastellumClient's recorder; add the
+        // parsed analysis/plan + auto-grade.
+        DebugCaptureArchive.writeAnalysis(analysis, captureID: captureID, timestamp: captureTimestamp)
+        DebugCaptureArchive.writePlan(plan, captureID: captureID, timestamp: captureTimestamp)
+        archiveGrade(actionCount: plan.actions.count, routedVia: "castellum", errored: false)
+        #endif
       } catch {
         transcriptionFeatureLogger.error("Castellum error: \(error.localizedDescription)")
+        #if DEBUG
+        archiveGrade(actionCount: 0, routedVia: "castellum", errored: true)
+        #endif
       }
     }
     .cancellable(id: CancelID.transcription)

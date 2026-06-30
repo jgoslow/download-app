@@ -39,7 +39,41 @@ public struct CaptureScenario: Codable {
 
     public let expected: Expected
 
+    // MARK: - Audio corpus fields (optional)
+    //
+    // Present when this scenario was promoted into the end-to-end audio test
+    // corpus. All optional so existing JSON fixtures decode unchanged.
+
+    /// Audio file name relative to the scenario folder, e.g. "audio.wav".
+    public let audioFile: String?
+    /// Reference transcript used for WER scoring against live transcription.
+    public let expectedTranscript: String?
+    /// Maximum acceptable word-error-rate. Callers default to 0.15 when nil.
+    public let werThreshold: Double?
+    /// Speaker / environment metadata, used to track diversity-matrix coverage.
+    public let speaker: SpeakerProfile?
+
     // MARK: - Nested types
+
+    /// Speaker and recording-environment metadata for an audio corpus entry.
+    public struct SpeakerProfile: Codable, Sendable {
+        public let accent: String?
+        public let nativeEnglish: Bool?
+        public let environment: String?  // "quiet", "café", "street", …
+        public let mic: String?          // "built-in", "AirPods", "external", …
+
+        public init(
+            accent: String? = nil,
+            nativeEnglish: Bool? = nil,
+            environment: String? = nil,
+            mic: String? = nil
+        ) {
+            self.accent = accent
+            self.nativeEnglish = nativeEnglish
+            self.environment = environment
+            self.mic = mic
+        }
+    }
 
     /// A single content block from the Anthropic response, stored in a
     /// Codable-friendly form so it can survive JSON serialization.
@@ -92,7 +126,11 @@ public struct CaptureScenario: Codable {
         connectedToolIDs: [String],
         routedVia: RoutingPath,
         rawContentBlocks: [RawBlock]?,
-        expected: Expected
+        expected: Expected,
+        audioFile: String? = nil,
+        expectedTranscript: String? = nil,
+        werThreshold: Double? = nil,
+        speaker: SpeakerProfile? = nil
     ) {
         self.name = name
         self.description = description
@@ -101,6 +139,10 @@ public struct CaptureScenario: Codable {
         self.routedVia = routedVia
         self.rawContentBlocks = rawContentBlocks
         self.expected = expected
+        self.audioFile = audioFile
+        self.expectedTranscript = expectedTranscript
+        self.werThreshold = werThreshold
+        self.speaker = speaker
     }
 }
 

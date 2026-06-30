@@ -29,3 +29,8 @@ Basn/Config/Secrets.xcconfig
 
 # Playwright MCP session data
 .playwright-mcp/
+
+# Audio test corpus recordings — keep large binaries out of history until
+# git-LFS is provisioned. The committed manifest.json/README are the source of
+# truth. Remove this rule once LFS is set up (see .gitattributes).
+BasnTests/Fixtures/AudioCorpus/*.wav

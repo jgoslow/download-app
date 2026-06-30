@@ -3,7 +3,7 @@ type: requirement
 subtype: feature
 status: active
 created: 2026-06-25
-updated: 2026-06-25
+updated: 2026-06-27
 req_id: REQ-testing
 tags: [requirement, testing, fixtures]
 ---
@@ -21,10 +21,11 @@ tags: [requirement, testing, fixtures]
 ## Rules & Decisions
 
 - [2026-06-09] **Audio files go in S3 or git-LFS, not the main repo.** JSON fixtures stay in-repo. Audio integration tests run in a separate CI job with a longer timeout. — source: [integration-testing-plan.md](integration-testing-plan.md)
-- [2026-06-25] **Fixture location:** `HexCore/Tests/BasnCoreTests/Fixtures/Scenarios/`. Tests in `CaptureScenarioTests.swift`. — source: [fixture-strategy.md](fixture-strategy.md)
-- [2026-06-25] **In-app scenario recorder:** DebugBar → "Record scenarios" (`@AppStorage("BasnRecordScenarios")`). Captures → `basin-scenario-<id>.json` in sandbox Documents. Heuristic fixtures auto-populate `expected.actions`. Workflow for Castellum fixtures: record → retrieve → fill expected.actions → rename → move to Fixtures/Scenarios/ → add `@Test`. — source: [fixture-strategy.md](fixture-strategy.md)
+- [2026-06-25] **Fixture location:** `BasnCore/Tests/BasnCoreTests/Fixtures/Scenarios/` (parse-layer). Tests in `CaptureScenarioTests.swift`. Audio corpus: `BasnTests/Fixtures/AudioCorpus/`. — source: [fixture-strategy.md](fixture-strategy.md)
+- [2026-06-27] **In-app capture archive (supersedes the JSON-only recorder):** DebugBar → "Archive captures" (`@AppStorage("BasnRecordScenarios")`, reused key). Each capture → a dated per-capture folder `BasnCaptures/<date>/<time-id>/` in sandbox Documents, containing `audio.wav` + `scenario.json` + `metadata.json` + `analysis.json`/`plan.json` + `grade.json`. Heuristic fixtures auto-populate `expected.actions`. Promote with `tools/scripts/archive-to-fixture.ts --scenario|--corpus`. — source: [integration-testing-plan.md](integration-testing-plan.md)
+- [2026-06-27] **Captures are graded for test value.** Auto (action yield, audio quality via `AudioQualityMetrics`) + human (outcome accuracy, keep-as-fixture, notes) → composite `CaptureGrade.testValue`. Graded in the DebugBar Review sheet; aggregate trends via `tools/scripts/capture-grades.ts` (mean testValue/accuracy by app version = improvement evidence). — source: [integration-testing-plan.md](integration-testing-plan.md)
 - [2026-06-25] **Castellum fixtures with Toggl are synthetic only.** Castellum does not produce tool_use blocks for Toggl in live captures (active bug). Do not record Castellum+Toggl fixtures until the bug is fixed. — source: [REQ-castellum.md](REQ-castellum.md)
 
 ## Open Requirements
 
-- [ ] **Build the audio integration test layer.** Audio files → WhisperKit inference → fuzzy WER assertions. S3-hosted corpus. Diverse speaker requirement from day one. Separate CI job. HIGH PRIORITY — real-world transcription errors observed during fixture capture (café, noise-cancelling headphones: "auth bug" → "homework task"). — due: next sprint after Castellum Toggl bug fixed
+- [x] **Audio integration test layer built (2026-06-27).** `BasnTests/Integration/AudioPipelineTests.swift`: live transcription → `WordErrorRate` fuzzy assertions → routing. Corpus at `BasnTests/Fixtures/AudioCorpus/` (LFS, manifest committed). CI: `.github/workflows/audio-integration.yml` (scheduled/manual). **Remaining:** populate the diverse-speaker corpus from archived+graded captures (was blocked on real captures; the archive now produces them).

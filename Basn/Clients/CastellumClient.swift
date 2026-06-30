@@ -83,8 +83,12 @@ extension CastellumClient: DependencyKey {
             )
 
             #if DEBUG
-            if UserDefaults.standard.bool(forKey: "BasnRecordScenarios") {
-                recordScenario(rawText: capture.rawText, connectedToolIDs: connectedIDs, responseData: rawData)
+            if DebugCaptureArchive.isEnabled {
+                recordScenario(
+                    capture: capture,
+                    connectedToolIDs: connectedIDs,
+                    responseData: rawData
+                )
             }
             #endif
 
@@ -309,19 +313,22 @@ private func buildServiceContext(tools: [Tool], matchedIDs: Set<String>) -> Stri
 #if DEBUG
 // MARK: - Scenario recorder
 //
-// Toggle via the debug panel in the app's home screen (bottom bar, debug builds only).
-// Files land in the app container's Documents folder:
-//   ~/Library/Containers/com.lyra.basn.debug/Data/Documents/basin-scenario-<id>.json
-// See docs/plans/2026-06-09-fixture-based-capture-testing.md for how to use the output.
-private func recordScenario(rawText: String, connectedToolIDs: Set<String>, responseData: Data) {
+// Toggle via the DebugBar "Archive captures" switch (debug builds only). Each
+// capture's scenario.json lands in its dated archive folder under:
+//   ~/Library/Containers/com.lyra.basn.debug/Data/Documents/BasnCaptures/<date>/<time-id>/
+// alongside audio.wav and the other artifacts written by TranscriptionFeature.
+// See docs/plans/2026-06-27-debug-capture-archive-and-audio-e2e-tests.md.
+private func recordScenario(
+    capture: StructuredCapture,
+    connectedToolIDs: Set<String>,
+    responseData: Data
+) {
     guard let json = try? JSONSerialization.jsonObject(with: responseData) as? [String: Any],
-          let content = json["content"] as? [[String: Any]]
+          let content = json["content"] as? [[String: Any]],
+          let folder = DebugCaptureArchive.folderURL(
+              captureID: capture.captureID, timestamp: capture.timestamp
+          )
     else { return }
-
-    let id = UUID().uuidString.prefix(8)
-    let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-        ?? FileManager.default.temporaryDirectory
-    let url = docsDir.appendingPathComponent("basin-scenario-\(id).json")
 
     let blocks: [[String: Any]] = content.compactMap { block in
         guard let type = block["type"] as? String else { return nil }
@@ -332,34 +339,41 @@ private func recordScenario(rawText: String, connectedToolIDs: Set<String>, resp
         return out
     }
 
+    // Built as a dictionary (not CaptureScenario) to preserve the heterogeneous
+    // tool_use `input` values verbatim for parse-layer fixtures.
     let scenario: [String: Any] = [
-        "name": "Recorded \(id)",
+        "name": "Recorded \(capture.captureID.prefix(8))",
         "description": "Auto-exported. Edit name/description and fill in expected.actions.",
-        "rawText": rawText,
+        "rawText": capture.rawText,
         "connectedToolIDs": Array(connectedToolIDs).sorted(),
         "routedVia": "castellum",
         "rawContentBlocks": blocks,
+        "audioFile": "audio.wav",
+        "expectedTranscript": capture.rawText,
         "expected": ["actions": [[String: Any]]()]
     ]
 
+    let url = folder.appendingPathComponent("scenario.json")
     if let data = try? JSONSerialization.data(withJSONObject: scenario, options: [.prettyPrinted, .sortedKeys]) {
         try? data.write(to: url)
         castellumLog.info("[ScenarioRecorder] Exported to \(url.path)")
     }
 }
 
-/// Record a heuristic-path capture. Unlike Castellum recordings, `expected.actions`
-/// is pre-populated from the actual matched actions — no manual fill-in needed.
-func recordHeuristicScenario(rawText: String, connectedToolIDs: Set<String>, actions: [PlannedAction]) {
-    guard UserDefaults.standard.bool(forKey: "BasnRecordScenarios") else { return }
-
-    let id = UUID().uuidString.prefix(8)
-    let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-        ?? FileManager.default.temporaryDirectory
-    let url = docsDir.appendingPathComponent("basin-scenario-\(id).json")
+/// Record a heuristic-path capture into its archive folder. Unlike Castellum
+/// recordings, `expected.actions` is pre-populated from the matched actions —
+/// no manual fill-in needed. Called from TranscriptionFeature's heuristic branch.
+func recordHeuristicScenario(
+    captureID: String,
+    timestamp: Date,
+    rawText: String,
+    connectedToolIDs: Set<String>,
+    actions: [PlannedAction]
+) {
+    guard DebugCaptureArchive.isEnabled else { return }
 
     let scenario = CaptureScenario(
-        name: "Recorded \(id)",
+        name: "Recorded \(captureID.prefix(8))",
         description: "Auto-exported heuristic capture. Edit name/description as needed.",
         rawText: rawText,
         connectedToolIDs: Array(connectedToolIDs).sorted(),
@@ -367,15 +381,11 @@ func recordHeuristicScenario(rawText: String, connectedToolIDs: Set<String>, act
         rawContentBlocks: nil,
         expected: .init(actions: actions.map {
             .init(toolID: $0.toolID, actionType: $0.actionType, parameters: $0.parameters)
-        })
+        }),
+        audioFile: "audio.wav",
+        expectedTranscript: rawText
     )
-
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-    if let data = try? encoder.encode(scenario) {
-        try? data.write(to: url)
-        castellumLog.info("[ScenarioRecorder] Heuristic exported to \(url.path)")
-    }
+    DebugCaptureArchive.writeScenario(scenario, captureID: captureID, timestamp: timestamp)
 }
 #endif
 
