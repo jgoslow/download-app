@@ -1,29 +1,34 @@
 ---
 type: planning
 status: active
-updated: 2026-06-26
+updated: 2026-06-30
 tags: [planning, summary]
 ---
 
 # Planning Summary
-<!-- Maintained by /vault distill. Last distilled: 2026-06-26 -->
+<!-- Maintained by /vault distill. Last distilled: 2026-06-30 -->
 
 ## Outstanding
 
 - [ ] Fix Castellum → Toggl tool_use bug (prose returned instead of tool_use block for multi-intent captures) — source: [REQ-castellum.md](REQ-castellum.md)
-- [ ] Build audio integration test layer (S3 corpus, WER fuzzy assertions, diverse speakers) — HIGH PRIORITY — source: [REQ-testing.md](REQ-testing.md)
+- [ ] Audio integration test layer — infra BUILT (WER, AudioPipelineTests, LFS corpus, CI); remaining: populate the diverse-speaker corpus — source: [REQ-testing.md](REQ-testing.md)
+- [ ] Fix iOS tool connections (OAuth "no provider ID") — blocks Connect→Execute on device; deferred to tools overhaul — source: [REQ-castellum.md](REQ-castellum.md)
+- [ ] Migrate macOS to capability routing (iOS is on it; macOS still tool-scoped) — source: [REQ-castellum.md](REQ-castellum.md)
+- [ ] Per-flow capability→tool preference (resolver defaults to any connected provider) — source: [REQ-castellum.md](REQ-castellum.md)
 - [ ] Implement action-level permissions tier 2 (action checkboxes after OAuth scope selection) — source: [REQ-castellum.md](REQ-castellum.md)
 - [ ] Phone Call Mode — iOS-first feature (hold-to-ear social cover, TTS guide, smart interruption) — source: [reference/planning/2026-06-04-phone-call-mode.md](planning/2026-06-04-phone-call-mode.md)
 - [ ] Setup Flow Onboarding + Flow Session Screen — source: [reference/planning/2026-05-31-setup-flow-onboarding.md](planning/2026-05-31-setup-flow-onboarding.md)
 - [ ] Language support for input/output (model selection driven by language config) — source: [roadmap.md](roadmap.md)
 - [ ] Integration master plan — tool marketplace, Apple native integrations, extended tools (Toggl/Atlassian/Google/Microsoft 365), server/infra — source: [reference/planning/2026-05-30-integration-master-plan.md](planning/2026-05-30-integration-master-plan.md)
-- [ ] Build full iOS capture pipeline — wire `HeuristicRouter` + Castellum into iOS `AppState`; move `CastellumClient` to `BasnCore` — source: [captures/2026-06-26-session-fixture-pipeline.md](../captures/2026-06-26-session-fixture-pipeline.md)
+- [x] Build full iOS capture pipeline — DONE 2026-06-30: heuristic+Castellum routing, native context, on-device execution, plan UI (capability-based, iOS-first) — source: [session-ios-native-pipeline](../captures/2026-06-30-session-ios-native-pipeline.md)
 - [ ] Meeting note inputs (Google Gemini Notes or similar as capture source) — source: [roadmap.md](roadmap.md)
 
 ## Recent Plans
 
 | Date | Plan | Status | Key Decisions |
 |------|------|--------|---------------|
+| 2026-06-30 | [ios-native-pipeline](../captures/2026-06-30-session-ios-native-pipeline.md) | complete | Native serverless Castellum; BasinShared consolidation; capability routing (iOS); on-device execution + plan UI |
+| 2026-06-27 | [debug-capture-archive](../captures/plans/2026-06-27-debug-capture-archive-and-audio-e2e-tests.md) | complete | Debug capture archive + grading + E2E audio test layer (executed; plan archived) |
 | 2026-06-26 | [hex-basn-rename](../captures/2026-06-26-session-hex-basn-rename.md) | complete | Hex→Basn transition complete: dirs, API, strings, assets, pbxproj |
 | 2026-06-26 | [fixture-pipeline](../captures/2026-06-26-session-fixture-pipeline.md) | complete | Duration parsing, text capture fix, iOS text input stub, 7 synthetic fixtures |
 | 2026-06-25 | [vault-init](planning/init-cuddly-torvalds.md) | complete | Vault structure scaffolded; memory migrated to docs/reference/ |
@@ -47,6 +52,10 @@ tags: [planning, summary]
 - [2026-06-26] `saveTranscriptionHistory` gates audio file persistence only; text captures always reach history — source: [session-fixture-pipeline](../captures/2026-06-26-session-fixture-pipeline.md)
 - [2026-06-26] **Hex → Basn rename complete**: `Hex/`→`Basn/`, `HexCore/`→`BasnCore/`, StoragePaths API (`hexMigratedFileURL`→`basnMigratedFileURL` etc.), all strings/assets updated. Legacy `hex_settings.json` filename retained intentionally for migration compatibility — source: [session-hex-basn-rename](../captures/2026-06-26-session-hex-basn-rename.md)
 - [2026-06-26] "Built with inspiration from HEX (MIT)" wording chosen for About view attribution to `kitlangton/Hex` library — source: [session-hex-basn-rename](../captures/2026-06-26-session-hex-basn-rename.md)
+- [2026-06-30] **Castellum is native + serverless for v1** — on-device routing/execution with user's Anthropic key; no server. Context follow-up is local-first (from on-device captures/analyses). Server deferred to v2 behind the `analyzeAndPlan`/`fetchContext` seam — source: [castellum-native-architecture.md](castellum-native-architecture.md)
+- [2026-06-30] **Routing/plan types consolidated into `BasinShared`** (single source of truth for macOS/iOS/CarPlay/watch); `BasnCore` re-exports so macOS is unchanged; duplicate `Session` removed — source: [session-ios-native-pipeline](../captures/2026-06-30-session-ios-native-pipeline.md)
+- [2026-06-30] **Capability-based routing** — fixed generic action vocabulary; hybrid prompt (connected real schemas + generic for uncovered) scales with connected set; generic actions are the pre-connection nudge (offline `CapabilityMatcher`), tool-specific takes over once connected; tools declare `capability` tags in JSON — source: [REQ-castellum.md](REQ-castellum.md)
+- [2026-06-30] **iOS debug capture via hidden Developer-mode unlock** (tap version 7× + passphrase), inert in all builds; capture archive saves audio+JSON to dated folders for desktop assessment — source: [session-ios-native-pipeline](../captures/2026-06-30-session-ios-native-pipeline.md)
 
 ## Visual Identity Notes
 
