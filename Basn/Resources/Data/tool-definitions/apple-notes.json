@@ -1,0 +1,45 @@
+{
+  "id": "apple-notes",
+  "name": "Notes",
+  "icon": "note.text",
+  "auth": {
+    "methods": ["system"],
+    "api_key_label": null
+  },
+  "health_check": {
+    "endpoint": "applescript://notes",
+    "method": "NATIVE"
+  },
+  "actions": {
+    "create_note": {
+      "display_name": "Create Note",
+      "description": "Create a note in Apple Notes",
+      "endpoint": "applescript://notes",
+      "method": "POST",
+      "special_handler": "applescript_notes_create",
+      "capability": "capture_note",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Note title"
+        },
+        "body": {
+          "type": "string",
+          "required": true,
+          "description": "Note body text"
+        },
+        "folder": {
+          "type": "string",
+          "required": false,
+          "description": "Notes folder name (defaults to Notes folder)"
+        }
+      },
+      "success_message": "Note created in Apple Notes"
+    }
+  },
+  "claude_context": {
+    "project_matching": null,
+    "defaults": {}
+  }
+}

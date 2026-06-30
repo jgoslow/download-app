@@ -1,0 +1,56 @@
+{
+  "id": "apple-reminders",
+  "name": "Reminders",
+  "icon": "checkmark.circle",
+  "auth": {
+    "methods": ["system"],
+    "api_key_label": null
+  },
+  "health_check": {
+    "endpoint": "eventkit://check",
+    "method": "NATIVE"
+  },
+  "actions": {
+    "create_reminder": {
+      "display_name": "Create Reminder",
+      "description": "Create a reminder in Apple Reminders",
+      "endpoint": "eventkit://reminders",
+      "method": "POST",
+      "special_handler": "eventkit_create_reminder",
+      "capability": "create_task",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Reminder title"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "description": "Additional notes"
+        },
+        "due_date": {
+          "type": "string",
+          "required": false,
+          "description": "Due date in ISO 8601 format (e.g. 2026-07-01T09:00:00)"
+        },
+        "list_name": {
+          "type": "string",
+          "required": false,
+          "description": "Reminder list name (defaults to default list)"
+        },
+        "priority": {
+          "type": "string",
+          "required": false,
+          "description": "Priority level",
+          "enum": ["none", "low", "medium", "high"]
+        }
+      },
+      "success_message": "Reminder created in Apple Reminders"
+    }
+  },
+  "claude_context": {
+    "project_matching": null,
+    "defaults": {}
+  }
+}

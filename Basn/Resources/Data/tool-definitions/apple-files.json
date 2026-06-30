@@ -1,0 +1,45 @@
+{
+  "id": "apple-files",
+  "name": "Files",
+  "icon": "folder",
+  "auth": {
+    "methods": ["system"],
+    "api_key_label": null
+  },
+  "health_check": {
+    "endpoint": "files://check",
+    "method": "NATIVE"
+  },
+  "actions": {
+    "save_text": {
+      "display_name": "Save Text File",
+      "description": "Save a text file to iCloud Drive or local storage",
+      "endpoint": "files://save",
+      "method": "POST",
+      "special_handler": "files_save_text",
+      "capability": "create_document",
+      "parameters": {
+        "filename": {
+          "type": "string",
+          "required": true,
+          "description": "File name with extension (e.g. meeting-notes.txt)"
+        },
+        "content": {
+          "type": "string",
+          "required": true,
+          "description": "File content"
+        },
+        "folder": {
+          "type": "string",
+          "required": false,
+          "description": "Folder path relative to iCloud Drive root (e.g. 'Basn/Notes'). Defaults to Basn/"
+        }
+      },
+      "success_message": "File saved to iCloud Drive"
+    }
+  },
+  "claude_context": {
+    "project_matching": null,
+    "defaults": {}
+  }
+}

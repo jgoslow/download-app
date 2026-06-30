@@ -1,0 +1,50 @@
+{
+  "id": "apple-mail",
+  "name": "Mail",
+  "icon": "envelope",
+  "auth": {
+    "methods": ["url_scheme"],
+    "api_key_label": null
+  },
+  "health_check": {
+    "endpoint": "mailto://check",
+    "method": "NATIVE"
+  },
+  "actions": {
+    "compose_email": {
+      "display_name": "Compose Email",
+      "description": "Open Apple Mail with a pre-filled compose window",
+      "endpoint": "mailto:",
+      "method": "OPEN",
+      "special_handler": "url_scheme_mailto",
+      "capability": "send_email",
+      "parameters": {
+        "to": {
+          "type": "string",
+          "required": true,
+          "description": "Recipient email address"
+        },
+        "subject": {
+          "type": "string",
+          "required": false,
+          "description": "Email subject"
+        },
+        "body": {
+          "type": "string",
+          "required": false,
+          "description": "Email body text"
+        },
+        "cc": {
+          "type": "string",
+          "required": false,
+          "description": "CC recipient email address"
+        }
+      },
+      "success_message": "Mail compose window opened"
+    }
+  },
+  "claude_context": {
+    "project_matching": null,
+    "defaults": {}
+  }
+}

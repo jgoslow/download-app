@@ -1,0 +1,40 @@
+{
+  "id": "apple-messages",
+  "name": "Messages",
+  "icon": "message",
+  "auth": {
+    "methods": ["url_scheme"],
+    "api_key_label": null
+  },
+  "health_check": {
+    "endpoint": "sms://check",
+    "method": "NATIVE"
+  },
+  "actions": {
+    "send_message": {
+      "display_name": "Send iMessage",
+      "description": "Open Messages with a pre-filled message to a recipient",
+      "endpoint": "sms:",
+      "method": "OPEN",
+      "special_handler": "url_scheme_sms",
+      "capability": "send_message",
+      "parameters": {
+        "recipient": {
+          "type": "string",
+          "required": true,
+          "description": "Phone number or Apple ID email"
+        },
+        "body": {
+          "type": "string",
+          "required": false,
+          "description": "Message text"
+        }
+      },
+      "success_message": "Messages opened with pre-filled message"
+    }
+  },
+  "claude_context": {
+    "project_matching": null,
+    "defaults": {}
+  }
+}

@@ -411,6 +411,21 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
              supportsOAuth: true, supportsAPIKey: false),
         Tool(id: "wave", name: "Wave", iconSystemName: "dollarsign.circle",
              supportsOAuth: true, supportsAPIKey: false),
+        // Apple-native tools — no auth required, use system permissions
+        Tool(id: "apple-reminders", name: "Reminders", iconSystemName: "checkmark.circle",
+             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+        Tool(id: "apple-calendar", name: "Calendar", iconSystemName: "calendar",
+             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+        Tool(id: "apple-notes", name: "Notes", iconSystemName: "note.text",
+             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+        Tool(id: "apple-files", name: "Files", iconSystemName: "folder",
+             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+        Tool(id: "apple-mail", name: "Mail", iconSystemName: "envelope",
+             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+        Tool(id: "apple-messages", name: "Messages", iconSystemName: "message",
+             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+        Tool(id: "apple-maps", name: "Maps", iconSystemName: "map",
+             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
     ]
 }
 

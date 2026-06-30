@@ -1,0 +1,65 @@
+{
+  "id": "apple-calendar",
+  "name": "Calendar",
+  "icon": "calendar",
+  "auth": {
+    "methods": ["system"],
+    "api_key_label": null
+  },
+  "health_check": {
+    "endpoint": "eventkit://check",
+    "method": "NATIVE"
+  },
+  "actions": {
+    "create_event": {
+      "display_name": "Create Event",
+      "description": "Create an event in Apple Calendar",
+      "endpoint": "eventkit://events",
+      "method": "POST",
+      "special_handler": "eventkit_create_event",
+      "capability": "schedule_event",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Event title"
+        },
+        "start_time": {
+          "type": "string",
+          "required": true,
+          "description": "Start time in ISO 8601 format (e.g. 2026-07-01T14:00:00)"
+        },
+        "end_time": {
+          "type": "string",
+          "required": true,
+          "description": "End time in ISO 8601 format (e.g. 2026-07-01T15:00:00)"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "description": "Event notes or description"
+        },
+        "calendar_name": {
+          "type": "string",
+          "required": false,
+          "description": "Calendar name (defaults to default calendar)"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Event location"
+        },
+        "url": {
+          "type": "string",
+          "required": false,
+          "description": "URL to attach to the event (e.g. meeting link)"
+        }
+      },
+      "success_message": "Event created in Apple Calendar"
+    }
+  },
+  "claude_context": {
+    "project_matching": null,
+    "defaults": {}
+  }
+}

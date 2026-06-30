@@ -1,0 +1,45 @@
+{
+  "id": "apple-maps",
+  "name": "Maps",
+  "icon": "map",
+  "auth": {
+    "methods": ["url_scheme"],
+    "api_key_label": null
+  },
+  "health_check": {
+    "endpoint": "maps://check",
+    "method": "NATIVE"
+  },
+  "actions": {
+    "open_location": {
+      "display_name": "Open in Maps",
+      "description": "Open Apple Maps to a specific address or location",
+      "endpoint": "maps://",
+      "method": "OPEN",
+      "special_handler": "url_scheme_maps",
+      "capability": "schedule_event",
+      "parameters": {
+        "address": {
+          "type": "string",
+          "required": false,
+          "description": "Street address or place name"
+        },
+        "query": {
+          "type": "string",
+          "required": false,
+          "description": "Search query (e.g. 'coffee near me')"
+        },
+        "directions_to": {
+          "type": "string",
+          "required": false,
+          "description": "Destination address for turn-by-turn directions"
+        }
+      },
+      "success_message": "Apple Maps opened"
+    }
+  },
+  "claude_context": {
+    "project_matching": null,
+    "defaults": {}
+  }
+}

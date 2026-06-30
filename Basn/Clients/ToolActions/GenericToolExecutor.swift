@@ -61,8 +61,33 @@ enum GenericToolExecutor {
             request.setValue(value, forHTTPHeaderField: key)
         }
 
-        // Special handlers for actions that can't be expressed as simple templates
+        // Special handlers — native platform integrations bypass HTTP entirely
         if let handler = actionSpec.specialHandler {
+            // EventKit (Reminders / Calendar)
+            if handler.hasPrefix("eventkit_") {
+                #if os(macOS)
+                return await EventKitActionClient.execute(action: action, handler: handler)
+                #else
+                return ActionResult(actionID: action.id, success: false, error: "EventKit actions require macOS")
+                #endif
+            }
+            // URL schemes (Mail, Messages, Maps)
+            if handler.hasPrefix("url_scheme_") {
+                return await URLSchemeActionClient.execute(action: action, handler: handler)
+            }
+            // AppleScript (Notes)
+            if handler.hasPrefix("applescript_") {
+                #if os(macOS)
+                return await NotesAppleScriptClient.execute(action: action, handler: handler)
+                #else
+                return ActionResult(actionID: action.id, success: false, error: "AppleScript actions require macOS")
+                #endif
+            }
+            // Files (iCloud Drive)
+            if handler.hasPrefix("files_") {
+                return await FilesActionClient.execute(action: action, handler: handler)
+            }
+            // HTTP-level special handlers (modify the URLRequest before sending)
             switch handler {
             case "gmail_send":
                 guard let mimeRequest = buildGmailSendRequest(baseRequest: request, params: action.parameters) else {
@@ -72,7 +97,9 @@ enum GenericToolExecutor {
             default:
                 break
             }
-        } else if let bodyTemplate = actionSpec.bodyTemplate, actionSpec.method != "GET" {
+        }
+
+        if let bodyTemplate = actionSpec.bodyTemplate, actionSpec.method != "GET" {
             // Build body from template
             let bodyDict = interpolateTemplate(bodyTemplate.value, params: action.parameters)
             if let bodyData = try? JSONSerialization.data(withJSONObject: bodyDict) {
