@@ -31,7 +31,11 @@ actor RecordingClientLiveIOS {
     func startRecording() async {
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.record, mode: .measurement)
+            // NOTE: `.measurement` mode disables input gain/AGC, which produced
+            // near-silent recordings (peak ~0.09, rms ~0.008) that Whisper
+            // transcribed as a single hallucinated token. `.default` mode keeps
+            // the standard input processing chain so speech is at a usable level.
+            try session.setCategory(.record, mode: .default)
             try session.setActive(true)
             let r = try AVAudioRecorder(url: recordingURL, settings: recorderSettings)
             r.isMeteringEnabled = true

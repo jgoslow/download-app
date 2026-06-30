@@ -33,6 +33,10 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Basn needs your microphone to capture your voice notes.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

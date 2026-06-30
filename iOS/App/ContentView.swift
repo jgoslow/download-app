@@ -77,6 +77,12 @@ struct ContentView: View {
                     typedText = ""
                 }
             }
+            .sheet(item: Binding(
+                get: { appState.lastPlan },
+                set: { appState.lastPlan = $0 }
+            )) { plan in
+                IOSExecutionPlanView(plan: plan)
+            }
     }
 
     // MARK: - Tab Content

@@ -7,9 +7,10 @@
 //
 
 import Foundation
-import BasnCore
+import BasinShared
+import os
 
-private let executorLogger = BasnLog.app
+private let executorLogger = Logger(subsystem: "com.lyra.basn", category: "tool-executor")
 
 enum GenericToolExecutor {
 

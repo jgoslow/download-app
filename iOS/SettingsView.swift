@@ -8,6 +8,12 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
 
+    // Hidden developer-mode unlock (easter egg). See DeveloperMode.
+    @AppStorage(DeveloperMode.unlockedKey) private var developerUnlocked = false
+    @State private var versionTaps = 0
+    @State private var showUnlockPrompt = false
+    @State private var unlockAttempt = ""
+
     var body: some View {
         @Bindable var appState = appState
         NavigationStack {
@@ -17,6 +23,19 @@ struct SettingsView: View {
                 preferencesSection
                 basnSection
                 aboutSection
+                if developerUnlocked {
+                    developerSection
+                }
+            }
+            .alert("Developer Mode", isPresented: $showUnlockPrompt) {
+                SecureField("Passphrase", text: $unlockAttempt)
+                Button("Unlock") {
+                    if DeveloperMode.tryUnlock(unlockAttempt) { developerUnlocked = true }
+                    unlockAttempt = ""
+                }
+                Button("Cancel", role: .cancel) { unlockAttempt = ""; versionTaps = 0 }
+            } message: {
+                Text("Enter the passphrase to reveal developer options.")
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 Color.clear.frame(height: 140)
@@ -133,10 +152,45 @@ struct SettingsView: View {
                 Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—")
                     .foregroundStyle(.secondary)
             }
+            // Easter egg: tap the version row N times to reveal the unlock prompt.
+            .contentShape(Rectangle())
+            .onTapGesture { registerVersionTap() }
 
             Link(destination: URL(string: "https://getbasn.ai")!) {
                 Label("getbasn.ai", systemImage: "globe")
             }
+        }
+    }
+
+    private func registerVersionTap() {
+        guard !developerUnlocked else { return }
+        versionTaps += 1
+        if versionTaps >= DeveloperMode.tapsToReveal {
+            versionTaps = 0
+            showUnlockPrompt = true
+        }
+    }
+
+    // MARK: - Developer (revealed via the hidden unlock)
+
+    @AppStorage(IOSCaptureArchive.toggleKey) private var archiveCaptures = false
+
+    private var developerSection: some View {
+        Section {
+            Toggle(isOn: $archiveCaptures) {
+                Label("Archive captures for debugging", systemImage: "shippingbox")
+            }
+            Button(role: .destructive) {
+                archiveCaptures = false
+                DeveloperMode.lock()
+                developerUnlocked = false
+            } label: {
+                Label("Lock developer mode", systemImage: "lock")
+            }
+        } header: {
+            Text("Developer")
+        } footer: {
+            Text("Saves each capture's audio + metadata to the app's Documents (Files app › On My iPhone › Basn › BasnCaptures). Pull them to the Mac and run “Import captures” in the desktop debug bar to transcribe, route, and grade them.")
         }
     }
 }
@@ -451,7 +505,7 @@ private struct ToolRowView: View {
 
 // MARK: - Tool Connect Sheet
 
-private struct ToolConnectSheet: View {
+struct ToolConnectSheet: View {
     @Bindable var tool: Tool
     let onDismiss: () -> Void
 

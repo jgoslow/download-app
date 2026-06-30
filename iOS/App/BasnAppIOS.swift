@@ -6,7 +6,7 @@ struct BasnAppIOS: App {
     @State private var appState = AppState()
 
     static let modelContainer: ModelContainer = {
-        let schema = Schema([Tool.self, Workflow.self])
+        let schema = Schema([Tool.self, Workflow.self, CaptureRecord.self, CaptureAnalysis.self])
         do {
             return try ModelContainer(for: schema, configurations: [ModelConfiguration(isStoredInMemoryOnly: false)])
         } catch {

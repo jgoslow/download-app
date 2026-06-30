@@ -3,6 +3,7 @@ import BasinShared
 import Foundation
 import Observation
 import os
+import SwiftData
 import UIKit
 import WhisperKit
 
@@ -26,6 +27,8 @@ final class AppState {
     var downloadingModelVariant: String? = nil
     var modelDownloadProgress: Double = 0
     var isTranscribing = false
+    /// The most recent routing result for a capture (presented for review/execution).
+    var lastPlan: ExecutionPlan?
 
     private var whisperKit: WhisperKit?
     private var loadedModelVariant: String?
@@ -162,8 +165,37 @@ final class AppState {
         recordingStart = nil
         appLogger.notice("Recording stopped, file: \(exportURL.lastPathComponent, privacy: .public)")
 
+        // Capture-for-debugging: persist the raw audio + metadata for later desktop
+        // assessment. No-ops unless Developer mode is unlocked + the toggle is on
+        // (see DeveloperMode / IOSCaptureArchive). No transcription/routing on phone.
+        let archiveID = UUID().uuidString
+        let archiveTimestamp = Date()
+        let archiveAppVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+        func archiveCapture(wordCount: Int, transcript: String?) {
+            IOSCaptureArchive.archive(
+                audioURL: exportURL,
+                metadata: .init(
+                    captureID: archiveID,
+                    timestamp: archiveTimestamp,
+                    device: UIDevice.current.name,
+                    flowID: capturedFlow.id,
+                    durationSeconds: duration,
+                    wordCount: wordCount,
+                    whisperModel: settings.selectedModel,
+                    language: settings.outputLanguage,
+                    sourceAppBundleID: nil,
+                    sourceAppName: nil,
+                    appVersion: archiveAppVersion,
+                    connectedToolIDs: [],
+                    platform: "ios",
+                    onDeviceTranscript: transcript
+                )
+            )
+        }
+
         guard isModelDownloaded(variant: settings.selectedModel) else {
             appLogger.warning("No model downloaded — skipping transcription")
+            archiveCapture(wordCount: 0, transcript: nil)  // still keep the audio
             return
         }
         isTranscribing = true
@@ -196,8 +228,117 @@ final class AppState {
             try await sessionStore.save(session)
             await reloadSessions()
             appLogger.notice("Session saved: \(session.id, privacy: .public) words=\(wordCount)")
+            archiveCapture(wordCount: wordCount, transcript: text)
+            await routeCapture(session: session, transcript: text)
         } catch {
             appLogger.error("Transcription failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Route a finished capture into an action plan, natively (no server):
+    /// heuristic first (offline), then Castellum (Claude, BYO key) with on-device
+    /// flow context. Persists the capture + analysis locally so future captures
+    /// build on it.
+    func routeCapture(session: Session, transcript: String) async {
+        let mc = BasnAppIOS.modelContainer.mainContext
+        let tools = (try? mc.fetch(FetchDescriptor<Tool>())) ?? []
+        // Route against ALL known tools so the plan surfaces relevant actions even
+        // for tools that aren't connected yet; the plan UI flags those + offers a
+        // connect link.
+        let allToolIDs = Set(tools.map(\.id))
+        let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+
+        // Persist the capture record (so it can carry analysis + feed future context).
+        let record = CaptureRecord(
+            id: session.id, timestamp: session.timestamp, device: session.device,
+            platform: "ios", flowID: session.flowID, rawText: transcript,
+            durationSeconds: session.durationSeconds, wordCount: session.wordCount,
+            appVersion: appVersion, whisperModel: settings.selectedModel, language: settings.outputLanguage
+        )
+        mc.insert(record)
+        try? mc.save()
+
+        var plan: ExecutionPlan?
+        var analysis: SessionAnalysis?
+
+        if let actions = HeuristicRouter.route(transcript: transcript, connectedToolIDs: allToolIDs) {
+            plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: "heuristic")
+            appLogger.notice("Heuristic routing: \(actions.count) action(s) for \(session.id, privacy: .public)")
+        } else if !settings.anthropicAPIKey.isEmpty {
+            let capture = StructuredCapture.from(session: session)
+            let context = recentContext(flowID: session.flowID, limit: 5)
+            let workflows = (try? mc.fetch(FetchDescriptor<Workflow>())) ?? []
+            do {
+                let (a, p) = try await IOSCastellumClient.analyzeAndPlan(
+                    capture: capture, promptTitles: [], context: context,
+                    tools: tools, workflows: workflows, apiKey: settings.anthropicAPIKey
+                )
+                analysis = a
+                plan = p
+                appLogger.notice("Castellum: \(p.actions.count) action(s) for \(session.id, privacy: .public)")
+            } catch {
+                appLogger.error("iOS Castellum failed: \(error.localizedDescription)")
+            }
+        } else {
+            appLogger.notice("No heuristic match and no API key — skipping routing for \(session.id, privacy: .public)")
+        }
+
+        // Always surface generic capability suggestions offline (no key/network),
+        // for anything not already covered by a heuristic/Castellum action. This
+        // is the pre-connection nudge — "this sounds like it wants to do X."
+        var actions = plan?.actions ?? []
+        let coveredCaps = Set(actions.compactMap { action -> String? in
+            action.toolID.isEmpty
+                ? action.actionType
+                : CapabilityResolver.capability(forToolID: action.toolID, actionType: action.actionType)
+        })
+        for cap in CapabilityMatcher.match(transcript) where !coveredCaps.contains(cap) {
+            actions.append(PlannedAction(
+                toolID: "", actionType: cap,
+                label: Capabilities.byID(cap)?.title ?? cap, parameters: [:]
+            ))
+        }
+        if !actions.isEmpty {
+            plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: plan?.modelUsed ?? "local")
+        }
+
+        // Persist analysis (links to the capture) for continuity + history.
+        if let analysis {
+            let ca = CaptureAnalysis(
+                summary: analysis.summary, moodTag: analysis.moodTag,
+                tasks: analysis.tasks, routing: analysis.routing.map(\.rawValue),
+                delegations: analysis.delegations, integrations: analysis.integrations.map(\.rawValue),
+                promptsAddressed: analysis.promptsAddressed
+            )
+            ca.capture = record
+            record.analysis = ca
+            mc.insert(ca)
+            try? mc.save()
+        }
+
+        lastPlan = plan
+    }
+
+    /// Assemble recent prior-session context for a flow from the local store —
+    /// native continuity, mirroring macOS `fetchRecentContext`.
+    private func recentContext(flowID: String, limit: Int) -> [SessionContext] {
+        let mc = BasnAppIOS.modelContainer.mainContext
+        var descriptor = FetchDescriptor<CaptureRecord>(
+            predicate: #Predicate { $0.flowID == flowID },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        descriptor.fetchLimit = limit
+        let captures = (try? mc.fetch(descriptor)) ?? []
+        let fmt = ISO8601DateFormatter()
+        return captures.compactMap { cap -> SessionContext? in
+            guard let a = cap.analysis else { return nil }
+            return SessionContext(
+                timestamp: fmt.string(from: cap.timestamp),
+                summary: a.summary, moodTag: a.moodTag,
+                tasks: a.tasks.isEmpty ? nil : a.tasks,
+                routing: a.routing.isEmpty ? nil : a.routing,
+                delegations: a.delegations.isEmpty ? nil : a.delegations
+            )
         }
     }
 
