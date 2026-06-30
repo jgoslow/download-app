@@ -34,6 +34,19 @@
 		B5045C972D78DED500D0A119 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = B5045C962D78DED500D0A119 /* MarkdownUI */; };
 		B53356002D7B8D4900E5F542 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */; };
 		BB20B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB10B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift */; };
+		A1CABA5E0000000000000020 /* iOS/Clients/IOSCaptureArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000010 /* iOS/Clients/IOSCaptureArchive.swift */; };
+		A1CABA5E0000000000000021 /* iOS/App/DeveloperMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000011 /* iOS/App/DeveloperMode.swift */; };
+		A1CABA5E0000000000000022 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000012 /* AppIcon.icon */; };
+		A1CABA5E0000000000000023 /* iOS/Processing/IOSExecutionPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000013 /* iOS/Processing/IOSExecutionPlanView.swift */; };
+		A1CABA5E0000000000000025 /* iOS/Processing/CapabilityResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000015 /* iOS/Processing/CapabilityResolver.swift */; };
+		A1CABA5E0000000000000024 /* iOS/Processing/IOSCastellumClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000014 /* iOS/Processing/IOSCastellumClient.swift */; };
+		A1CABA5E0000000000000042 /* Basn/Clients/ToolActions/ToolActionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000032 /* Basn/Clients/ToolActions/ToolActionRegistry.swift */; };
+		A1CABA5E0000000000000043 /* Basn/Clients/ToolActions/GenericToolExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000033 /* Basn/Clients/ToolActions/GenericToolExecutor.swift */; };
+		A1CABA5E0000000000000060 /* github.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000050 /* github.json */; };
+		A1CABA5E0000000000000061 /* google.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000051 /* google.json */; };
+		A1CABA5E0000000000000062 /* jira.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000052 /* jira.json */; };
+		A1CABA5E0000000000000063 /* slack.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000053 /* slack.json */; };
+		A1CABA5E0000000000000064 /* toggl.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000054 /* toggl.json */; };
 		CC20B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC10B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift */; };
 		CE6912B2450BA958CF950A06 /* BasinShared in Frameworks */ = {isa = PBXBuildFile; productRef = 97C217B4F9F266C110BF4C4A /* BasinShared */; };
 		DD20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift */; };
@@ -98,6 +111,19 @@
 		B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		B5A1C7E22E6A1C5B00AB1234 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.icon; name = AppIcon.icon; path = Basn/AppIcon.icon; sourceTree = "<group>"; };
 		BB10B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Clients/RecordingClientIOS.swift; sourceTree = "<group>"; };
+		A1CABA5E0000000000000010 /* iOS/Clients/IOSCaptureArchive.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Clients/IOSCaptureArchive.swift; sourceTree = "<group>"; };
+		A1CABA5E0000000000000011 /* iOS/App/DeveloperMode.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/DeveloperMode.swift; sourceTree = "<group>"; };
+		A1CABA5E0000000000000012 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; name = AppIcon.icon; path = Basn/AppIcon.icon; sourceTree = "<group>"; };
+		A1CABA5E0000000000000013 /* iOS/Processing/IOSExecutionPlanView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Processing/IOSExecutionPlanView.swift; sourceTree = "<group>"; };
+		A1CABA5E0000000000000015 /* iOS/Processing/CapabilityResolver.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Processing/CapabilityResolver.swift; sourceTree = "<group>"; };
+		A1CABA5E0000000000000014 /* iOS/Processing/IOSCastellumClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Processing/IOSCastellumClient.swift; sourceTree = "<group>"; };
+		A1CABA5E0000000000000032 /* Basn/Clients/ToolActions/ToolActionRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ToolActionRegistry.swift; path = Basn/Clients/ToolActions/ToolActionRegistry.swift; sourceTree = "<group>"; };
+		A1CABA5E0000000000000033 /* Basn/Clients/ToolActions/GenericToolExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GenericToolExecutor.swift; path = Basn/Clients/ToolActions/GenericToolExecutor.swift; sourceTree = "<group>"; };
+		A1CABA5E0000000000000050 /* github.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = github.json; path = Basn/Resources/Data/tool-definitions/github.json; sourceTree = "<group>"; };
+		A1CABA5E0000000000000051 /* google.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = google.json; path = Basn/Resources/Data/tool-definitions/google.json; sourceTree = "<group>"; };
+		A1CABA5E0000000000000052 /* jira.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = jira.json; path = Basn/Resources/Data/tool-definitions/jira.json; sourceTree = "<group>"; };
+		A1CABA5E0000000000000053 /* slack.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = slack.json; path = Basn/Resources/Data/tool-definitions/slack.json; sourceTree = "<group>"; };
+		A1CABA5E0000000000000054 /* toggl.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = toggl.json; path = Basn/Resources/Data/tool-definitions/toggl.json; sourceTree = "<group>"; };
 		C4E4F1F66630C09F632AB633 /* iOS/App/ContentView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/ContentView.swift; sourceTree = "<group>"; };
 		CC10B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Basn/Clients/RecordingClient.swift; sourceTree = "<group>"; };
 		DD10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Onboarding/OnboardingView.swift; sourceTree = "<group>"; };
@@ -146,6 +172,11 @@
 				5001DC512FCB98B000CAC678 /* Exceptions for "BasnWidget" folder in "BasnWidgetExtension" target */,
 			);
 			path = BasnWidget;
+			sourceTree = "<group>";
+		};
+		47AED10000000000BA510001 /* BasnTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BasnTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -218,6 +249,7 @@
 				B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */,
 				B5A1C7E22E6A1C5B00AB1234 /* AppIcon.icon */,
 				47E05DF02D444EC600D26DA6 /* Basn */,
+				47AED10000000000BA510001 /* BasnTests */,
 				5001DC3F2FCB98AF00CAC678 /* BasnWidget */,
 				4735444F2D445936001FBCB5 /* Frameworks */,
 				47E05DEF2D444EC600D26DA6 /* Products */,
@@ -260,6 +292,18 @@
 				AA10B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift */,
 				AC10B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift */,
 				BB10B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift */,
+				A1CABA5E0000000000000010 /* iOS/Clients/IOSCaptureArchive.swift */,
+				A1CABA5E0000000000000011 /* iOS/App/DeveloperMode.swift */,
+				A1CABA5E0000000000000013 /* iOS/Processing/IOSExecutionPlanView.swift */,
+				A1CABA5E0000000000000015 /* iOS/Processing/CapabilityResolver.swift */,
+				A1CABA5E0000000000000014 /* iOS/Processing/IOSCastellumClient.swift */,
+				A1CABA5E0000000000000032 /* Basn/Clients/ToolActions/ToolActionRegistry.swift */,
+				A1CABA5E0000000000000033 /* Basn/Clients/ToolActions/GenericToolExecutor.swift */,
+				A1CABA5E0000000000000050 /* github.json */,
+				A1CABA5E0000000000000051 /* google.json */,
+				A1CABA5E0000000000000052 /* jira.json */,
+				A1CABA5E0000000000000053 /* slack.json */,
+				A1CABA5E0000000000000054 /* toggl.json */,
 				CC10B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift */,
 				DD10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift */,
 				EE10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift */,
@@ -294,6 +338,9 @@
 			);
 			dependencies = (
 				478637AA2D48725900319BFA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				47AED10000000000BA510001 /* BasnTests */,
 			);
 			name = BasnTests;
 			productName = BasnTests;
@@ -464,6 +511,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				5001D1A32FCA040300CAC678 /* onboarding_water_mill 2.mp4 in Resources */,
+				A1CABA5E0000000000000060 /* github.json in Resources */,
+				A1CABA5E0000000000000061 /* google.json in Resources */,
+				A1CABA5E0000000000000062 /* jira.json in Resources */,
+				A1CABA5E0000000000000063 /* slack.json in Resources */,
+				A1CABA5E0000000000000064 /* toggl.json in Resources */,
+				A1CABA5E0000000000000022 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -503,6 +556,13 @@
 				AA20B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift in Sources */,
 				AC20B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift in Sources */,
 				BB20B001C2D3E4F5A6B7C8D9 /* iOS/Clients/RecordingClientIOS.swift in Sources */,
+				A1CABA5E0000000000000020 /* iOS/Clients/IOSCaptureArchive.swift in Sources */,
+				A1CABA5E0000000000000021 /* iOS/App/DeveloperMode.swift in Sources */,
+				A1CABA5E0000000000000023 /* iOS/Processing/IOSExecutionPlanView.swift in Sources */,
+				A1CABA5E0000000000000025 /* iOS/Processing/CapabilityResolver.swift in Sources */,
+				A1CABA5E0000000000000024 /* iOS/Processing/IOSCastellumClient.swift in Sources */,
+				A1CABA5E0000000000000042 /* Basn/Clients/ToolActions/ToolActionRegistry.swift in Sources */,
+				A1CABA5E0000000000000043 /* Basn/Clients/ToolActions/GenericToolExecutor.swift in Sources */,
 				CC20B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift in Sources */,
 				DD20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift in Sources */,
 				EE20B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift in Sources */,
@@ -548,7 +608,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Basn.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Basn";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Basn Debug.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Basn Debug";
 			};
 			name = Debug;
 		};
@@ -739,6 +799,7 @@
 					"-interposable",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.lyra.basn.debug;
+				PRODUCT_MODULE_NAME = Basn;
 				PRODUCT_NAME = "Basn Debug";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
 				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
