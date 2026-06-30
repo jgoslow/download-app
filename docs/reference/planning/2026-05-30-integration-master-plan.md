@@ -1,8 +1,44 @@
 # Basn — Integration Master Plan + Token Efficiency Architecture
 
-**Status:** In progress — Token efficiency pre-work (sections 1–2) is **fully shipped** as of 2026-06-09. Marketplace infrastructure (section 0.12) is the current priority. Apple native integrations (section 4) and extended tools (section 5) are queued. File paths updated throughout to reflect the `Hex/` → `Basn/` rename (2026-06-26).
+**Status:** In progress — Token efficiency pre-work (sections 1–2) is **fully shipped** as of 2026-06-09. Marketplace infrastructure (0.12 branches 1–3) and Apple-native tools (eventkit, url-schemes, notes, files) shipped 2026-06-30. `marketplace/ai-tool-builder` is the next priority. File paths updated throughout to reflect the `Hex/` → `Basn/` rename (2026-06-26).
 
-**Shipped:** `CastellumClient.swift` (unified single-call), `HeuristicRouter.swift` (Toggl patterns only — expand with each native tool branch), `SessionComplexityClassifier.swift`, prompt caching, `CaptureScenario` fixture testing infrastructure.
+**Shipped (as of 2026-06-30, session 2026-06-30):**
+- `Basn/Clients/CastellumClient.swift` — unified single-call pipeline, prompt caching, model tiering
+- `Basn/Clients/ModelContextClient.swift` — local-first context assembly from `CaptureRecord/CaptureAnalysis`
+- `Shared/Sources/BasinShared/Routing/HeuristicRouter.swift` — moved from BasnCore; Toggl patterns live
+- `Shared/Sources/BasinShared/Routing/SessionComplexityClassifier.swift` — Haiku/Sonnet routing
+- `Shared/Sources/BasinShared/Routing/CastellumResponseParser.swift` — fixture test parser
+- `Shared/Sources/BasinShared/Routing/ExecutionPlan.swift` — moved from BasnCore
+- `Shared/Sources/BasinShared/Routing/SessionAnalysis.swift` — moved from BasnCore
+- `Shared/Sources/BasinShared/Routing/StructuredCapture.swift` — moved from BasnCore
+- `BasnCore/Sources/BasnCore/SharedRouting.swift` — `@_exported` re-exports so 49 import sites unchanged
+- `BasnCore/Sources/BasnCore/Logic/CaptureScenario.swift` — fixture scenario model
+- `BasnCore/Sources/BasnCore/DebugCaptureArchive.swift` — audio.wav + JSON per capture (debug, opt-in)
+- `BasnCore/Sources/BasnCore/Logic/CaptureGrade.swift` + `AudioQualityMetrics.swift` + `WordErrorRate.swift`
+- `Basn/Features/Home/DebugCaptureReviewView.swift` — macOS master-detail review UI with audio playback
+- `Basn/Support/CaptureIngestor.swift` — import + transcribe + route + archive audio from other devices
+- `BasnTests/Integration/AudioPipelineTests.swift` — live transcription → WER → routing tests
+- `Shared/Sources/BasinShared/Routing/Capability.swift` — 7 generic capability types
+- `Shared/Sources/BasinShared/Routing/CapabilityMatcher.swift` — offline keyword detector (no key, no network)
+- `iOS/Processing/IOSCastellumClient.swift` — iOS Claude client (hybrid: tool schemas + generic cap functions)
+- `iOS/Processing/CapabilityResolver.swift` — maps capability ↔ tool via `capability` tags in tool JSONs
+- `iOS/Processing/IOSExecutionPlanView.swift` — iOS plan/confirm UI with "Connect tool" links
+- `iOS/App/DeveloperMode.swift` — hidden Settings unlock (tap version 7× + passphrase)
+- All 5 existing tool definition JSONs updated with `capability` tags per action
+- `LyraDesigns/basn-marketplace` initialized with manifest, JSON Schema, 5 verified tools, CI, README
+- `LyraDesigns/basn-marketplace-service` — Cloudflare Worker for no-GitHub-account submissions
+- `Basn/Clients/MarketplaceClient.swift` — manifest fetch (ETag), install, uninstall, update check
+- `Basn/Clients/MarketplaceSubmissionClient.swift` — POSTs to marketplace.basn.app/submit
+- `Basn/Clients/ToolActions/ToolDefinitionLoader.swift` — `InstalledTools/` priority + `RegistrySpec`
+- `Basn/Models/BasinModels.swift` — Tool: `installedFromMarketplace`, `marketplaceVersion`, `marketplaceSource`, `isUserCreated`
+- `Basn/Features/Marketplace/` — `MarketplaceFeature`, `MarketplaceView`, `ToolDetailView`, `MarketplaceSeeder`
+- `Basn/Features/Settings/ToolsSectionView.swift` — "Browse Marketplace" footer button
+- `Basn/Resources/Data/tool-definitions/` — 7 Apple-native tool JSONs (Reminders, Calendar, Notes, Files, Mail, Messages, Maps)
+- `Basn/Clients/ToolActions/EventKitActionClient.swift` — Reminders + Calendar via EventKit (macOS)
+- `Basn/Clients/ToolActions/URLSchemeActionClient.swift` — mailto:, sms:, maps: URL scheme dispatch
+- `Basn/Clients/ToolActions/NotesAppleScriptClient.swift` — NSAppleScript Notes create (macOS)
+- `Basn/Clients/ToolActions/FilesActionClient.swift` — iCloud Drive / local Documents text save
+- `Basn/Clients/ToolActions/GenericToolExecutor.swift` — native handler dispatch before HTTP
 
 ---
 
@@ -197,7 +233,7 @@ var isUserCreated: Bool              // true for in-app builder tools
 
 ### 0.8 `MarketplaceClient` Specification
 
-**New file:** `Hex/Clients/MarketplaceClient.swift`
+**New file:** `Basn/Clients/MarketplaceClient.swift`
 
 ```swift
 @DependencyClient
@@ -256,9 +292,9 @@ struct MarketplaceManifest: Codable {
 ### 0.9 `MarketplaceFeature` (TCA) — Browse + Install
 
 **New files:**
-- `Hex/Features/Marketplace/MarketplaceFeature.swift` (TCA Reducer)
-- `Hex/Features/Marketplace/MarketplaceView.swift`
-- `Hex/Features/Marketplace/ToolDetailView.swift`
+- `Basn/Features/Marketplace/MarketplaceFeature.swift` (TCA Reducer)
+- `Basn/Features/Marketplace/MarketplaceView.swift`
+- `Basn/Features/Marketplace/ToolDetailView.swift`
 
 **Entry point:** Settings → Tools → "Browse Marketplace" button (add to `ToolsSectionView`)
 
@@ -429,7 +465,7 @@ Once `<tool_definition>` is parsed, the UI transitions to a testing view:
 └─────────────────────────────────────────────┘
 ```
 
-**`ToolActionTestRunner`** — new file `Hex/Features/Marketplace/ToolActionTestRunner.swift`:
+**`ToolActionTestRunner`** — new file `Basn/Features/Marketplace/ToolActionTestRunner.swift`:
 ```swift
 struct ToolActionTestRunner {
     /// Fire a real HTTP call for an action using sample parameters.
@@ -595,11 +631,11 @@ export default {
 #### New Files for AI Tool Builder
 
 ```
-Hex/Features/Marketplace/AIToolBuilderFeature.swift    ← TCA reducer + conversation state
-Hex/Features/Marketplace/AIToolBuilderView.swift       ← chat bubble UI
-Hex/Features/Marketplace/ToolActionTestRunner.swift    ← HTTP test harness
-Hex/Features/Marketplace/ToolTestResultView.swift      ← per-action test result display
-Hex/Clients/MarketplaceSubmissionClient.swift          ← POSTs to marketplace.basn.app/submit
+Basn/Features/Marketplace/AIToolBuilderFeature.swift   ← TCA reducer + conversation state
+Basn/Features/Marketplace/AIToolBuilderView.swift      ← chat bubble UI
+Basn/Features/Marketplace/ToolActionTestRunner.swift   ← HTTP test harness
+Basn/Features/Marketplace/ToolTestResultView.swift     ← per-action test result display
+Basn/Clients/MarketplaceSubmissionClient.swift         ← POSTs to marketplace.basn.app/submit
 ```
 
 **Separate repo (infrastructure):**
@@ -614,7 +650,7 @@ LyraDesigns/basn-marketplace-service/
 
 The 5 currently bundled tools (`jira.json`, `google.json`, `slack.json`, `toggl.json`, `github.json`) move to the marketplace repo. In the app:
 
-1. Remove them from `Hex/Resources/Data/tool-definitions/` bundle
+1. Remove them from `Basn/Resources/Data/tool-definitions/` bundle
 2. Add `registry` block to each (author: "Lyra Designs", verified: true)
 3. Publish to `LyraDesigns/basn-marketplace/tools/`
 4. Update `manifest.json`
@@ -635,25 +671,25 @@ On first launch (detected by `hasInstalledDefaultTools` UserDefaults flag), `Mar
 
 Ship in this order — each unblocks the next.
 
-**Branch: `marketplace/registry-init`** — repo work, not app code
+✅ **Branch: `marketplace/registry-init`** — repo work, not app code (shipped 2026-06-30)
 - Initialize `LyraDesigns/basn-marketplace`: `manifest.json`, `schemas/tool-definition.schema.json`, `README.md`, CI validation workflow (`validate.yml`), PR template for review queue
 - Migrate 5 existing tool JSONs from the app bundle → `tools/` in this repo (add `registry` block to each)
 - Update `manifest.json` with `default_install` array
 
-**Branch: `marketplace/submission-service`** — infra, not app code
+✅ **Branch: `marketplace/submission-service`** — infra, not app code (shipped 2026-06-30)
 - Create `LyraDesigns/basn-marketplace-service` repo
 - Implement Cloudflare Worker (`src/index.ts`) — receives tool JSON, creates branch + file + PR via GitHub bot token
 - Deploy to `marketplace.basn.app` via `wrangler deploy`
 - Smoke-test: `curl -X POST https://marketplace.basn.app/submit` with a sample tool JSON → verify PR appears in marketplace repo
 
-**Branch: `marketplace/client`** — app code
+✅ **Branch: `marketplace/client`** — app code (shipped 2026-06-30)
 - `MarketplaceClient.swift` — manifest fetch (ETag caching), install, uninstall, update check
 - `MarketplaceSubmissionClient.swift` — POSTs validated JSON to `marketplace.basn.app/submit`, returns PR URL
 - `ToolDefinitionLoader` changes — check `InstalledTools/` directory before app bundle
 - `Tool` SwiftData model additions: `installedFromMarketplace`, `marketplaceVersion`, `marketplaceSource`, `isUserCreated`
 - `MarketplaceSeeder.swift` — runs once on first launch, silently installs `default_install` tools from manifest
 
-**Branch: `marketplace/browse-ui`** — app code
+✅ **Branch: `marketplace/browse-ui`** — app code (shipped 2026-06-30)
 - `MarketplaceFeature.swift` + `MarketplaceView.swift` + `ToolDetailView.swift`
 - Category filter chips, search, verified/community badges
 - "Browse Marketplace" button in `ToolsSectionView` header
@@ -672,7 +708,9 @@ Ship in this order — each unblocks the next.
 
 ## 1. Current Pipeline Analysis
 
-**Two Claude calls per session today:**
+> ✅ **SHIPPED** (`def420c`, 2026-06-09) — The two-call pipeline described below was replaced by the unified `CastellumClient.swift`. This section is preserved as historical context explaining why the changes were made.
+
+**Old pipeline (replaced):**
 
 ```
 [Transcript]
@@ -691,21 +729,23 @@ CastellumPlannerClient.createPlan()  ← Call 2: Sonnet 4.6
 [ExecutionPlan → GenericToolExecutor]
 ```
 
-**Current token budget per average session:** ~3,875 tokens across 2 API calls.
+**Current pipeline (live):** `HeuristicRouter` → (if no match) → `CastellumClient` single call → `(SessionAnalysis, ExecutionPlan)`. See `Basn/Clients/CastellumClient.swift`.
 
-**Issues to fix immediately (before adding more integrations):**
-1. `AnthropicClient.swift` system prompt hardcodes "Jonas, a developer and founder of Lyra Designs" — must be generalized before shipping to users
-2. No prompt caching in either call
-3. Both calls use Sonnet — no Haiku fallback for simple sessions
-4. Call 2's system prompt and tool schemas are rebuilt from scratch each time — no caching
+**Issues fixed:**
+1. ~~`AnthropicClient.swift` hardcodes "Jonas, Lyra Designs"~~ — generalized ✅
+2. ~~No prompt caching~~ — `cache_control: ephemeral` on system block + last tool schema ✅
+3. ~~Both calls Sonnet~~ — Haiku default, Sonnet escalation via `SessionComplexityClassifier` ✅
+4. ~~Two API calls per session~~ — single unified call ✅
 
 ---
 
 ## 2. Token Efficiency Architecture
 
+> ✅ **FULLY SHIPPED** (`def420c`, 2026-06-09) — All four sub-sections below have been implemented. This section is preserved as the design reference.
+
 > Goal: ≤1 Claude call per session for the majority of captures. Zero Claude calls for simple, pattern-matched intent. Minimize per-token cost via model tiering.
 
-### 2A. Merge Two Calls into One (Unified CastellumClient)
+### 2A. Merge Two Calls into One (Unified CastellumClient) ✅
 
 **Current:** `AnthropicClient` (analyze) → `CastellumPlannerClient` (plan) — 2 round trips.
 **Proposed:** Single `CastellumClient` that returns `SessionAnalysis` + `[PlannedAction]` in one call.
@@ -728,11 +768,11 @@ CastellumPlannerClient.createPlan()  ← Call 2: Sonnet 4.6
 }
 ```
 
-**Files to change:**
-- `Hex/Clients/AnthropicClient.swift` — generalize system prompt, expose as foundation
-- `Hex/Clients/CastellumPlannerClient+Live.swift` — merge into unified single-call flow
-- New: `Hex/Clients/CastellumClient.swift` — unified client that replaces both
-- `HexCore/Sources/BasnCore/Models/ExecutionPlan.swift` — add `analysis: SessionAnalysis?` field to `ExecutionPlan`
+**Files changed (shipped):**
+- `Basn/Clients/AnthropicClient.swift` — system prompt generalized (legacy, still present)
+- `Basn/Clients/CastellumPlannerClient+Live.swift` — superseded by CastellumClient (legacy)
+- `Basn/Clients/CastellumClient.swift` — unified client ✅
+- `BasnCore/Sources/BasnCore/Models/ExecutionPlan.swift` — `modelUsed` field added ✅
 
 **Token savings from merge:** ~600 tokens (eliminates second system prompt + duplicate prompt preamble). More importantly: halves API call count → halves latency.
 
@@ -756,11 +796,11 @@ Rules:
 
 ---
 
-### 2B. Local Heuristic Router (Zero-Claude Path)
+### 2B. Local Heuristic Router (Zero-Claude Path) ✅ + CapabilityMatcher ✅
 
 A `HeuristicRouter` runs **before** any Claude call. If it detects a pattern match with ≥90% confidence, it returns a `PlannedAction` directly without calling Claude.
 
-**New file:** `Hex/Clients/HeuristicRouter.swift`
+**Shipped file:** `BasnCore/Sources/BasnCore/Logic/HeuristicRouter.swift` ✅
 
 **Pattern rules (ordered by specificity):**
 
@@ -793,23 +833,28 @@ struct HeuristicRouter {
 
 **Pattern coverage (estimated bypass rate ~30% of sessions):**
 
-| Pattern | Example | Bypass action |
-|---------|---------|---------------|
-| `remind me to X [time]` | "remind me to call back tomorrow at 3pm" | `apple-reminders/create_reminder` |
-| `add X to [list] list` | "add oat milk to my grocery list" | `apple-reminders/create_reminder` |
-| `note: X` / `write down X` | "note: blue header, white text" | `apple-notes/create_note` |
-| `text/message [person] X` | "text mom I'm on my way" | `apple-messages/compose_message` |
-| `call [person]` | "call Diego back" | `facetime/call_contact` |
-| `play [X] playlist/music` | "play my focus playlist" | `apple-music/play_playlist` |
-| `open [app]` | "open Xcode" | URL scheme open |
-| `set timer for X minutes` | "set timer for 25 minutes" | System timer (URL scheme) |
-| `directions to X` | "get directions to the client office" | `apple-maps/get_directions` |
+| Pattern | Example | Bypass action | Shipped? |
+|---------|---------|---------------|:--------:|
+| `start timer for X` / `track time on X` | "start timer for TACA project" | `toggl/start_timer` | ✅ |
+| `log time for X` | "log 2 hours for client work" | `toggl/start_timer` | ✅ |
+| `remind me to X [time]` | "remind me to call back tomorrow at 3pm" | `apple-reminders/create_reminder` | — |
+| `add X to [list] list` | "add oat milk to my grocery list" | `apple-reminders/create_reminder` | — |
+| `note: X` / `write down X` | "note: blue header, white text" | `apple-notes/create_note` | — |
+| `text/message [person] X` | "text mom I'm on my way" | `apple-messages/compose_message` | — |
+| `call [person]` | "call Diego back" | `facetime/call_contact` | — |
+| `play [X] playlist/music` | "play my focus playlist" | `apple-music/play_playlist` | — |
+| `set timer for X minutes` | "set timer for 25 minutes" | System timer (URL scheme) | — |
+| `directions to X` | "get directions to the client office" | `apple-maps/get_directions` | — |
+
+> Remaining patterns are added in their respective `apple-native/*` branches — each branch adds pattern matchers to `HeuristicRouter` alongside the native executor.
+
+**Companion: `CapabilityMatcher` (shipped `b99728e`)** — offline, no-key keyword detection using the same transcript. While `HeuristicRouter` routes confidently to a specific tool action, `CapabilityMatcher` identifies what *type* of action is wanted (from the 7 generic `Capability` types) so the UI can show "Connect Jira to do this" even with no tools connected. These are complementary: HeuristicRouter fires first, CapabilityMatcher runs as fallback for suggestions.
 
 ---
 
-### 2C. Model Tiering (Haiku vs Sonnet)
+### 2C. Model Tiering (Haiku vs Sonnet) ✅
 
-**New file:** `Hex/Clients/SessionComplexityClassifier.swift`
+**Shipped file:** `BasnCore/Sources/BasnCore/Logic/SessionComplexityClassifier.swift` ✅
 
 ```swift
 enum SessionComplexity {
@@ -851,7 +896,7 @@ struct SessionComplexityClassifier {
 
 ---
 
-### 2D. Prompt Caching
+### 2D. Prompt Caching ✅
 
 Add Anthropic prompt caching (`cache_control: {type: "ephemeral"}`) to:
 1. The static system prompt text block
@@ -883,7 +928,7 @@ Add Anthropic prompt caching (`cache_control: {type: "ephemeral"}`) to:
 }
 ```
 
-**Files to modify:** `Hex/Clients/CastellumClient.swift` (new unified client)
+**Files to modify:** `Basn/Clients/CastellumClient.swift` (unified client, prompt caching already implemented ✅)
 
 ---
 
@@ -964,7 +1009,9 @@ Approximate tokens added to system context when a tool is loaded:
 
 ### Architecture: NativeToolExecutor
 
-**New file:** `Hex/Clients/ToolActions/NativeToolExecutor.swift`
+> **Important implementation note (shipped `b99728e`):** Each action in a tool definition JSON now declares a `"capability"` tag (e.g., `"capability": "create_task"`) from the fixed vocabulary in `Capability.swift`. This is what `CapabilityResolver` on iOS uses to match a generic action to a connected tool. **All new native tool JSONs must include `capability` tags on every action.** The 7 valid values: `create_task`, `log_time`, `send_message`, `schedule_event`, `send_email`, `create_document`, `capture_note`. Actions that don't fit any (e.g., `play_playlist`) omit the tag.
+
+**New file:** `Basn/Clients/ToolActions/NativeToolExecutor.swift`
 
 Add to `GenericToolExecutor.execute()` before auth resolution:
 ```swift
@@ -982,9 +1029,9 @@ Add `"type": "native"` to `ToolDefinitionSpec` in `ToolDefinitionLoader.swift` �
 **Framework:** EventKit (shared permission, iOS + macOS 14+)
 **Permission strings (Info.plist):** `NSRemindersUsageDescription`, `NSCalendarsUsageDescription`
 **New files:**
-- `Hex/Resources/Data/tool-definitions/apple-reminders.json`
-- `Hex/Resources/Data/tool-definitions/apple-calendar.json`
-- `Hex/Clients/ToolActions/EventKitActionClient.swift`
+- `Basn/Resources/Data/tool-definitions/apple-reminders.json`
+- `Basn/Resources/Data/tool-definitions/apple-calendar.json`
+- `Basn/Clients/ToolActions/EventKitActionClient.swift`
 - Cases in `NativeToolExecutor.swift`
 
 **Reminders JSON (`apple-reminders.json`):**
@@ -1141,8 +1188,8 @@ enum NativeToolExecutor {
 **Method:** `NSAppleScript` (macOS 14+ sandbox-compatible via Automation entitlement)
 **Permission:** macOS Automation permission for Notes.app — auto-prompted on first run
 **New files:**
-- `Hex/Resources/Data/tool-definitions/apple-notes.json`
-- `Hex/Clients/ToolActions/NotesAppleScriptClient.swift`
+- `Basn/Resources/Data/tool-definitions/apple-notes.json`
+- `Basn/Clients/ToolActions/NotesAppleScriptClient.swift`
 - Cases in `NativeToolExecutor.swift`
 
 **iOS fallback:** `UIActivityViewController` with Notes as primary suggested destination. Cannot create a Note in the background on iOS.
@@ -1217,8 +1264,8 @@ private extension String {
 **Method:** `FileManager` + ubiquitous container (both platforms)
 **Permission:** iCloud entitlement already in project (`com.apple.developer.ubiquity-container-identifiers`)
 **New files:**
-- `Hex/Resources/Data/tool-definitions/apple-files.json`
-- `Hex/Clients/ToolActions/FilesActionClient.swift`
+- `Basn/Resources/Data/tool-definitions/apple-files.json`
+- `Basn/Clients/ToolActions/FilesActionClient.swift`
 - Cases in `NativeToolExecutor.swift`
 
 **Folder resolution map:**
@@ -1253,8 +1300,8 @@ static func resolveFolder(_ name: String?) -> URL {
 **Framework:** Contacts (`import Contacts`) — iOS + macOS
 **Permission:** `NSContactsUsageDescription` in Info.plist
 **New files:**
-- `Hex/Resources/Data/tool-definitions/apple-contacts.json`
-- `Hex/Clients/ContactsContextClient.swift` — dual-use: action executor + Castellum context provider
+- `Basn/Resources/Data/tool-definitions/apple-contacts.json`
+- `Basn/Clients/ContactsContextClient.swift` — dual-use: action executor + Castellum context provider
 - Cases in `NativeToolExecutor.swift`
 
 **Dual-use architecture:**
@@ -1301,7 +1348,7 @@ Limit to 50 most recently contacted (via `CNContactSortOrder.userDefault`, sort 
 **No permissions required.**
 **New files:**
 - Cases in `NativeToolExecutor.swift`
-- `Hex/Clients/SpotlightIndexClient.swift`
+- `Basn/Clients/SpotlightIndexClient.swift`
 
 **Clipboard actions:**
 
@@ -1337,11 +1384,11 @@ struct SpotlightIndexClient {
 
 **Zero permission. Both platforms.**
 **New files:**
-- `Hex/Resources/Data/tool-definitions/apple-mail.json`
-- `Hex/Resources/Data/tool-definitions/apple-messages.json`
-- `Hex/Resources/Data/tool-definitions/apple-maps.json`
-- `Hex/Resources/Data/tool-definitions/apple-safari.json`
-- `Hex/Clients/ToolActions/URLSchemeActionClient.swift`
+- `Basn/Resources/Data/tool-definitions/apple-mail.json`
+- `Basn/Resources/Data/tool-definitions/apple-messages.json`
+- `Basn/Resources/Data/tool-definitions/apple-maps.json`
+- `Basn/Resources/Data/tool-definitions/apple-safari.json`
+- `Basn/Clients/ToolActions/URLSchemeActionClient.swift`
 
 **URL scheme executor:**
 ```swift
@@ -1392,14 +1439,14 @@ enum URLSchemeActionClient {
 ### Branch: `apple-native/app-intents` — Shortcuts + Siri + Focus Filter
 
 **Framework:** App Intents (iOS 16+ / macOS 13+)
-**New directory:** `Hex/AppIntents/`
+**New directory:** `Basn/AppIntents/`
 **New files:**
-- `Hex/AppIntents/StartCaptureIntent.swift`
-- `Hex/AppIntents/StopCaptureIntent.swift`
-- `Hex/AppIntents/GetTranscriptIntent.swift`
-- `Hex/AppIntents/CreateNoteFromCaptureIntent.swift`
-- `Hex/AppIntents/BasnFocusFilter.swift`
-- `Hex/AppIntents/BasnShortcutsProvider.swift`
+- `Basn/AppIntents/StartCaptureIntent.swift`
+- `Basn/AppIntents/StopCaptureIntent.swift`
+- `Basn/AppIntents/GetTranscriptIntent.swift`
+- `Basn/AppIntents/CreateNoteFromCaptureIntent.swift`
+- `Basn/AppIntents/BasnFocusFilter.swift`
+- `Basn/AppIntents/BasnShortcutsProvider.swift`
 
 **Intents:**
 
@@ -1466,7 +1513,7 @@ struct BasnFocusFilter: SetFocusFilterIntent {
 **Framework:** PHPhotoLibrary
 **Permission:** `NSPhotoLibraryAddUsageDescription` (write-only; no read permission needed for creating albums)
 **New files:**
-- `Hex/Resources/Data/tool-definitions/apple-photos.json`
+- `Basn/Resources/Data/tool-definitions/apple-photos.json`
 - Cases in `NativeToolExecutor.swift`
 
 | Action | Handler | Parameters |
@@ -1480,8 +1527,8 @@ struct BasnFocusFilter: SetFocusFilterIntent {
 
 **Method:** AppleScript on macOS (no entitlement required)
 **New files:**
-- `Hex/Resources/Data/tool-definitions/apple-music.json`
-- `Hex/Clients/ToolActions/MusicAppleScriptClient.swift`
+- `Basn/Resources/Data/tool-definitions/apple-music.json`
+- `Basn/Clients/ToolActions/MusicAppleScriptClient.swift`
 - Cases in `NativeToolExecutor.swift`
 
 | Action | Handler | Parameters |
@@ -1509,7 +1556,7 @@ struct BasnFocusFilter: SetFocusFilterIntent {
 
 **Extend `TogglActionClient.swift`** with these four handlers.
 
-**Extend `buildServiceContext()`** in `CastellumPlannerClient+Live.swift` to include active Toggl timer (if running) in the user message context — helps Castellum decide whether to start a new timer or stop the current one.
+**Extend `buildServiceContext()`** in `Basn/Clients/CastellumClient.swift` to include active Toggl timer (if running) in the user message context — helps Castellum decide whether to start a new timer or stop the current one.
 
 **Discovery:** Cache the user's workspace projects (name + ID) from `/api/v9/me/workspaces/{wid}/projects`. Already partially in place — complete the caching.
 
@@ -1581,7 +1628,7 @@ struct BasnFocusFilter: SetFocusFilterIntent {
 }
 ```
 
-**`integrationToToolID` mapping** in `CastellumPlannerClient+Live.swift` — add:
+**`integrationToToolID` mapping** in `Basn/Clients/CastellumClient.swift` — add:
 ```swift
 "confluence": "confluence",
 "atlassian": "jira",  // alias
@@ -1623,7 +1670,7 @@ struct BasnFocusFilter: SetFocusFilterIntent {
 
 ### Microsoft 365 (New Integration)
 
-**New file:** `Hex/Resources/Data/tool-definitions/microsoft365.json`
+**New file:** `Basn/Resources/Data/tool-definitions/microsoft365.json`
 **OAuth provider:** Microsoft Identity Platform (`https://login.microsoftonline.com/common/oauth2/v2.0/`)
 **Base URL:** `https://graph.microsoft.com/v1.0`
 **Single OAuth token covers all M365 apps** — users connect once, get access to Calendar, Mail, To Do, Teams, OneNote, Planner.
@@ -1690,7 +1737,7 @@ struct BasnFocusFilter: SetFocusFilterIntent {
 
 > **Basn's role here is capture and brief-generation, not execution.** The primary output is a structured spec file (Markdown/JSON) that Claude Code or another agent can act on. Secondary: trigger deploy hooks, create repos, or spin up cloud resources when the action is clear.
 
-**New tool definition:** `Hex/Resources/Data/tool-definitions/infra.json` (grouped under one tool ID for simplicity, sub-actions map to different platforms)
+**New tool definition:** `Basn/Resources/Data/tool-definitions/infra.json` (grouped under one tool ID for simplicity, sub-actions map to different platforms)
 
 ### Deployment Platforms
 
@@ -2032,25 +2079,31 @@ This file is saved to iCloud Drive (`/Basn/Briefs/[project-name].md`) and can be
 
 Branches are ordered by value/effort ratio. Each branch is a PR; test and merge before starting the next.
 
-### Pre-work (must ship first — blocks everything)
+### Pre-work ✅ DONE — all shipped in `def420c` (2026-06-09)
 
-**Branch: `castellum/unified-client`**
-1. Generalize `AnthropicClient.swift` system prompt (remove "Jonas, Lyra Designs" hardcode)
-2. Create `Hex/Clients/CastellumClient.swift` — unified single-call client replacing both `AnthropicClient` and `CastellumPlannerClient+Live.swift`
-3. Add prompt caching headers (`cache_control: ephemeral`) to system block and last tool schema
-4. Add `SessionComplexityClassifier.swift` — Haiku/Sonnet routing
-5. Update `CastellumFeature.swift` to use new unified client
-6. Verify: one Claude call per session, token usage logged to console
+**~~Branch: `castellum/unified-client`~~** ✅ SHIPPED
+- `Basn/Clients/CastellumClient.swift` created — unified single-call, generalized system prompt, prompt caching
+- `BasnCore/Sources/BasnCore/Logic/SessionComplexityClassifier.swift` — Haiku/Sonnet routing
+- `CastellumFeature.swift` updated
 
-**Branch: `castellum/heuristic-router`** (can follow immediately after unified-client)
-1. Create `HeuristicRouter.swift` with ~9 pattern rules
-2. Wire into session processing pipeline — runs before `CastellumClient`
-3. Verify: "remind me to call John tomorrow" → skips Claude, creates Reminders entry directly
+**~~Branch: `castellum/heuristic-router`~~** ✅ SHIPPED (Toggl patterns; more come with native tool branches)
+- `Shared/Sources/BasinShared/Routing/HeuristicRouter.swift` — Toggl timer patterns live (moved from BasnCore in `505dad7`)
+- Extended in `6812658` (2026-06-25): natural language duration parsing ("2 hours", "half an hour")
+- `BasnCore/Sources/BasnCore/Logic/CaptureScenario.swift` + `Shared/.../CastellumResponseParser.swift` — fixture testing infra
 
-**Branch: `castellum/model-tiering`** (follow after heuristic-router)
-1. Classify transcript complexity → route to Haiku vs Sonnet
-2. Add automatic retry: if Haiku returns 0 tool_use blocks → escalate to Sonnet
-3. Add `modelUsed: String` to `ExecutionPlan` for diagnostics
+**~~Branch: `castellum/model-tiering`~~** ✅ SHIPPED
+- `Shared/Sources/BasinShared/Routing/SessionComplexityClassifier.swift` — Haiku default, Sonnet escalation (moved from BasnCore in `505dad7`)
+- `Shared/Sources/BasinShared/Routing/ExecutionPlan.swift` — `modelUsed` field added (also moved in `505dad7`)
+
+**~~Not in original plan — shipped `505dad7`~~** ✅ BasinShared routing refactor
+- All routing types (`ExecutionPlan`, `SessionAnalysis`, `StructuredCapture`, `HeuristicRouter`, `SessionComplexityClassifier`, `CastellumResponseParser`, `SessionContext`) moved from `BasnCore` → `Shared/Sources/BasinShared/Routing/` so iOS can share them
+- `BasnCore/Sources/BasnCore/SharedRouting.swift` — `@_exported` re-exports; all macOS call sites unchanged
+
+**~~Not in original plan — shipped `849d0c8`~~** ✅ Debug capture archive + audio E2E testing
+- `DebugCaptureArchive`, `CaptureGrade`, `AudioQualityMetrics`, `WordErrorRate` in BasnCore
+- `DebugCaptureReviewView`, `CaptureIngestor` in macOS target
+- `BasnTests/Integration/AudioPipelineTests.swift` — live audio → WER → routing
+- Weekly CI workflow at `.github/workflows/audio-integration.yml`
 
 ---
 
@@ -2079,7 +2132,7 @@ Branches are ordered by value/effort ratio. Each branch is a PR; test and merge 
 - Injects top-50 contacts into user message context
 
 **Branch: `apple-native/app-intents`** — Shortcuts + Siri + Focus Filter
-- New `Hex/AppIntents/` directory
+- New `Basn/AppIntents/` directory
 - Requires Xcode configuration (App Intents extension or inline Intents)
 
 **Branch: `apple-native/widgets`** — WidgetKit
@@ -2144,70 +2197,115 @@ Branches are ordered by value/effort ratio. Each branch is a PR; test and merge 
 
 ## 10. Files To Create / Modify Summary
 
-### New Swift files
+> **Path note:** `Hex/` was renamed to `Basn/` and `HexCore/` to `BasnCore/` on 2026-06-26. All paths below use the current names.
+
+### New Swift files — shipped ✅
 ```
-Hex/Clients/CastellumClient.swift                     (new — replaces two existing)
-Hex/Clients/HeuristicRouter.swift                     (new)
-Hex/Clients/SessionComplexityClassifier.swift         (new)
-Hex/Clients/ContactsContextClient.swift               (new)
-Hex/Clients/SpotlightIndexClient.swift                (new)
-Hex/Clients/ToolActions/NativeToolExecutor.swift      (new — dispatch hub)
-Hex/Clients/ToolActions/EventKitActionClient.swift    (new)
-Hex/Clients/ToolActions/NotesAppleScriptClient.swift  (new)
-Hex/Clients/ToolActions/FilesActionClient.swift       (new)
-Hex/Clients/ToolActions/URLSchemeActionClient.swift   (new)
-Hex/Clients/ToolActions/MusicAppleScriptClient.swift  (new)
-Hex/Clients/ToolActions/Microsoft365ActionClient.swift (new)
-Hex/AppIntents/StartCaptureIntent.swift               (new)
-Hex/AppIntents/StopCaptureIntent.swift                (new)
-Hex/AppIntents/GetTranscriptIntent.swift              (new)
-Hex/AppIntents/BasnFocusFilter.swift                  (new)
-Hex/AppIntents/BasnShortcutsProvider.swift            (new)
-BasnWidget/BasnWidgetBundle.swift                     (new Xcode target)
-BasnWidget/RecentCaptureWidget.swift                  (new)
-BasnWidget/QuickRecordWidget.swift                    (new)
+Basn/Clients/CastellumClient.swift                                     ✅ def420c
+Basn/Clients/ModelContextClient.swift                                  ✅ 505dad7
+Shared/Sources/BasinShared/Routing/HeuristicRouter.swift               ✅ def420c → moved 505dad7
+Shared/Sources/BasinShared/Routing/SessionComplexityClassifier.swift   ✅ def420c → moved 505dad7
+Shared/Sources/BasinShared/Routing/ExecutionPlan.swift                 ✅ moved 505dad7
+Shared/Sources/BasinShared/Routing/SessionAnalysis.swift               ✅ moved 505dad7
+Shared/Sources/BasinShared/Routing/StructuredCapture.swift             ✅ moved 505dad7
+Shared/Sources/BasinShared/Routing/CastellumResponseParser.swift       ✅ 6812658 → moved 505dad7
+Shared/Sources/BasinShared/Routing/SessionContext.swift                ✅ 505dad7
+Shared/Sources/BasinShared/Routing/Capability.swift                    ✅ b99728e
+Shared/Sources/BasinShared/Routing/CapabilityMatcher.swift             ✅ b99728e
+BasnCore/Sources/BasnCore/SharedRouting.swift                          ✅ 505dad7 (re-exports)
+BasnCore/Sources/BasnCore/Logic/CaptureScenario.swift                  ✅ 6812658
+BasnCore/Sources/BasnCore/DebugCaptureArchive.swift                    ✅ 849d0c8
+BasnCore/Sources/BasnCore/Logic/CaptureGrade.swift                     ✅ 849d0c8
+BasnCore/Sources/BasnCore/Logic/AudioQualityMetrics.swift              ✅ 849d0c8
+BasnCore/Sources/BasnCore/Logic/WordErrorRate.swift                    ✅ 849d0c8
+Basn/Features/Home/DebugCaptureReviewView.swift                        ✅ 849d0c8
+Basn/Support/CaptureIngestor.swift                                     ✅ 849d0c8
+iOS/Processing/IOSCastellumClient.swift                                ✅ d0931d5
+iOS/Processing/CapabilityResolver.swift                                ✅ d0931d5
+iOS/Processing/IOSExecutionPlanView.swift                              ✅ d0931d5
+iOS/App/DeveloperMode.swift                                            ✅ d0931d5
 ```
 
-### Modified Swift files
+### New Swift files — pending
 ```
-Hex/Clients/AnthropicClient.swift                     (generalize system prompt)
-Hex/Clients/CastellumPlannerClient+Live.swift         (deprecate → delegate to CastellumClient)
-Hex/Clients/ToolActions/GenericToolExecutor.swift     (add native_ prefix routing)
-Hex/Clients/ToolActions/ToolDefinitionLoader.swift    (add "type": "native" field)
-Hex/Clients/ToolActions/ToolActionRegistry.swift      (add Toggl start/stop/get)
-Hex/Clients/ToolActions/TogglActionClient.swift       (extend with 4 new actions)
-Hex/Clients/ToolActions/JiraActionClient.swift        (extend with 5 new actions)
-Hex/Features/Castellum/CastellumFeature.swift        (wire to unified CastellumClient)
-HexCore/Sources/BasnCore/Settings/BasinSettings.swift (add selectedModel preference)
+Basn/Clients/ContactsContextClient.swift                        (apple-native/contacts)
+Basn/Clients/SpotlightIndexClient.swift                         (apple-native/clipboard-spotlight)
+Basn/Clients/MarketplaceClient.swift                            (marketplace/client)
+Basn/Clients/MarketplaceSubmissionClient.swift                  (marketplace/client)
+Basn/Clients/ToolActions/NativeToolExecutor.swift               (apple-native/eventkit — dispatch hub)
+Basn/Clients/ToolActions/EventKitActionClient.swift             (apple-native/eventkit)
+Basn/Clients/ToolActions/NotesAppleScriptClient.swift           (apple-native/notes)
+Basn/Clients/ToolActions/FilesActionClient.swift                (apple-native/files)
+Basn/Clients/ToolActions/URLSchemeActionClient.swift            (apple-native/url-schemes)
+Basn/Clients/ToolActions/MusicAppleScriptClient.swift           (apple-native/music)
+Basn/Clients/ToolActions/Microsoft365ActionClient.swift         (tools/microsoft365)
+Basn/AppIntents/StartCaptureIntent.swift                        (apple-native/app-intents)
+Basn/AppIntents/StopCaptureIntent.swift                         (apple-native/app-intents)
+Basn/AppIntents/GetTranscriptIntent.swift                       (apple-native/app-intents)
+Basn/AppIntents/BasnFocusFilter.swift                           (apple-native/app-intents)
+Basn/AppIntents/BasnShortcutsProvider.swift                     (apple-native/app-intents)
+Basn/Features/Marketplace/AIToolBuilderFeature.swift            (marketplace/ai-tool-builder)
+Basn/Features/Marketplace/AIToolBuilderView.swift               (marketplace/ai-tool-builder)
+Basn/Features/Marketplace/ToolActionTestRunner.swift            (marketplace/ai-tool-builder)
+Basn/Features/Marketplace/ToolTestResultView.swift              (marketplace/ai-tool-builder)
+Basn/Features/Marketplace/MarketplaceFeature.swift              (marketplace/browse-ui)
+Basn/Features/Marketplace/MarketplaceView.swift                 (marketplace/browse-ui)
+Basn/Features/Marketplace/ToolDetailView.swift                  (marketplace/browse-ui)
+BasnWidget/BasnWidgetBundle.swift                               (apple-native/widgets — new Xcode target)
+BasnWidget/RecentCaptureWidget.swift                            (apple-native/widgets)
+BasnWidget/QuickRecordWidget.swift                              (apple-native/widgets)
 ```
 
-### New JSON tool definitions
+### Modified Swift files — shipped ✅
 ```
-Hex/Resources/Data/tool-definitions/apple-reminders.json
-Hex/Resources/Data/tool-definitions/apple-calendar.json
-Hex/Resources/Data/tool-definitions/apple-notes.json
-Hex/Resources/Data/tool-definitions/apple-files.json
-Hex/Resources/Data/tool-definitions/apple-contacts.json
-Hex/Resources/Data/tool-definitions/apple-mail.json
-Hex/Resources/Data/tool-definitions/apple-messages.json
-Hex/Resources/Data/tool-definitions/apple-maps.json
-Hex/Resources/Data/tool-definitions/apple-safari.json
-Hex/Resources/Data/tool-definitions/apple-photos.json
-Hex/Resources/Data/tool-definitions/apple-music.json
-Hex/Resources/Data/tool-definitions/confluence.json
-Hex/Resources/Data/tool-definitions/microsoft365.json
-Hex/Resources/Data/tool-definitions/day-one.json
-Hex/Resources/Data/tool-definitions/things3.json
-Hex/Resources/Data/tool-definitions/omnifocus.json
-Hex/Resources/Data/tool-definitions/obsidian.json
-Hex/Resources/Data/tool-definitions/notion.json
-Hex/Resources/Data/tool-definitions/todoist.json
-Hex/Resources/Data/tool-definitions/linear.json
-Hex/Resources/Data/tool-definitions/zoom.json
-Hex/Resources/Data/tool-definitions/hubspot.json
-Hex/Resources/Data/tool-definitions/spotify.json
-Hex/Resources/Data/tool-definitions/fantastical.json
-Hex/Resources/Data/tool-definitions/infra.json
+Basn/Clients/AnthropicClient.swift                              ✅ system prompt generalized (still exists as legacy)
+Basn/Clients/CastellumPlannerClient+Live.swift                  ✅ superseded by CastellumClient (still exists as legacy)
+Basn/Features/Castellum/CastellumFeature.swift                  ✅ wired to unified CastellumClient
+BasnCore/Sources/BasnCore/Models/ExecutionPlan.swift             ✅ modelUsed field added
+Basn/Models/BasinModels.swift                                    ✅ tokenLastRefreshedAt added
+```
+
+### Modified Swift files — pending
+```
+Basn/Clients/ToolActions/GenericToolExecutor.swift              (apple-native/eventkit — add native_ routing)
+Basn/Clients/ToolActions/ToolDefinitionLoader.swift             (marketplace/client — InstalledTools/ loading order + RegistrySpec)
+Basn/Clients/ToolActions/TogglActionClient.swift                (tools/toggl-extend — 4 new actions)
+Basn/Clients/ToolActions/JiraActionClient.swift                 (tools/jira-extend — 5 new actions)
+Basn/Features/Settings/ToolsSectionView.swift                   (marketplace/browse-ui — "Browse Marketplace" button)
+Basn/Models/BasinModels.swift                                   (marketplace/client — installedFromMarketplace, isUserCreated fields)
+```
+
+### New JSON tool definitions — pending
+```
+Basn/Resources/Data/tool-definitions/apple-reminders.json
+Basn/Resources/Data/tool-definitions/apple-calendar.json
+Basn/Resources/Data/tool-definitions/apple-notes.json
+Basn/Resources/Data/tool-definitions/apple-files.json
+Basn/Resources/Data/tool-definitions/apple-contacts.json
+Basn/Resources/Data/tool-definitions/apple-mail.json
+Basn/Resources/Data/tool-definitions/apple-messages.json
+Basn/Resources/Data/tool-definitions/apple-maps.json
+Basn/Resources/Data/tool-definitions/apple-safari.json
+Basn/Resources/Data/tool-definitions/apple-photos.json
+Basn/Resources/Data/tool-definitions/apple-music.json
+Basn/Resources/Data/tool-definitions/confluence.json
+Basn/Resources/Data/tool-definitions/microsoft365.json
+```
+
+### New JSON tool definitions — marketplace PRs (not app files)
+```
+tools/day-one.json          → LyraDesigns/basn-marketplace
+tools/things3.json
+tools/omnifocus.json
+tools/obsidian.json
+tools/notion.json
+tools/todoist.json
+tools/linear.json
+tools/zoom.json
+tools/hubspot.json
+tools/spotify.json
+tools/fantastical.json
+tools/infra.json
 ```
 
 ---
