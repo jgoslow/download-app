@@ -1,6 +1,8 @@
 # Basn — Integration Master Plan + Token Efficiency Architecture
 
-**Status:** Execution-ready. Covers Tool Marketplace architecture, Apple native integrations, extended core tools (Toggl/Atlassian/Google/Microsoft 365), server/infra, and non-native third-party apps. Includes token analysis, model tiering, and heuristic routing design. Each section is self-contained enough for a separate agent to implement.
+**Status:** In progress — Token efficiency pre-work (sections 1–2) is **fully shipped** as of 2026-06-09. Marketplace infrastructure (section 0.12) is the current priority. Apple native integrations (section 4) and extended tools (section 5) are queued. File paths updated throughout to reflect the `Hex/` → `Basn/` rename (2026-06-26).
+
+**Shipped:** `CastellumClient.swift` (unified single-call), `HeuristicRouter.swift` (Toggl patterns only — expand with each native tool branch), `SessionComplexityClassifier.swift`, prompt caching, `CaptureScenario` fixture testing infrastructure.
 
 ---
 
