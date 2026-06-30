@@ -14,21 +14,6 @@ import BasnCore
 
 private let routerLogger = BasnLog.app
 
-/// A summary of a previous session, used as pre-session context.
-public struct SessionContext: Codable, Sendable {
-    public let timestamp: String?
-    public let summary: String?
-    public let moodTag: String?
-    public let tasks: [String]?
-    public let routing: [String]?
-    public let delegations: [String]?
-
-    enum CodingKeys: String, CodingKey {
-        case timestamp, summary, tasks, routing, delegations
-        case moodTag = "mood_tag"
-    }
-}
-
 /// The outcome of routing a session.
 public enum RoutingStatus: Sendable, Equatable {
     /// Saved to disk only — no server URL configured.
@@ -131,11 +116,17 @@ extension DestinationRouterClient: DependencyKey {
                 routerLogger.error("Analysis POST failed for \(sessionID): \(error.localizedDescription)")
             }
         }, fetchContext: { typeID in
+            // Native-first: assemble cross-session continuity from the on-device
+            // store (recent captures + analyses for this flow). No server needed.
+            let local = (try? await ModelContextClient.liveValue.fetchRecentContext(typeID, 5)) ?? []
+
             @Shared(.basnSettings) var basnSettings: BasnSettings
             let config = basnSettings.basinSettings
             guard !config.serverURL.isEmpty,
-                  let serverURL = URL(string: config.serverURL) else { return [] }
+                  let serverURL = URL(string: config.serverURL) else { return local }
 
+            // Optional override: when a Castellum server is configured, prefer it,
+            // falling back to local context if the request fails.
             do {
                 let contextURL = serverURL.appendingPathComponent("sessions/context/\(typeID)")
                 var request = URLRequest(url: contextURL)
@@ -155,7 +146,7 @@ extension DestinationRouterClient: DependencyKey {
                 return response.recent_sessions
             } catch {
                 routerLogger.error("Context fetch failed for \(typeID): \(error.localizedDescription)")
-                return []
+                return local
             }
         })
     }

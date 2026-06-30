@@ -21,6 +21,9 @@ struct ModelContextClient {
     var saveCapture: @Sendable (CaptureRecord) async throws -> Void
     var saveAnalysis: @Sendable (CaptureAnalysis, CaptureRecord) async throws -> Void
     var fetchCaptures: @Sendable (_ limit: Int?) async throws -> [CaptureRecord]
+    /// Assemble recent prior-session context for a flow from the local store —
+    /// the native, on-device source for capture continuity (no server needed).
+    var fetchRecentContext: @Sendable (_ flowID: String, _ limit: Int) async throws -> [SessionContext]
     var deleteCapture: @Sendable (_ id: String) async throws -> Void
 
     // Flows
@@ -67,6 +70,28 @@ extension ModelContextClient: DependencyKey {
                     )
                     if let limit { descriptor.fetchLimit = limit }
                     return try context.fetch(descriptor)
+                }
+            },
+            fetchRecentContext: { flowID, limit in
+                try await MainActor.run {
+                    var descriptor = FetchDescriptor<CaptureRecord>(
+                        predicate: #Predicate { $0.flowID == flowID },
+                        sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+                    )
+                    descriptor.fetchLimit = limit
+                    let captures = try context.fetch(descriptor)
+                    let fmt = ISO8601DateFormatter()
+                    return captures.compactMap { cap -> SessionContext? in
+                        guard let a = cap.analysis else { return nil }
+                        return SessionContext(
+                            timestamp: fmt.string(from: cap.timestamp),
+                            summary: a.summary,
+                            moodTag: a.moodTag,
+                            tasks: a.tasks.isEmpty ? nil : a.tasks,
+                            routing: a.routing.isEmpty ? nil : a.routing,
+                            delegations: a.delegations.isEmpty ? nil : a.delegations
+                        )
+                    }
                 }
             },
             deleteCapture: { id in
