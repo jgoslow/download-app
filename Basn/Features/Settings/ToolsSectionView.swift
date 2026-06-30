@@ -23,6 +23,7 @@ struct ToolsSectionView: View {
     @Bindable var store: StoreOf<SettingsFeature>
     @Query(sort: \Tool.name) private var tools: [Tool]
     @State private var connectingTool: Tool?
+    @State private var showingMarketplace = false
 
     var body: some View {
         Section {
@@ -31,9 +32,24 @@ struct ToolsSectionView: View {
             }
         } header: {
             Text("Tools")
+        } footer: {
+            Button {
+                showingMarketplace = true
+            } label: {
+                Label("Browse Marketplace", systemImage: "storefront")
+                    .font(.callout)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Color.accentColor)
+            .padding(.top, 4)
         }
         .sheet(item: $connectingTool) { tool in
             ToolConnectSheet(tool: tool, onDismiss: { connectingTool = nil })
+        }
+        .sheet(isPresented: $showingMarketplace) {
+            MarketplaceView(store: Store(initialState: MarketplaceFeature.State()) {
+                MarketplaceFeature()
+            })
         }
     }
 }

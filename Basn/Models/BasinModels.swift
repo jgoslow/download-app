@@ -327,6 +327,17 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     /// Stored as JSON. Fetched after OAuth connect and refreshed periodically.
     var serviceMetadata: Data?
 
+    // MARK: Marketplace provenance
+
+    /// True if this tool was installed from the Basn marketplace rather than shipped in the bundle.
+    var installedFromMarketplace: Bool
+    /// The version string from the marketplace registry block (e.g. "1.2.0"). Nil for bundled tools.
+    var marketplaceVersion: String?
+    /// Marketplace badge: "verified" | "community" | nil (bundled).
+    var marketplaceSource: String?
+    /// True if this tool was created with the in-app AI tool builder and has not yet been submitted.
+    var isUserCreated: Bool
+
     /// Legacy field — migration only
     var authType: String
     var authToken: String?
@@ -342,7 +353,11 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
         supportsOAuth: Bool? = true,
         supportsAPIKey: Bool? = true,
         apiKeyLabel: String? = "API Token",
-        baseURL: String? = nil
+        baseURL: String? = nil,
+        installedFromMarketplace: Bool = false,
+        marketplaceVersion: String? = nil,
+        marketplaceSource: String? = nil,
+        isUserCreated: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -354,6 +369,10 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
         self.supportsAPIKey = supportsAPIKey
         self.apiKeyLabel = apiKeyLabel
         self.baseURL = baseURL
+        self.installedFromMarketplace = installedFromMarketplace
+        self.marketplaceVersion = marketplaceVersion
+        self.marketplaceSource = marketplaceSource
+        self.isUserCreated = isUserCreated
         // Legacy defaults
         self.authType = activeAuthMethod ?? "oauth"
         self.authToken = nil

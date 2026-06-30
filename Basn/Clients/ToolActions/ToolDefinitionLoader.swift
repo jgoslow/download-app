@@ -31,12 +31,30 @@ struct ToolDefinitionSpec: Codable {
     let claudeContext: ClaudeContextSpec?
     /// Lightweight endpoint used by "Verify connection" in Settings → Tools.
     let healthCheck: HealthCheckSpec?
+    /// Marketplace metadata — present on definitions downloaded from basn-marketplace.
+    let registry: RegistrySpec?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, icon, auth, discovery, actions, workflows
+        case id, name, icon, auth, discovery, actions, workflows, registry
         case baseUrl = "base_url"
         case claudeContext = "claude_context"
         case healthCheck = "health_check"
+    }
+
+    struct RegistrySpec: Codable {
+        let version: String
+        let author: String
+        let verified: Bool
+        let category: String?
+        let tags: [String]?
+        let description: String?
+        let minimumBasnVersion: String?
+        let pricing: String?
+
+        enum CodingKeys: String, CodingKey {
+            case version, author, verified, category, tags, description, pricing
+            case minimumBasnVersion = "minimum_basn_version"
+        }
     }
 
     struct HealthCheckSpec: Codable {
@@ -179,36 +197,70 @@ struct AnyCodable: Codable {
 enum ToolDefinitionLoader {
     private static var cache: [String: ToolDefinitionSpec] = [:]
 
-    /// Load all bundled tool definitions.
+    /// Directory where marketplace-installed tool definitions are stored on disk.
+    static var installedToolsDirectory: URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        return appSupport.appendingPathComponent("com.lyra.basn/InstalledTools", isDirectory: true)
+    }
+
+    /// Clears the in-memory cache so the next call re-reads from disk.
+    static func invalidateCache() { cache = [:] }
+
+    /// Load all tool definitions — installed marketplace tools merged with bundled defaults.
+    /// Marketplace-installed definitions shadow same-ID bundled definitions so updates take effect
+    /// without a full app release.
     static func loadAll() -> [ToolDefinitionSpec] {
-        if !cache.isEmpty { return Array(cache.values) }
+        var seen = Set<String>()
+        var defs: [ToolDefinitionSpec] = []
 
-        guard let defDir = Bundle.main.url(forResource: "tool-definitions", withExtension: nil) else {
-            // Try finding individual files
-            var defs: [ToolDefinitionSpec] = []
-            for name in ["jira", "slack", "toggl", "github", "calendar", "email", "wave"] {
-                if let def = load(name) { defs.append(def) }
+        // 1. Installed marketplace tools (highest priority)
+        if let files = try? FileManager.default.contentsOfDirectory(
+            at: installedToolsDirectory, includingPropertiesForKeys: nil
+        ).filter({ $0.pathExtension == "json" }) {
+            for file in files {
+                let id = file.deletingPathExtension().lastPathComponent
+                if let spec = loadFromURL(file, cacheKey: id) {
+                    defs.append(spec)
+                    seen.insert(id)
+                }
             }
-            return defs
         }
 
-        guard let files = try? FileManager.default.contentsOfDirectory(
-            at: defDir, includingPropertiesForKeys: nil
-        ).filter({ $0.pathExtension == "json" }) else {
-            return []
+        // 2. Bundled definitions (skip IDs already loaded from InstalledTools/)
+        if let defDir = Bundle.main.url(forResource: "tool-definitions", withExtension: nil),
+           let files = try? FileManager.default.contentsOfDirectory(
+               at: defDir, includingPropertiesForKeys: nil
+           ).filter({ $0.pathExtension == "json" }) {
+            for file in files {
+                let id = file.deletingPathExtension().lastPathComponent
+                guard !seen.contains(id) else { continue }
+                if let spec = loadFromURL(file, cacheKey: id) {
+                    defs.append(spec)
+                    seen.insert(id)
+                }
+            }
+        } else {
+            // Fallback: try well-known IDs individually
+            for name in ["jira", "slack", "toggl", "github", "google", "wave"] where !seen.contains(name) {
+                if let def = load(name) { defs.append(def); seen.insert(name) }
+            }
         }
 
-        return files.compactMap { url in
-            let name = url.deletingPathExtension().lastPathComponent
-            return load(name)
-        }
+        return defs
     }
 
     /// Load a specific tool definition by ID.
+    /// Installed marketplace tools take precedence over bundled definitions.
     static func load(_ toolID: String) -> ToolDefinitionSpec? {
         if let cached = cache[toolID] { return cached }
 
-        // Try tool-definitions subdirectory first, then root Data
+        // 1. InstalledTools/ first
+        let installedURL = installedToolsDirectory.appendingPathComponent("\(toolID).json")
+        if FileManager.default.fileExists(atPath: installedURL.path) {
+            return loadFromURL(installedURL, cacheKey: toolID)
+        }
+
+        // 2. Bundled tool-definitions directory
         let url = Bundle.main.url(forResource: toolID, withExtension: "json", subdirectory: "Data/tool-definitions")
             ?? Bundle.main.url(forResource: toolID, withExtension: "json")
 
@@ -217,14 +269,18 @@ enum ToolDefinitionLoader {
             return nil
         }
 
+        return loadFromURL(url, cacheKey: toolID)
+    }
+
+    private static func loadFromURL(_ url: URL, cacheKey: String) -> ToolDefinitionSpec? {
         do {
             let data = try Data(contentsOf: url)
             let spec = try JSONDecoder().decode(ToolDefinitionSpec.self, from: data)
-            cache[toolID] = spec
+            cache[cacheKey] = spec
             loaderLogger.info("Loaded tool definition: \(spec.id) (\(spec.actions.count) actions)")
             return spec
         } catch {
-            loaderLogger.error("Failed to parse tool definition \(toolID): \(error.localizedDescription)")
+            loaderLogger.error("Failed to parse tool definition \(cacheKey): \(error.localizedDescription)")
             return nil
         }
     }
