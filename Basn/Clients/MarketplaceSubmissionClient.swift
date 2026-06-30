@@ -1,6 +1,9 @@
 import ComposableArchitecture
 import Foundation
 import os
+#if os(iOS)
+import UIKit
+#endif
 #if canImport(BasnCore)
 import BasnCore
 private let log = BasnLog.app

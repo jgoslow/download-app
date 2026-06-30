@@ -63,25 +63,17 @@ enum GenericToolExecutor {
 
         // Special handlers — native platform integrations bypass HTTP entirely
         if let handler = actionSpec.specialHandler {
-            // EventKit (Reminders / Calendar)
+            // EventKit (Reminders / Calendar) — cross-platform
             if handler.hasPrefix("eventkit_") {
-                #if os(macOS)
                 return await EventKitActionClient.execute(action: action, handler: handler)
-                #else
-                return ActionResult(actionID: action.id, success: false, error: "EventKit actions require macOS")
-                #endif
             }
             // URL schemes (Mail, Messages, Maps)
             if handler.hasPrefix("url_scheme_") {
                 return await URLSchemeActionClient.execute(action: action, handler: handler)
             }
-            // AppleScript (Notes)
+            // Notes — AppleScript on macOS, share sheet on iOS
             if handler.hasPrefix("applescript_") {
-                #if os(macOS)
                 return await NotesAppleScriptClient.execute(action: action, handler: handler)
-                #else
-                return ActionResult(actionID: action.id, success: false, error: "AppleScript actions require macOS")
-                #endif
             }
             // Files (iCloud Drive)
             if handler.hasPrefix("files_") {

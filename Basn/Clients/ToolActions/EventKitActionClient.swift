@@ -1,4 +1,3 @@
-#if os(macOS)
 import EventKit
 import Foundation
 import BasinShared
@@ -151,4 +150,3 @@ enum EventKitActionClient {
         }
     }
 }
-#endif
