@@ -3,7 +3,9 @@
   "name": "Google",
   "icon": "globe",
   "auth": {
-    "methods": ["oauth"],
+    "methods": [
+      "oauth"
+    ],
     "oauth_provider": "google",
     "scopes_selectable": true,
     "available_scopes": {
@@ -87,7 +89,8 @@
         }
       },
       "success_extract": "$.id",
-      "success_message": "Event created"
+      "success_message": "Event created",
+      "capability": "schedule_event"
     },
     "send_email": {
       "display_name": "Send email",
@@ -113,7 +116,8 @@
         }
       },
       "success_extract": "$.id",
-      "success_message": "Email sent"
+      "success_message": "Email sent",
+      "capability": "send_email"
     },
     "create_document": {
       "display_name": "Create Google Doc",
@@ -134,7 +138,8 @@
         }
       },
       "success_extract": "$.documentId",
-      "success_message": "Document created: {result}"
+      "success_message": "Document created: {result}",
+      "capability": "create_document"
     },
     "append_text": {
       "display_name": "Append text to Doc",

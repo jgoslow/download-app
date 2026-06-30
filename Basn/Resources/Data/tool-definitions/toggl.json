@@ -3,7 +3,9 @@
   "name": "Toggl",
   "icon": "clock.fill",
   "auth": {
-    "methods": ["api_key"],
+    "methods": [
+      "api_key"
+    ],
     "api_key_label": "API Token",
     "api_key_format": "basic_token_only",
     "api_key_help": "Find your API token at https://track.toggl.com/profile (bottom of page)"
@@ -73,7 +75,8 @@
         }
       },
       "success_extract": "$.id",
-      "success_message": "Logged {duration_minutes}m"
+      "success_message": "Logged {duration_minutes}m",
+      "capability": "log_time"
     }
   },
   "workflows": {

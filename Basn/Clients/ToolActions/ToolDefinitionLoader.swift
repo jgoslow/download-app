@@ -108,10 +108,13 @@ struct ToolDefinitionSpec: Codable {
         let parameters: [String: ParameterSpec]
         let successExtract: String?
         let successMessage: String?
+        /// Generic capability this action provides (e.g. "create_task"). Resolves
+        /// a connected tool for a capability and powers the connect prompt.
+        let capability: String?
 
         enum CodingKeys: String, CodingKey {
             case displayName = "display_name"
-            case description, endpoint, method, headers, parameters
+            case description, endpoint, method, headers, parameters, capability
             case bodyTemplate = "body_template"
             case specialHandler = "special_handler"
             case successExtract = "success_extract"

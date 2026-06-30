@@ -3,7 +3,10 @@
   "name": "Jira",
   "icon": "list.clipboard",
   "auth": {
-    "methods": ["oauth", "api_key"],
+    "methods": [
+      "oauth",
+      "api_key"
+    ],
     "oauth_provider": "atlassian",
     "api_key_label": "Email:API Token",
     "api_key_format": "basic",
@@ -45,9 +48,13 @@
       },
       "body_template": {
         "fields": {
-          "project": { "key": "{project_key}" },
+          "project": {
+            "key": "{project_key}"
+          },
           "summary": "{summary}",
-          "issuetype": { "name": "{issue_type}" },
+          "issuetype": {
+            "name": "{issue_type}"
+          },
           "description": {
             "type": "doc",
             "version": 1,
@@ -55,7 +62,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "{description}" }
+                  {
+                    "type": "text",
+                    "text": "{description}"
+                  }
                 ]
               }
             ]
@@ -83,12 +93,18 @@
           "type": "string",
           "required": false,
           "default": "Task",
-          "enum": ["Task", "Bug", "Story", "Epic"],
+          "enum": [
+            "Task",
+            "Bug",
+            "Story",
+            "Epic"
+          ],
           "description": "The type of Jira issue"
         }
       },
       "success_extract": "$.key",
-      "success_message": "Created {result}"
+      "success_message": "Created {result}",
+      "capability": "create_task"
     }
   },
   "workflows": {

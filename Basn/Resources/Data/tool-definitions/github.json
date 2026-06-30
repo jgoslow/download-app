@@ -3,7 +3,10 @@
   "name": "GitHub",
   "icon": "chevron.left.forwardslash.chevron.right",
   "auth": {
-    "methods": ["oauth", "api_key"],
+    "methods": [
+      "oauth",
+      "api_key"
+    ],
     "oauth_provider": "github",
     "api_key_label": "Personal Access Token",
     "api_key_format": "bearer"
@@ -53,7 +56,8 @@
         }
       },
       "success_extract": "$.html_url",
-      "success_message": "Issue created: {result}"
+      "success_message": "Issue created: {result}",
+      "capability": "create_task"
     }
   },
   "workflows": {}

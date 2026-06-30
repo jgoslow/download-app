@@ -3,7 +3,10 @@
   "name": "Slack",
   "icon": "bubble.left.fill",
   "auth": {
-    "methods": ["oauth", "api_key"],
+    "methods": [
+      "oauth",
+      "api_key"
+    ],
     "oauth_provider": "slack",
     "api_key_label": "Bot Token",
     "api_key_format": "bearer",
@@ -53,7 +56,8 @@
         }
       },
       "success_extract": "$.ts",
-      "success_message": "Message sent"
+      "success_message": "Message sent",
+      "capability": "send_message"
     }
   },
   "workflows": {
