@@ -51,12 +51,19 @@ struct RecordView: View {
                 }
 
                 if appState.isRecording {
-                    Text(durationText)
-                        .font(.system(.title3, design: .monospaced))
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 16)
-                        .padding(.bottom, 140)
+                    HStack(spacing: 6) {
+                        if appState.isPaused {
+                            Image(systemName: "pause.circle.fill")
+                                .foregroundStyle(.orange)
+                        }
+                        Text(durationText)
+                            .font(.system(.title3, design: .monospaced))
+                            .fontWeight(.medium)
+                            .foregroundStyle(appState.isPaused ? .orange : .secondary)
+                    }
+                    .padding(.top, 16)
+                    .padding(.bottom, 140)
+                    .animation(.easeInOut(duration: 0.2), value: appState.isPaused)
                 }
             }
         }

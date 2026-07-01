@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedTab: Tab = .home
+    @State private var homePath = NavigationPath()
     @State private var useTypeMode = false
     @State private var showTextInput = false
     @State private var typedText = ""
@@ -38,11 +39,22 @@ struct ContentView: View {
     private var fabColor: Color {
         if useTypeMode { return .black }
         if appState.isTranscribing { return Color(.systemGray3) }
+        if appState.isPaused { return .orange }
         return appState.isRecording ? .red : .blue
     }
 
     private var fabIcon: String {
         useTypeMode ? "keyboard" : (appState.isRecording ? "waveform" : "mic.fill")
+    }
+
+    private var toggleColor: Color {
+        if appState.isRecording { return appState.isPaused ? .green : .orange }
+        return useTypeMode ? Color.blue : Color.black
+    }
+
+    private var toggleIcon: String {
+        if appState.isRecording { return appState.isPaused ? "play.fill" : "pause.fill" }
+        return useTypeMode ? "mic.fill" : "keyboard"
     }
 
     private var toggleXOffset: CGFloat {
@@ -90,7 +102,7 @@ struct ContentView: View {
     @ViewBuilder
     private var tabContent: some View {
         switch selectedTab {
-        case .home:     HomeView()
+        case .home:     HomeView(navigationPath: $homePath)
         case .record:   RecordView()
         case .settings: SettingsView()
         }
@@ -123,14 +135,14 @@ struct ContentView: View {
                     .ignoresSafeArea(edges: .bottom)
             }
 
-            // ── Mode toggle ────────────────────────────────────────────────────
-            // Completely above the tab bar top line.
+            // ── Mode toggle / Pause control ────────────────────────────────────
+            // During recording this button becomes pause/resume; otherwise it toggles input mode.
             Button { handleToggle() } label: {
                 ZStack {
                     Circle()
-                        .fill(useTypeMode ? Color.blue : Color.black)
-                        .shadow(color: (useTypeMode ? Color.blue : Color.black).opacity(0.35), radius: 4, y: 2)
-                    Image(systemName: useTypeMode ? "mic.fill" : "keyboard")
+                        .fill(toggleColor)
+                        .shadow(color: toggleColor.opacity(0.35), radius: 4, y: 2)
+                    Image(systemName: toggleIcon)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(.white)
                 }
@@ -187,17 +199,34 @@ struct ContentView: View {
     }
 
     private func handleToggle() {
-        withAnimation(.spring(duration: 0.3, bounce: 0.15)) {
-            useTypeMode.toggle()
+        if appState.isRecording {
+            Task {
+                if appState.isPaused {
+                    await appState.resumeRecording()
+                } else {
+                    await appState.pauseRecording()
+                }
+            }
+        } else {
+            withAnimation(.spring(duration: 0.3, bounce: 0.15)) {
+                useTypeMode.toggle()
+            }
         }
-        if appState.isRecording { Task { await appState.stopRecording() } }
     }
 
     // MARK: - Bar Item
 
     private func barItem(tab: Tab, icon: String, label: String) -> some View {
-        let isActive = selectedTab == tab
-        return Button { selectedTab = tab } label: {
+        // Home is only "active" when on the home tab AND at the root (path empty).
+        let isActive = selectedTab == tab && (tab != .home || homePath.isEmpty)
+        return Button {
+            if tab == .home && selectedTab == .home {
+                // Already on home tab — pop to root if navigated deep.
+                withAnimation { homePath = NavigationPath() }
+            } else {
+                selectedTab = tab
+            }
+        } label: {
             // Icon + label centered inside the fixed tabHeight frame — no safe area padding here.
             VStack(spacing: 3) {
                 Image(systemName: icon)

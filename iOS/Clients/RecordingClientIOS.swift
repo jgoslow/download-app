@@ -23,6 +23,10 @@ actor RecordingClientLiveIOS {
     ]
     private let (meterStream, meterContinuation) = AsyncStream<Meter>.makeStream()
     private var meterTask: Task<Void, Never>?
+    private var interruptionTask: Task<Void, Never>?
+    private var routeChangeTask: Task<Void, Never>?
+    private(set) var isPaused = false
+    private var wasInterrupted = false
 
     func requestMicrophoneAccess() async -> Bool {
         await AVAudioApplication.requestRecordPermission()
@@ -31,18 +35,25 @@ actor RecordingClientLiveIOS {
     func startRecording() async {
         do {
             let session = AVAudioSession.sharedInstance()
-            // NOTE: `.measurement` mode disables input gain/AGC, which produced
-            // near-silent recordings (peak ~0.09, rms ~0.008) that Whisper
-            // transcribed as a single hallucinated token. `.default` mode keeps
-            // the standard input processing chain so speech is at a usable level.
-            try session.setCategory(.record, mode: .default)
+            // `.default` mode keeps AGC; `.measurement` produced near-silent recordings.
+            // Bluetooth options allow the session to survive route changes from Watch/AirPods
+            // workouts that would otherwise silently stop the recorder.
+            try session.setCategory(
+                .record,
+                mode: .default,
+                options: [.allowBluetooth, .allowBluetoothA2DP]
+            )
             try session.setActive(true)
             let r = try AVAudioRecorder(url: recordingURL, settings: recorderSettings)
             r.isMeteringEnabled = true
             r.prepareToRecord()
             r.record()
             recorder = r
+            isPaused = false
+            wasInterrupted = false
             startMeterTask()
+            startInterruptionObserver()
+            startRouteChangeObserver()
             recordingLogger.notice("iOS recording started")
         } catch {
             recordingLogger.error("Failed to start iOS recording: \(error.localizedDescription)")
@@ -52,7 +63,13 @@ actor RecordingClientLiveIOS {
     func stopRecording() async -> URL {
         recorder?.stop()
         stopMeterTask()
+        interruptionTask?.cancel()
+        routeChangeTask?.cancel()
+        interruptionTask = nil
+        routeChangeTask = nil
         recorder = nil
+        isPaused = false
+        wasInterrupted = false
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
 
         let exportURL = recordingURL
@@ -61,6 +78,27 @@ actor RecordingClientLiveIOS {
         try? FileManager.default.copyItem(at: recordingURL, to: exportURL)
         recordingLogger.notice("iOS recording stopped")
         return exportURL
+    }
+
+    func pauseRecording() {
+        guard let r = recorder, r.isRecording, !isPaused else { return }
+        r.pause()
+        isPaused = true
+        stopMeterTask()
+        recordingLogger.notice("iOS recording paused")
+    }
+
+    func resumeRecording() {
+        guard let r = recorder, isPaused else { return }
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            recordingLogger.error("Failed to reactivate session on resume: \(error.localizedDescription)")
+        }
+        r.record()
+        isPaused = false
+        startMeterTask()
+        recordingLogger.notice("iOS recording resumed")
     }
 
     func getCurrentRecordingURL() -> URL? {
@@ -72,6 +110,8 @@ actor RecordingClientLiveIOS {
     func getAvailableInputDevices() -> [AudioInputDevice] { [] }
     func getDefaultInputDeviceName() -> String? { nil }
     func cleanup() {}
+
+    // MARK: - Metering
 
     private func startMeterTask() {
         meterTask = Task {
@@ -88,6 +128,83 @@ actor RecordingClientLiveIOS {
     private func stopMeterTask() {
         meterTask?.cancel()
         meterTask = nil
+    }
+
+    // MARK: - Interruption handling
+    // Fitness workouts, phone calls, and alarms can interrupt the audio session.
+    // When the system signals `.ended` with `.shouldResume`, we reactivate and continue.
+
+    private func startInterruptionObserver() {
+        interruptionTask = Task {
+            for await notification in NotificationCenter.default.notifications(
+                named: AVAudioSession.interruptionNotification
+            ) {
+                if Task.isCancelled { break }
+                let typeValue = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
+                let optionValue = notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt
+                await self.handleInterruption(typeValue: typeValue, optionValue: optionValue)
+            }
+        }
+    }
+
+    private func handleInterruption(typeValue: UInt?, optionValue: UInt?) {
+        guard let typeValue, let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+        switch type {
+        case .began:
+            recordingLogger.notice("Audio interruption began")
+            wasInterrupted = true
+        case .ended:
+            wasInterrupted = false
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionValue ?? 0)
+            guard options.contains(.shouldResume), !isPaused else { return }
+            do {
+                try AVAudioSession.sharedInstance().setActive(true)
+                recorder?.record()
+                startMeterTask()
+                recordingLogger.notice("Resumed after audio interruption")
+            } catch {
+                recordingLogger.error("Failed to resume after interruption: \(error.localizedDescription)")
+            }
+        @unknown default:
+            break
+        }
+    }
+
+    // MARK: - Route change handling
+    // Watch workouts and headphone connects/disconnects can silently stop AVAudioRecorder.
+    // Re-check isRecording after route changes and restart if unexpectedly stopped.
+
+    private func startRouteChangeObserver() {
+        routeChangeTask = Task {
+            for await notification in NotificationCenter.default.notifications(
+                named: AVAudioSession.routeChangeNotification
+            ) {
+                if Task.isCancelled { break }
+                let reasonValue = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
+                await self.handleRouteChange(reasonValue: reasonValue)
+            }
+        }
+    }
+
+    private func handleRouteChange(reasonValue: UInt?) {
+        guard let reasonValue,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue)
+        else { return }
+
+        switch reason {
+        case .oldDeviceUnavailable, .override, .wakeFromSleep, .noSuitableRouteForCategory:
+            guard let r = recorder, !r.isRecording, !isPaused, !wasInterrupted else { return }
+            recordingLogger.notice("Route change (\(reasonValue)), attempting to continue recording")
+            do {
+                try AVAudioSession.sharedInstance().setActive(true)
+                r.record()
+                startMeterTask()
+            } catch {
+                recordingLogger.error("Failed to reactivate after route change: \(error.localizedDescription)")
+            }
+        default:
+            break
+        }
     }
 }
 

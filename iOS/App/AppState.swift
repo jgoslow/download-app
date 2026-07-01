@@ -17,6 +17,7 @@ final class AppState {
     var flows: [Flow] = [.openDefault]
     var activeFlow: Flow = .openDefault
     var isRecording = false
+    var isPaused = false
     var recordingDuration: TimeInterval = 0
     var audioLevel: Double = 0
     var sessions: [Session] = []
@@ -56,6 +57,8 @@ final class AppState {
     private let flowStore = FlowStore.live(bundle: .main)
     private var timerTask: Task<Void, Never>?
     private var levelTask: Task<Void, Never>?
+    /// Accumulated duration from completed segments before the current one (used during pause/resume).
+    private var accumulatedDuration: TimeInterval = 0
     private var recordingStart: Date?
 
     func isModelDownloaded(variant: String) -> Bool {
@@ -144,15 +147,37 @@ final class AppState {
         }
         await recorder.startRecording()
         isRecording = true
+        isPaused = false
         recordingStart = Date()
         recordingDuration = 0
+        accumulatedDuration = 0
         audioLevel = 0
         startTimerTask()
         startLevelTask()
     }
 
+    func pauseRecording() async {
+        guard isRecording, !isPaused else { return }
+        accumulatedDuration += Date().timeIntervalSince(recordingStart ?? Date())
+        recordingStart = nil
+        timerTask?.cancel()
+        timerTask = nil
+        await recorder.pauseRecording()
+        isPaused = true
+        audioLevel = 0
+    }
+
+    func resumeRecording() async {
+        guard isRecording, isPaused else { return }
+        await recorder.resumeRecording()
+        recordingStart = Date()
+        isPaused = false
+        startTimerTask()
+    }
+
     func stopRecording() async {
-        let duration = recordingDuration
+        // Capture total duration across all segments (including any current segment).
+        let duration = accumulatedDuration + (recordingStart.map { Date().timeIntervalSince($0) } ?? 0)
         timerTask?.cancel()
         levelTask?.cancel()
         timerTask = nil
@@ -160,6 +185,8 @@ final class AppState {
         let exportURL = await recorder.stopRecording()
         let capturedFlow = activeFlow
         isRecording = false
+        isPaused = false
+        accumulatedDuration = 0
         recordingDuration = 0
         audioLevel = 0
         recordingStart = nil
@@ -264,6 +291,16 @@ final class AppState {
         if let actions = HeuristicRouter.route(transcript: transcript, connectedToolIDs: allToolIDs) {
             plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: "heuristic")
             appLogger.notice("Heuristic routing: \(actions.count) action(s) for \(session.id, privacy: .public)")
+        } else if let actions = await FoundationModelsRouter.route(transcript: transcript, connectedToolIDs: allToolIDs) {
+            plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: "on-device")
+            appLogger.notice("On-device routing: \(actions.count) action(s) for \(session.id, privacy: .public)")
+        } else if settings.lightweightCloudRoutingEnabled,
+                  let actions = await LightweightRouter.route(
+                      transcript: transcript,
+                      connectedToolIDs: allToolIDs,
+                      apiKey: settings.anthropicAPIKey) {
+            plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: "lightweight")
+            appLogger.notice("Lightweight routing: \(actions.count) action(s) for \(session.id, privacy: .public)")
         } else if !settings.anthropicAPIKey.isEmpty {
             let capture = StructuredCapture.from(session: session)
             let context = recentContext(flowID: session.flowID, limit: 5)
@@ -286,17 +323,24 @@ final class AppState {
         // Always surface generic capability suggestions offline (no key/network),
         // for anything not already covered by a heuristic/Castellum action. This
         // is the pre-connection nudge — "this sounds like it wants to do X."
+        // Exception: when the heuristic produced a confident single-intent match,
+        // skip keyword suggestions — the transcript is already "claimed" and adding
+        // generic nudges on top creates noise (e.g. "journals" → capture_note
+        // appearing alongside a clearly-matched calendar action).
         var actions = plan?.actions ?? []
         let coveredCaps = Set(actions.compactMap { action -> String? in
             action.toolID.isEmpty
                 ? action.actionType
                 : CapabilityResolver.capability(forToolID: action.toolID, actionType: action.actionType)
         })
-        for cap in CapabilityMatcher.match(transcript) where !coveredCaps.contains(cap) {
-            actions.append(PlannedAction(
-                toolID: "", actionType: cap,
-                label: Capabilities.byID(cap)?.title ?? cap, parameters: [:]
-            ))
+        let confidentModels: Set<String> = ["heuristic", "on-device", "lightweight"]
+        if !confidentModels.contains(plan?.modelUsed ?? "") {
+            for cap in CapabilityMatcher.match(transcript) where !coveredCaps.contains(cap) {
+                actions.append(PlannedAction(
+                    toolID: "", actionType: cap,
+                    label: Capabilities.byID(cap)?.title ?? cap, parameters: [:]
+                ))
+            }
         }
         if !actions.isEmpty {
             plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: plan?.modelUsed ?? "local")
@@ -313,6 +357,11 @@ final class AppState {
             ca.capture = record
             record.analysis = ca
             mc.insert(ca)
+            try? mc.save()
+        }
+
+        if let plan, let data = try? JSONEncoder().encode(plan) {
+            record.executionPlanData = data
             try? mc.save()
         }
 
@@ -389,12 +438,81 @@ final class AppState {
         await reloadSessions()
     }
 
+    /// Re-route an existing session through the full pipeline without re-persisting it.
+    /// Sets lastPlan so the execution plan sheet appears, same as a fresh capture.
+    func rerunCapture(session: Session) async {
+        let mc = BasnAppIOS.modelContainer.mainContext
+        let tools = (try? mc.fetch(FetchDescriptor<Tool>())) ?? []
+        let allToolIDs = Set(tools.map(\.id))
+
+        var plan: ExecutionPlan?
+
+        if let actions = HeuristicRouter.route(transcript: session.rawText, connectedToolIDs: allToolIDs) {
+            plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: "heuristic")
+            appLogger.notice("Rerun heuristic: \(actions.count) action(s) for \(session.id, privacy: .public)")
+        } else if let actions = await FoundationModelsRouter.route(transcript: session.rawText, connectedToolIDs: allToolIDs) {
+            plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: "on-device")
+            appLogger.notice("Rerun on-device: \(actions.count) action(s) for \(session.id, privacy: .public)")
+        } else if settings.lightweightCloudRoutingEnabled,
+                  let actions = await LightweightRouter.route(
+                      transcript: session.rawText,
+                      connectedToolIDs: allToolIDs,
+                      apiKey: settings.anthropicAPIKey) {
+            plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: "lightweight")
+            appLogger.notice("Rerun lightweight: \(actions.count) action(s) for \(session.id, privacy: .public)")
+        } else if !settings.anthropicAPIKey.isEmpty {
+            let capture = StructuredCapture.from(session: session)
+            let context = recentContext(flowID: session.flowID, limit: 5)
+            let workflows = (try? mc.fetch(FetchDescriptor<Workflow>())) ?? []
+            do {
+                let (_, p) = try await IOSCastellumClient.analyzeAndPlan(
+                    capture: capture, promptTitles: [], context: context,
+                    tools: tools, workflows: workflows, apiKey: settings.anthropicAPIKey
+                )
+                plan = p
+                appLogger.notice("Rerun Castellum: \(p.actions.count) action(s) for \(session.id, privacy: .public)")
+            } catch {
+                appLogger.error("Rerun Castellum failed: \(error.localizedDescription)")
+            }
+        }
+
+        var actions = plan?.actions ?? []
+        let coveredCaps = Set(actions.compactMap { action -> String? in
+            action.toolID.isEmpty
+                ? action.actionType
+                : CapabilityResolver.capability(forToolID: action.toolID, actionType: action.actionType)
+        })
+        let confidentModels: Set<String> = ["heuristic", "on-device", "lightweight"]
+        if !confidentModels.contains(plan?.modelUsed ?? "") {
+            for cap in CapabilityMatcher.match(session.rawText) where !coveredCaps.contains(cap) {
+                actions.append(PlannedAction(
+                    toolID: "", actionType: cap,
+                    label: Capabilities.byID(cap)?.title ?? cap, parameters: [:]
+                ))
+            }
+        }
+        if !actions.isEmpty {
+            plan = ExecutionPlan(captureID: session.id, actions: actions, modelUsed: plan?.modelUsed ?? "local")
+        }
+
+        if let plan, let data = try? JSONEncoder().encode(plan) {
+            var desc = FetchDescriptor<CaptureRecord>(predicate: #Predicate { $0.id == session.id })
+            desc.fetchLimit = 1
+            if let existing = try? mc.fetch(desc).first {
+                existing.executionPlanData = data
+                try? mc.save()
+            }
+        }
+
+        lastPlan = plan
+    }
+
     private func startTimerTask() {
         timerTask = Task { @MainActor in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(250))
                 guard let start = recordingStart else { break }
-                recordingDuration = Date().timeIntervalSince(start)
+                recordingDuration = accumulatedDuration + Date().timeIntervalSince(start)
             }
         }
     }
