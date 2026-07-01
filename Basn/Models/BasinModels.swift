@@ -330,13 +330,13 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     // MARK: Marketplace provenance
 
     /// True if this tool was installed from the Basn marketplace rather than shipped in the bundle.
-    var installedFromMarketplace: Bool
+    var installedFromMarketplace: Bool = false
     /// The version string from the marketplace registry block (e.g. "1.2.0"). Nil for bundled tools.
     var marketplaceVersion: String?
     /// Marketplace badge: "verified" | "community" | nil (bundled).
     var marketplaceSource: String?
     /// True if this tool was created with the in-app AI tool builder and has not yet been submitted.
-    var isUserCreated: Bool
+    var isUserCreated: Bool = false
 
     /// Legacy field — migration only
     var authType: String
