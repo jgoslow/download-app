@@ -30,6 +30,8 @@ import SwiftData
     var appVersion: String
     var whisperModel: String
     var language: String?
+    /// JSON-encoded ExecutionPlan — persisted so history views can show the plan without re-routing.
+    var executionPlanData: Data?
 
     @Relationship(deleteRule: .cascade, inverse: \CaptureAnalysis.capture)
     var analysis: CaptureAnalysis?
@@ -338,6 +340,11 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     /// True if this tool was created with the in-app AI tool builder and has not yet been submitted.
     var isUserCreated: Bool = false
 
+    /// Whether the user has enabled this tool for routing. Distinct from isConnected (which covers auth).
+    /// System-auth tools start disabled — users opt in via onboarding or Settings toggle.
+    /// Non-system tools become enabled automatically when connected.
+    var isEnabled: Bool = true
+
     /// Legacy field — migration only
     var authType: String
     var authToken: String?
@@ -348,6 +355,7 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
         name: String,
         iconSystemName: String,
         isConnected: Bool = false,
+        isEnabled: Bool = true,
         autoExecute: Bool = false,
         activeAuthMethod: String? = "oauth",
         supportsOAuth: Bool? = true,
@@ -363,6 +371,7 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
         self.name = name
         self.iconSystemName = iconSystemName
         self.isConnected = isConnected
+        self.isEnabled = isEnabled
         self.autoExecute = autoExecute
         self.activeAuthMethod = activeAuthMethod
         self.supportsOAuth = supportsOAuth
@@ -382,6 +391,10 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
     var effectiveAuthMethod: String { activeAuthMethod ?? "oauth" }
     var effectiveSupportsOAuth: Bool { supportsOAuth ?? true }
     var effectiveSupportsAPIKey: Bool { supportsAPIKey ?? true }
+
+    /// True when this tool should be considered by the routing layer.
+    /// System tools require explicit user opt-in (isEnabled); other tools require connection.
+    var isAvailableForRouting: Bool { isEnabled && (effectiveAuthMethod == "system" || isConnected) }
 
     /// OAuth provider identifier used to look up the OAuth config
     var oauthProvider: String? {
@@ -411,21 +424,22 @@ struct FlowPrompt: Codable, Identifiable, Sendable, Equatable {
              supportsOAuth: true, supportsAPIKey: false),
         Tool(id: "wave", name: "Wave", iconSystemName: "dollarsign.circle",
              supportsOAuth: true, supportsAPIKey: false),
-        // Apple-native tools — no auth required, use system permissions
+        // Apple-native tools — always connected, no credential needed, system permissions on first use.
+        // isEnabled starts false — users opt in during onboarding or from Settings.
         Tool(id: "apple-reminders", name: "Reminders", iconSystemName: "checkmark.circle",
-             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+             isConnected: true, isEnabled: false, activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
         Tool(id: "apple-calendar", name: "Calendar", iconSystemName: "calendar",
-             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+             isConnected: true, isEnabled: false, activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
         Tool(id: "apple-notes", name: "Notes", iconSystemName: "note.text",
-             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+             isConnected: true, isEnabled: false, activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
         Tool(id: "apple-files", name: "Files", iconSystemName: "folder",
-             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+             isConnected: true, isEnabled: false, activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
         Tool(id: "apple-mail", name: "Mail", iconSystemName: "envelope",
-             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+             isConnected: true, isEnabled: false, activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
         Tool(id: "apple-messages", name: "Messages", iconSystemName: "message",
-             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+             isConnected: true, isEnabled: false, activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
         Tool(id: "apple-maps", name: "Maps", iconSystemName: "map",
-             activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
+             isConnected: true, isEnabled: false, activeAuthMethod: "system", supportsOAuth: false, supportsAPIKey: false),
     ]
 }
 
