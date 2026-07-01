@@ -2,7 +2,13 @@ import AVFoundation
 import BasinShared
 import SwiftUI
 
+/// Navigation destinations that HomeView's NavigationStack handles.
+enum HomeRoute: Hashable {
+    case history
+}
+
 struct HomeView: View {
+    @Binding var navigationPath: NavigationPath
     @Environment(AppState.self) private var appState
 
     @State private var showingSetupFlow = false
@@ -49,7 +55,7 @@ struct HomeView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
                     header
@@ -68,14 +74,20 @@ struct HomeView: View {
             .toolbar {
                 if !appState.sessions.isEmpty {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        NavigationLink {
-                            HistoryView()
-                        } label: {
+                        NavigationLink(value: HomeRoute.history) {
                             Text("History")
                                 .font(.subheadline)
                         }
                     }
                 }
+            }
+            .navigationDestination(for: HomeRoute.self) { route in
+                switch route {
+                case .history: HistoryView()
+                }
+            }
+            .navigationDestination(for: Session.self) { session in
+                SessionDetailView(session: session)
             }
         }
         .fullScreenCover(isPresented: $showingSetupFlow) {
@@ -248,9 +260,7 @@ struct HomeView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
                 Spacer()
-                NavigationLink {
-                    HistoryView()
-                } label: {
+                NavigationLink(value: HomeRoute.history) {
                     Text("See all")
                         .font(.subheadline)
                         .foregroundStyle(.blue)

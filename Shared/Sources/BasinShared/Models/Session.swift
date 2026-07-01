@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The JSON shape is the authoritative contract between the app and any server or downstream consumer.
 /// All field names use snake_case in JSON via explicit CodingKeys.
-public struct Session: Codable, Sendable, Identifiable {
+public struct Session: Codable, Sendable, Identifiable, Hashable {
     public let id: String
     public let timestamp: Date
     public let device: String
@@ -25,7 +25,7 @@ public struct Session: Codable, Sendable, Identifiable {
         case watchos
     }
 
-    public struct Metadata: Codable, Sendable {
+    public struct Metadata: Codable, Sendable, Hashable {
         public let appVersion: String
         public let whisperModel: String
         public let language: String?
