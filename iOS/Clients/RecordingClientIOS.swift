@@ -36,12 +36,13 @@ actor RecordingClientLiveIOS {
         do {
             let session = AVAudioSession.sharedInstance()
             // `.default` mode keeps AGC; `.measurement` produced near-silent recordings.
-            // Bluetooth options allow the session to survive route changes from Watch/AirPods
-            // workouts that would otherwise silently stop the recorder.
+            // `.allowBluetooth` enables HFP Bluetooth mics so Watch/AirPods route changes
+            // don't kill the session. `.allowBluetoothA2DP` is output-only and only valid
+            // with `.playAndRecord` — using it with `.record` throws OSStatus -50 (paramErr).
             try session.setCategory(
                 .record,
                 mode: .default,
-                options: [.allowBluetooth, .allowBluetoothA2DP]
+                options: [.allowBluetooth]
             )
             try session.setActive(true)
             let r = try AVAudioRecorder(url: recordingURL, settings: recorderSettings)
@@ -61,6 +62,11 @@ actor RecordingClientLiveIOS {
     }
 
     func stopRecording() async -> URL {
+        // Guard: if recorder is nil (start failed), don't copy a stale file from a prior session.
+        guard recorder != nil else {
+            recordingLogger.warning("stopRecording called with no active recorder — returning empty URL")
+            return URL(fileURLWithPath: "")
+        }
         recorder?.stop()
         stopMeterTask()
         interruptionTask?.cancel()

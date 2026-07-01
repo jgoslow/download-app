@@ -190,6 +190,16 @@ final class AppState {
         recordingDuration = 0
         audioLevel = 0
         recordingStart = nil
+
+        // Empty path signals that recording never actually started (e.g. AVAudioSession setup failed).
+        // Bail out to avoid transcribing a stale file from a prior session.
+        guard !exportURL.path.isEmpty else {
+            appLogger.warning("Recording aborted — no audio captured (session setup likely failed)")
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            isTranscribing = false
+            return
+        }
+
         appLogger.notice("Recording stopped, file: \(exportURL.lastPathComponent, privacy: .public)")
 
         // Capture-for-debugging: persist the raw audio + metadata for later desktop
