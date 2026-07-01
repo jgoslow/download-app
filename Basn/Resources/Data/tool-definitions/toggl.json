@@ -84,7 +84,7 @@
   },
   "claude_context": {
     "defaults": {
-      "duration_minutes": 30
+      "duration_minutes": "30"
     }
   }
 }

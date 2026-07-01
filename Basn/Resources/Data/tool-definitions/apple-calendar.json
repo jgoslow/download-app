@@ -26,13 +26,13 @@
         },
         "start_time": {
           "type": "string",
-          "required": true,
-          "description": "Start time in ISO 8601 format (e.g. 2026-07-01T14:00:00)"
+          "required": false,
+          "description": "Start time in ISO 8601 format (e.g. 2026-07-01T14:00:00). Infer from natural language — 'tomorrow' means next calendar day at 09:00, 'next Monday' means that day at 09:00, etc."
         },
         "end_time": {
           "type": "string",
-          "required": true,
-          "description": "End time in ISO 8601 format (e.g. 2026-07-01T15:00:00)"
+          "required": false,
+          "description": "End time in ISO 8601 format. Default to 1 hour after start_time when not specified."
         },
         "notes": {
           "type": "string",

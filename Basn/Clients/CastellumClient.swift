@@ -39,7 +39,7 @@ extension CastellumClient: DependencyKey {
         .init(analyzeAndPlan: { capture, promptTitles, sessionContext, tools, workflows, apiKey in
             guard !apiKey.isEmpty else { throw CastellumError.noAPIKey }
 
-            let connectedTools = tools.filter(\.isConnected)
+            let connectedTools = tools.filter(\.isAvailableForRouting)
             let connectedIDs = Set(connectedTools.map(\.id))
 
             // Chip selections are explicit routing signals — prefer those tool schemas.
@@ -123,7 +123,7 @@ enum CastellumError: LocalizedError {
 // MARK: - System Prompt
 
 private let castellumSystemPrompt = """
-You are Castellum, Basin's action planner. Basin is a voice capture app that turns spoken \
+You are Castellum, Basn's action planner. Basn is a voice capture app that turns spoken \
 ideas, tasks, and notes into actions across connected tools.
 
 Given a voice capture (which may include per-prompt context and chip selections from a guided \
@@ -149,7 +149,12 @@ Rules:
 - delegations: name the person when possible
 - prompts_addressed: 0-based indices of guided prompts clearly addressed
 - Chip selections in the capture are confirmed user intent — treat as explicit routing signals
-- Only call tools clearly warranted by the content
+- Only call tools that appear in the provided tool schema — NEVER suggest connecting other services
+- Tools prefixed with "apple-" are native device integrations (Calendar, Reminders, Notes, etc.) — \
+use them when available for their respective action types
+- For calendar events (apple-calendar_create_event): infer start_time from natural language \
+("tomorrow" = next day 09:00, "next Monday" = that Monday 09:00, "this afternoon" = today 14:00). \
+Set end_time to 1 hour after start_time unless stated otherwise
 - Fill parameters as specifically as possible from what was said
 - For Jira, match tasks to the most relevant project (fuzzy match — voice may misspell names)
 - For Slack, use #general unless a specific channel is mentioned

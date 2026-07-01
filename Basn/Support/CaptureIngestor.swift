@@ -143,7 +143,7 @@ enum CaptureIngestor {
 
         // 2. Route — heuristic first, Castellum fallback if a key is configured.
         let tools = (try? await ModelContextClient.liveValue.fetchTools()) ?? []
-        let connectedTools = tools.filter(\.isConnected)
+        let connectedTools = tools.filter(\.isAvailableForRouting)
         let connectedToolIDs = Set(connectedTools.map(\.id))
 
         var routedVia = "none"

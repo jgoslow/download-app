@@ -190,7 +190,7 @@ enum IOSCastellumClient {
     }
 
     private static let systemPrompt = """
-    You are Castellum, Basin's action planner. Basin is a voice capture app that turns spoken \
+    You are Castellum, Basn's action planner. Basn is a voice capture app that turns spoken \
     ideas, tasks, and notes into actions across connected tools.
 
     Given a voice capture (which may include per-prompt context and chip selections from a guided \

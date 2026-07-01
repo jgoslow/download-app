@@ -1,5 +1,6 @@
 import AuthenticationServices
 import BasinShared
+import ComposableArchitecture
 import SwiftData
 import SwiftUI
 
@@ -396,8 +397,11 @@ private struct LanguageSettingsView: View {
 // MARK: - Tools Settings
 
 private struct ToolsSettingsView: View {
+    @Environment(AppState.self) private var appState
     @Query(sort: \Tool.name) private var tools: [Tool]
     @State private var connectingTool: Tool?
+    @State private var showingMarketplace = false
+    @State private var showingToolBuilder = false
 
     var body: some View {
         List {
@@ -406,8 +410,38 @@ private struct ToolsSettingsView: View {
             }
         }
         .navigationTitle("Tools")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button {
+                        showingMarketplace = true
+                    } label: {
+                        Label("Browse Marketplace", systemImage: "storefront")
+                    }
+                    Button {
+                        showingToolBuilder = true
+                    } label: {
+                        Label("Build with AI", systemImage: "wand.and.stars")
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
         .sheet(item: $connectingTool) { tool in
             ToolConnectSheet(tool: tool, onDismiss: { connectingTool = nil })
+        }
+        .sheet(isPresented: $showingMarketplace) {
+            MarketplaceView(
+                store: Store(initialState: MarketplaceFeature.State()) { MarketplaceFeature() }
+            )
+        }
+        .sheet(isPresented: $showingToolBuilder) {
+            AIToolBuilderView(store: Store(
+                initialState: AIToolBuilderFeature.State(apiKey: appState.settings.anthropicAPIKey)
+            ) {
+                AIToolBuilderFeature()
+            })
         }
     }
 }
@@ -429,7 +463,12 @@ private struct ToolRowView: View {
             HStack {
                 Label(tool.name, systemImage: spec?.icon ?? tool.iconSystemName)
                 Spacer()
-                if tool.isConnected {
+                if tool.effectiveAuthMethod == "system" {
+                    Toggle("", isOn: $tool.isEnabled)
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                        .labelsHidden()
+                } else if tool.isConnected {
                     let tokenExpired = KeychainClient.loadExpiry(toolID: tool.id).map { $0 < Date() } ?? false
                     if tokenExpired {
                         Image(systemName: "exclamationmark.circle.fill").foregroundStyle(.orange)
@@ -448,7 +487,20 @@ private struct ToolRowView: View {
     @ViewBuilder
     private var toolExpandedContent: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if tool.isConnected {
+            if tool.effectiveAuthMethod == "system" {
+                Text("Uses system permissions. No API key needed — Basn will ask for access the first time this tool is used.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Toggle("Enabled", isOn: $tool.isEnabled)
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                Toggle("Requires approval", isOn: Binding(
+                    get: { !tool.autoExecute },
+                    set: { tool.autoExecute = !$0 }
+                ))
+                .toggleStyle(.switch)
+                .controlSize(.small)
+            } else if tool.isConnected {
                 // Connection info
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
@@ -533,33 +585,39 @@ struct ToolConnectSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                if availableTabs.count > 1 {
-                    Section {
-                        Picker("Auth Method", selection: $selectedTab) {
-                            ForEach(availableTabs, id: \.self) { Text($0.rawValue).tag($0) }
+                // Native system tools (apple-calendar, apple-reminders, etc.) use OS-level auth.
+                // Show an enable toggle instead of credential forms.
+                if tool.effectiveAuthMethod == "system" {
+                    systemToolSection
+                } else {
+                    if availableTabs.count > 1 {
+                        Section {
+                            Picker("Auth Method", selection: $selectedTab) {
+                                ForEach(availableTabs, id: \.self) { Text($0.rawValue).tag($0) }
+                            }
+                            .pickerStyle(.segmented)
                         }
-                        .pickerStyle(.segmented)
                     }
-                }
 
-                switch selectedTab {
-                case .oauth: oauthSection
-                case .apiKey: apiKeySection
-                }
+                    switch selectedTab {
+                    case .oauth: oauthSection
+                    case .apiKey: apiKeySection
+                    }
 
-                if tool.isConnected {
-                    Section {
-                        Button("Disconnect", role: .destructive) { disconnect(); onDismiss() }
+                    if tool.isConnected {
+                        Section {
+                            Button("Disconnect", role: .destructive) { disconnect(); onDismiss() }
+                        }
                     }
                 }
             }
-            .navigationTitle("Connect \(tool.name)")
+            .navigationTitle(tool.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { onDismiss() }
+                    Button("Done") { onDismiss() }
                 }
-                if selectedTab == .apiKey {
+                if tool.effectiveAuthMethod != "system", selectedTab == .apiKey {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Save") { saveAPIKey(); onDismiss() }
                             .disabled(apiKeyInput.isEmpty)
@@ -577,6 +635,22 @@ struct ToolConnectSheet: View {
             } else if let scopes = toolSpec?.auth.availableScopes {
                 enabledScopeKeys = Set(scopes.compactMap { k, v in v.default == true ? k : nil })
             }
+        }
+    }
+
+    @ViewBuilder
+    private var systemToolSection: some View {
+        Section {
+            Toggle(isOn: $tool.isEnabled) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Enable \(tool.name)")
+                    Text("Uses iOS system permissions — no sign-in required.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } footer: {
+            Text("When enabled, Basn will request the system permission it needs the first time it runs an action for this tool.")
         }
     }
 
@@ -825,6 +899,7 @@ private struct HistorySettingsView: View {
 private struct AISettingsView: View {
     @Environment(AppState.self) private var appState
     @State private var showAdvanced = false
+    @State private var showLightweightInfo = false
 
     var body: some View {
         Form {
@@ -844,6 +919,41 @@ private struct AISettingsView: View {
                 }
             } header: {
                 Text("AI")
+            }
+
+            Section {
+                Toggle(isOn: Binding(
+                    get: { appState.settings.lightweightCloudRoutingEnabled },
+                    set: { appState.settings.lightweightCloudRoutingEnabled = $0 }
+                )) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Smart Routing")
+                            .font(.body)
+                        Text("Improves intent detection on older devices")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+
+                if appState.settings.lightweightCloudRoutingEnabled {
+                    Button {
+                        showLightweightInfo = true
+                    } label: {
+                        Label("Privacy disclosure", systemImage: "info.circle")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            } header: {
+                Text("Routing")
+            } footer: {
+                if appState.settings.lightweightCloudRoutingEnabled {
+                    Text("On devices without Apple Intelligence, ambiguous captures are sent to Claude Haiku for intent classification. Requires an Anthropic API key.")
+                        .font(.caption2)
+                }
+            }
+            .sheet(isPresented: $showLightweightInfo) {
+                LightweightRoutingInfoView()
             }
 
             Section {
@@ -892,5 +1002,64 @@ private struct AISettingsView: View {
 private extension Comparable {
     func clamped(to range: ClosedRange<Self>) -> Self {
         min(max(self, range.lowerBound), range.upperBound)
+    }
+}
+
+// MARK: - Lightweight Routing Disclosure
+
+private struct LightweightRoutingInfoView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("What is Smart Routing?")
+                            .font(.headline)
+                        Text("On devices without Apple Intelligence (iOS 26+ / Apple Silicon required), Basn uses a lightweight cloud model to help classify what you said — for example, distinguishing between scheduling an event vs. capturing a note.")
+                            .font(.body).foregroundStyle(.secondary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("What is sent?")
+                            .font(.headline)
+                        Text("Only the text transcript of your capture. Audio is never transmitted. No account data, device identifiers, or personal metadata are included.")
+                            .font(.body).foregroundStyle(.secondary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Which model?")
+                            .font(.headline)
+                        Text("Claude Haiku (\(LightweightRouter.modelID)) by Anthropic — the same provider as Basn's full AI analysis. The request goes through your own Anthropic API key, so it is subject to your account's data handling policy with Anthropic.")
+                            .font(.body).foregroundStyle(.secondary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Cost")
+                            .font(.headline)
+                        Text("Each routing call costs a fraction of a cent (roughly $0.00003). It only runs when the local pattern matcher can't confidently determine intent, and only if you have an API key configured.")
+                            .font(.body).foregroundStyle(.secondary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Future plans")
+                            .font(.headline)
+                        Text("This cloud step is a temporary bridge. We intend to replace it with a small, fully on-device model that requires no network and no API key. When that ships, this setting will become unnecessary.")
+                            .font(.body).foregroundStyle(.secondary)
+                    }
+
+                }
+                .padding()
+            }
+            .navigationTitle("Smart Routing")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
     }
 }
