@@ -1,15 +1,18 @@
 ---
 type: planning
 status: active
-updated: 2026-06-30
+updated: 2026-07-01
 tags: [planning, summary]
 ---
 
 # Planning Summary
-<!-- Maintained by /vault distill. Last distilled: 2026-06-30 -->
+<!-- Maintained by /vault distill. Last distilled: 2026-07-01 -->
 
 ## Outstanding
 
+- [ ] Test recording reliability during outdoor run (background audio + interruption recovery + Watch workout coexistence) — source: [session-ios-history-audio-pause](../captures/2026-07-01-session-ios-history-audio-pause.md)
+- [ ] Pause/resume UI placement — toggle button is temporary; will move when Flow UI is redesigned — source: [session-ios-history-audio-pause](../captures/2026-07-01-session-ios-history-audio-pause.md)
+- [ ] Stale changesets (.changeset/*.md ref `hex-app` old name) — recreate with `basn` before next release — source: [session-ios-history-audio-pause](../captures/2026-07-01-session-ios-history-audio-pause.md)
 - [ ] Fix Castellum → Toggl tool_use bug (prose returned instead of tool_use block for multi-intent captures) — source: [REQ-castellum.md](REQ-castellum.md)
 - [ ] Audio integration test layer — infra BUILT (WER, AudioPipelineTests, LFS corpus, CI); remaining: populate the diverse-speaker corpus — source: [REQ-testing.md](REQ-testing.md)
 - [ ] Fix iOS tool connections (OAuth "no provider ID") — blocks Connect→Execute on device; deferred to tools overhaul — source: [REQ-castellum.md](REQ-castellum.md)
@@ -27,6 +30,7 @@ tags: [planning, summary]
 
 | Date | Plan | Status | Key Decisions |
 |------|------|--------|---------------|
+| 2026-07-01 | [ios-history-audio-pause](../captures/2026-07-01-session-ios-history-audio-pause.md) | complete | Plan persistence on CaptureRecord; history expand/collapse + inline plan; background audio + pause/resume |
 | 2026-06-30 | [ios-native-pipeline](../captures/2026-06-30-session-ios-native-pipeline.md) | complete | Native serverless Castellum; BasinShared consolidation; capability routing (iOS); on-device execution + plan UI |
 | 2026-06-27 | [debug-capture-archive](../captures/plans/2026-06-27-debug-capture-archive-and-audio-e2e-tests.md) | complete | Debug capture archive + grading + E2E audio test layer (executed; plan archived) |
 | 2026-06-26 | [hex-basn-rename](../captures/2026-06-26-session-hex-basn-rename.md) | complete | Hex→Basn transition complete: dirs, API, strings, assets, pbxproj |
@@ -41,6 +45,11 @@ tags: [planning, summary]
 | 2026-05-27 | [architecture-system-model](planning/2026-05-27-architecture-system-model.md) | reference | Three-layer model (Flows/Castellum/Workflows/Tools) — stable |
 
 ## Key Decisions Log
+
+- [2026-07-01] **Plan persistence** — `CaptureRecord.executionPlanData: Data?` stores JSON-encoded `ExecutionPlan`; both `routeCapture` and `rerunCapture` write it; History detail shows inline plan card; SessionRow expanded shows action chips — source: [session-ios-history-audio-pause](../captures/2026-07-01-session-ios-history-audio-pause.md)
+- [2026-07-01] **Background audio recording** — `UIBackgroundModes: audio` added; `allowBluetooth`/`allowBluetoothA2DP` options on AVAudioSession; interruption + route-change notification observers with auto-resume; fixes recording stopping during outdoor activities — source: [session-ios-history-audio-pause](../captures/2026-07-01-session-ios-history-audio-pause.md)
+- [2026-07-01] **Pause/resume** — `AVAudioRecorder.pause()`/`record()`; toggle button repurposed during recording; `accumulatedDuration` excludes paused time from session duration — source: [session-ios-history-audio-pause](../captures/2026-07-01-session-ios-history-audio-pause.md)
+- [2026-07-01] **Word-boundary matching in CapabilityMatcher** — single-word keywords use `\b…\b` regex; multi-word use plain `contains`; "to do" removed from create_task (false positive on "want to do") — source: [session-ios-history-audio-pause](../captures/2026-07-01-session-ios-history-audio-pause.md)
 
 - [2026-05-28] App renamed **Basn** (not Basin); bundle ID `com.lyra.basn`; "Workflow" replaces "Channel" — source: [architecture.md](architecture.md)
 - [2026-05-22] Workflows are emergent from Castellum, never pre-configured by users — source: [REQ-global.md](REQ-global.md)
