@@ -13,6 +13,19 @@ import Foundation
 
 enum CapabilityResolver {
 
+    /// Hard-coded capability coverage for native (apple-*) tools.
+    /// These are also declared in tool-definition JSON, but this table ensures
+    /// coverage is recognized before the JSON files finish loading (e.g. on first
+    /// launch) and prevents spurious "Connect Google" nudges from appearing
+    /// alongside a working apple-native action.
+    private static let nativeCapabilities: [String: Set<String>] = [
+        "apple-calendar":  ["schedule_event"],
+        "apple-reminders": ["create_task"],
+        "apple-notes":     ["capture_note"],
+        "apple-mail":      ["send_email"],
+        "apple-messages":  ["send_message"],
+    ]
+
     /// All tool IDs whose definition declares an action providing this capability.
     static func providers(for capabilityID: String) -> [String] {
         ToolDefinitionLoader.loadAll()
@@ -30,6 +43,11 @@ enum CapabilityResolver {
                 if let c = action.capability { covered.insert(c) }
             }
         }
+        // Supplement with hard-coded native tool coverage so a planned apple-*
+        // action always suppresses the matching generic capability nudge.
+        for toolID in connectedToolIDs {
+            if let caps = nativeCapabilities[toolID] { covered.formUnion(caps) }
+        }
         return covered
     }
 
@@ -42,5 +60,6 @@ enum CapabilityResolver {
     /// against already-planned tool-scoped actions).
     static func capability(forToolID toolID: String, actionType: String) -> String? {
         ToolDefinitionLoader.load(toolID)?.actions[actionType]?.capability
+            ?? nativeCapabilities[toolID]?.first  // fallback for apple-* tools
     }
 }
