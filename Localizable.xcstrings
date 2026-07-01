@@ -90,10 +90,22 @@
     "Accuracy" : {
 
     },
+    "Actions" : {
+
+    },
+    "Actions (%lld)" : {
+
+    },
+    "Add" : {
+
+    },
     "Add Remapping" : {
 
     },
     "Add Removal" : {
+
+    },
+    "Add to Basn" : {
 
     },
     "Advanced" : {
@@ -171,6 +183,18 @@
     "Basn gives you a place to capture your free-form thoughts aloud and put them to work — mix work and life, simple notes or even complicated workstreams. Connect to the tools you already use." : {
 
     },
+    "Basn is open source" : {
+      "comment" : "In about section in settings.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basn ist Open Source"
+          }
+        }
+      }
+    },
     "Basn will download the best transcription model for your needs." : {
 
     },
@@ -178,6 +202,21 @@
 
     },
     "Bearer token" : {
+
+    },
+    "Browse Marketplace" : {
+
+    },
+    "Browse Tools" : {
+
+    },
+    "Build Integration" : {
+
+    },
+    "Build with AI" : {
+
+    },
+    "Building your integration…" : {
 
     },
     "Built with inspiration from HEX (MIT)" : {
@@ -198,6 +237,9 @@
 
     },
     "Capture your stream of consciousness and channel it.." : {
+
+    },
+    "Category" : {
 
     },
     "Changelog" : {
@@ -248,6 +290,9 @@
     "Choose your language" : {
 
     },
+    "Claude is generating the API definition." : {
+
+    },
     "Close" : {
       "localizations" : {
         "de" : {
@@ -294,6 +339,9 @@
           }
         }
       }
+    },
+    "Couldn't load marketplace" : {
+
     },
     "Create a Personal Access Token at github.com/settings/tokens with repo scope." : {
 
@@ -359,6 +407,15 @@
           }
         }
       }
+    },
+    "Describe again" : {
+
+    },
+    "Describe the service and what you want to do with your voice. For example: \"Notion — create a page in my inbox when I say create a note\" or \"Linear — create an issue with a title and priority\"." : {
+
+    },
+    "Details" : {
+
     },
     "Disconnect" : {
 
@@ -483,6 +540,9 @@
         }
       }
     },
+    "Generate with AI" : {
+
+    },
     "Get set up" : {
 
     },
@@ -497,18 +557,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zugelassen"
-          }
-        }
-      }
-    },
-    "Basn is open source" : {
-      "comment" : "In about section in settings.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Basn ist Open Source"
           }
         }
       }
@@ -563,6 +611,9 @@
     "Input Monitoring is required so Basin can listen for your hotkey." : {
 
     },
+    "Installed" : {
+
+    },
     "Instance URL" : {
 
     },
@@ -579,6 +630,9 @@
 
     },
     "LIVE" : {
+
+    },
+    "Loading marketplace..." : {
 
     },
     "Match" : {
@@ -599,6 +653,9 @@
       }
     },
     "Microphone Selection" : {
+
+    },
+    "Min. Basn" : {
 
     },
     "Model prewarming..." : {
@@ -845,6 +902,9 @@
     "Scratchpad" : {
 
     },
+    "Search tools" : {
+
+    },
     "See all models" : {
 
     },
@@ -987,6 +1047,18 @@
     "Submit" : {
 
     },
+    "Submit to Marketplace" : {
+
+    },
+    "Submitted!" : {
+
+    },
+    "Tags" : {
+
+    },
+    "This creates a pull request in the Basn marketplace registry. Your integration will be visible to other users after review." : {
+
+    },
     "Token expired — reconnect now" : {
 
     },
@@ -1018,6 +1090,9 @@
           }
         }
       }
+    },
+    "Try again" : {
+
     },
     "Type" : {
 
@@ -1058,6 +1133,15 @@
     "Use double-tap only" : {
 
     },
+    "Uses system permissions. No setup needed — Basn will request access the first time you use this tool." : {
+
+    },
+    "Validate" : {
+
+    },
+    "Verified" : {
+
+    },
     "Verify" : {
 
     },
@@ -1071,6 +1155,9 @@
           }
         }
       }
+    },
+    "View pull request" : {
+
     },
     "Visit our GitHub" : {
       "comment" : "button text to link to github",
@@ -1096,6 +1183,9 @@
     "Welcome to Basn" : {
 
     },
+    "What do you want to connect?" : {
+
+    },
     "When disabled, transcriptions will not be saved and audio files will be deleted immediately after transcription." : {
 
     },
@@ -1112,6 +1202,9 @@
 
     },
     "Your capture history will appear here." : {
+
+    },
+    "Your integration is under review." : {
 
     },
     "Your transcription history will appear here." : {

@@ -33,7 +33,8 @@ enum EventKitActionClient {
             if entityType == .reminder {
                 return try await store.requestFullAccessToReminders()
             } else {
-                return try await store.requestFullAccessToEvents()
+                // Write-only is sufficient — we only create events, never read them.
+                return try await store.requestWriteOnlyAccessToEvents()
             }
         } catch {
             log.error("EventKit access denied: \(error.localizedDescription)")
@@ -110,16 +111,24 @@ enum EventKitActionClient {
         guard let title = params["title"] as? String, !title.isEmpty else {
             return ActionResult(actionID: action.id, success: false, error: "Event title is required")
         }
-        guard let startStr = params["start_time"] as? String,
-              let endStr   = params["end_time"]   as? String else {
-            return ActionResult(actionID: action.id, success: false, error: "start_time and end_time are required")
+        let formatter = ISO8601DateFormatter()
+
+        let startDate: Date
+        if let startStr = params["start_time"], let parsed = formatter.date(from: startStr) {
+            startDate = parsed
+        } else {
+            // Default: tomorrow at 9am local time
+            var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+            comps.day = (comps.day ?? 0) + 1
+            comps.hour = 9; comps.minute = 0; comps.second = 0
+            startDate = Calendar.current.date(from: comps) ?? Date().addingTimeInterval(86400)
         }
 
-        let formatter = ISO8601DateFormatter()
-        guard let startDate = formatter.date(from: startStr),
-              let endDate   = formatter.date(from: endStr) else {
-            return ActionResult(actionID: action.id, success: false,
-                                error: "Invalid date format. Use ISO 8601 (e.g. 2026-07-01T14:00:00).")
+        let endDate: Date
+        if let endStr = params["end_time"], let parsed = formatter.date(from: endStr) {
+            endDate = parsed
+        } else {
+            endDate = startDate.addingTimeInterval(3600)
         }
 
         let event = EKEvent(eventStore: store)

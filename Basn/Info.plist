@@ -41,6 +41,12 @@
 	<string>$(SLACK_CLIENT_SECRET)</string>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>Basn needs accessibility access to monitor keyboard events for hotkey detection.</string>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>Basn uses Calendar to create events from your voice captures.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Basn uses Calendar to create events from your voice captures.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Basn uses Reminders to create tasks from your voice captures.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

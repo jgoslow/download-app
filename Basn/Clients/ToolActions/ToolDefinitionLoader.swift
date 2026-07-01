@@ -151,7 +151,7 @@ struct ToolDefinitionSpec: Codable {
 
     struct ClaudeContextSpec: Codable {
         let projectMatching: String?
-        let defaults: [String: String]?
+        let defaults: [String: AnyCodable]?
 
         enum CodingKeys: String, CodingKey {
             case projectMatching = "project_matching"

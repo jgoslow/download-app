@@ -461,6 +461,20 @@ private struct SetupFlowBridgePage: View {
     @ViewBuilder
     private func coverView(for cover: SetupCover) -> some View {
         switch cover {
+        case .nativeApps:
+            SetupNativeAppsView(onContinue: {
+                activeCover = nil
+                Task {
+                    try? await Task.sleep(for: .milliseconds(450))
+                    if toolsToConnect.isEmpty {
+                        let toolOrder = ["jira", "github", "slack", "toggl", "google", "wave"]
+                        let stored = (try? modelContext.fetch(FetchDescriptor<Tool>())) ?? []
+                        toolsToConnect = toolOrder.compactMap { id in stored.first(where: { $0.id == id }) }
+                    }
+                    activeCover = .connectTool(index: 0)
+                }
+            })
+
         case .flow:
             FlowSessionView(
                 prompts: FlowPrompt.setupFlowPrompts,
@@ -536,14 +550,8 @@ private struct SetupFlowBridgePage: View {
         activeCover = nil
         Task {
             try? await Task.sleep(for: .milliseconds(450))
-            // Always show tool screens — chip selections just determine sort order
-            if toolsToConnect.isEmpty {
-                // onResult hasn't fired (user skipped flow) — fetch from context now
-                let toolOrder = ["jira", "github", "slack", "toggl", "google", "wave"]
-                let stored = (try? modelContext.fetch(FetchDescriptor<Tool>())) ?? []
-                toolsToConnect = toolOrder.compactMap { id in stored.first(where: { $0.id == id }) }
-            }
-            activeCover = .connectTool(index: 0)
+            // Show native apps screen first, then proceed to third-party tool connect
+            activeCover = .nativeApps
         }
     }
 
@@ -566,6 +574,7 @@ private struct SetupFlowBridgePage: View {
 // Drives which fullScreenCover is active in the setup wizard
 private enum SetupCover: Identifiable {
     case flow
+    case nativeApps
     case connectTool(index: Int)
     case workflows
     case suggestedFlow
@@ -574,10 +583,145 @@ private enum SetupCover: Identifiable {
     var id: String {
         switch self {
         case .flow: return "flow"
+        case .nativeApps: return "native-apps"
         case .connectTool(let i): return "connect-\(i)"
         case .workflows: return "workflows"
         case .suggestedFlow: return "suggested-flow"
         case .done: return "done"
+        }
+    }
+}
+
+// MARK: - Setup Native Apps View
+
+private struct SetupNativeAppsView: View {
+    let onContinue: () -> Void
+
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Tool.name) private var allTools: [Tool]
+
+    @State private var appeared = false
+
+    private var systemTools: [Tool] {
+        allTools.filter { $0.effectiveAuthMethod == "system" }
+    }
+
+    private static let descriptions: [String: String] = [
+        "apple-reminders": "Set reminders from your captures.",
+        "apple-calendar":  "Create calendar events hands-free.",
+        "apple-notes":     "Jot notes directly into Apple Notes.",
+        "apple-files":     "Save files to your iCloud Drive.",
+        "apple-mail":      "Draft and send emails by voice.",
+        "apple-messages":  "Send iMessages from a capture.",
+        "apple-maps":      "Navigate to places you mention.",
+    ]
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: 32) {
+                    VStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(.white.opacity(0.1))
+                                .frame(width: 72, height: 72)
+                            Image(systemName: "iphone.circle.fill")
+                                .font(.system(size: 34))
+                                .foregroundStyle(.white.opacity(0.9))
+                        }
+                        .scaleEffect(appeared ? 1 : 0.5)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.65), value: appeared)
+
+                        VStack(spacing: 10) {
+                            Text("Built-in apps")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+
+                            Text("Basn can work with apps already on your iPhone — no account needed. Turn on the ones you'd like to use.")
+                                .font(.body)
+                                .foregroundStyle(.white.opacity(0.65))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 10)
+                        .animation(.easeOut(duration: 0.4).delay(0.1), value: appeared)
+                    }
+
+                    VStack(spacing: 0) {
+                        ForEach(systemTools) { tool in
+                            @Bindable var tool = tool
+                            HStack(spacing: 14) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(.white.opacity(0.1))
+                                        .frame(width: 40, height: 40)
+                                    Image(systemName: tool.iconSystemName)
+                                        .font(.system(size: 18))
+                                        .foregroundStyle(tool.isEnabled ? .white : .white.opacity(0.4))
+                                }
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(tool.name)
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(tool.isEnabled ? .white : .white.opacity(0.5))
+                                    Text(Self.descriptions[tool.id] ?? "Use from your captures.")
+                                        .font(.caption)
+                                        .foregroundStyle(.white.opacity(0.4))
+                                }
+
+                                Spacer()
+
+                                Toggle("", isOn: $tool.isEnabled)
+                                    .toggleStyle(.switch)
+                                    .tint(.blue)
+                                    .labelsHidden()
+                            }
+                            .padding(.horizontal, 28)
+                            .padding(.vertical, 10)
+
+                            if tool.id != systemTools.last?.id {
+                                Divider()
+                                    .background(.white.opacity(0.08))
+                                    .padding(.leading, 82)
+                            }
+                        }
+                    }
+                    .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 20)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 16)
+                    .animation(.easeOut(duration: 0.45).delay(0.2), value: appeared)
+                }
+
+                Spacer()
+
+                Button(action: onContinue) {
+                    Text("Continue")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 80)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.3).delay(0.35), value: appeared)
+            }
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            Task {
+                try? await Task.sleep(for: .milliseconds(100))
+                appeared = true
+            }
         }
     }
 }

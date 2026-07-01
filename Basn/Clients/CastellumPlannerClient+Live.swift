@@ -27,7 +27,7 @@ extension CastellumPlannerClient {
                 "jira": "jira", "slack": "slack", "toggl": "toggl",
                 "github": "github", "wave": "wave"
             ]
-            let connectedIDs = Set(connectedTools.filter(\.isConnected).map(\.id))
+            let connectedIDs = Set(connectedTools.filter(\.isAvailableForRouting).map(\.id))
             let requestedToolIDs = Set(analysis.integrations.compactMap { integrationToToolID[$0.rawValue] })
             let matchedToolIDs = requestedToolIDs.intersection(connectedIDs)
 

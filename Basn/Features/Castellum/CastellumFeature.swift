@@ -139,7 +139,7 @@ struct CastellumFeature {
 
                     // Fetch connected tools and enabled workflows from SwiftData
                     let tools = try await basinDB.fetchTools()
-                    let connectedTools = tools.filter { $0.isConnected }
+                    let connectedTools = tools.filter(\.isAvailableForRouting)
                     let workflows = try await basinDB.fetchWorkflows()
                     let enabledWorkflows = workflows.filter { $0.isEnabled }
 

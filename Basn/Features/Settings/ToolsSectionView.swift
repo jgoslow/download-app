@@ -24,6 +24,8 @@ struct ToolsSectionView: View {
     @Query(sort: \Tool.name) private var tools: [Tool]
     @State private var connectingTool: Tool?
     @State private var showingMarketplace = false
+    @State private var showingToolBuilder = false
+    @Shared(.basnSettings) private var basnSettings: BasnSettings
 
     var body: some View {
         Section {
@@ -33,14 +35,25 @@ struct ToolsSectionView: View {
         } header: {
             Text("Tools")
         } footer: {
-            Button {
-                showingMarketplace = true
-            } label: {
-                Label("Browse Marketplace", systemImage: "storefront")
-                    .font(.callout)
+            HStack(spacing: 16) {
+                Button {
+                    showingMarketplace = true
+                } label: {
+                    Label("Browse Marketplace", systemImage: "storefront")
+                        .font(.callout)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.accentColor)
+
+                Button {
+                    showingToolBuilder = true
+                } label: {
+                    Label("Build with AI", systemImage: "wand.and.stars")
+                        .font(.callout)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.accentColor)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(Color.accentColor)
             .padding(.top, 4)
         }
         .sheet(item: $connectingTool) { tool in
@@ -49,6 +62,13 @@ struct ToolsSectionView: View {
         .sheet(isPresented: $showingMarketplace) {
             MarketplaceView(store: Store(initialState: MarketplaceFeature.State()) {
                 MarketplaceFeature()
+            })
+        }
+        .sheet(isPresented: $showingToolBuilder) {
+            AIToolBuilderView(store: Store(
+                initialState: AIToolBuilderFeature.State(apiKey: basnSettings.basinSettings.anthropicAPIKey)
+            ) {
+                AIToolBuilderFeature()
             })
         }
     }
@@ -70,7 +90,11 @@ private struct ToolRowView: View {
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
             VStack(alignment: .leading, spacing: 14) {
-                if tool.isConnected {
+                if tool.effectiveAuthMethod == "system" {
+                    Text("Uses system permissions. No setup needed — Basn will request access the first time you use this tool.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if tool.isConnected {
                     connectionSection
                     if let grantedScopes = grantedScopeLabels, !grantedScopes.isEmpty {
                         Divider()
@@ -95,7 +119,12 @@ private struct ToolRowView: View {
                 //       once SVG brand icons are added to the asset catalog.
                 Label(tool.name, systemImage: spec?.icon ?? tool.iconSystemName)
                 Spacer()
-                if tool.isConnected {
+                if tool.effectiveAuthMethod == "system" {
+                    Toggle("", isOn: $tool.isEnabled)
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                        .labelsHidden()
+                } else if tool.isConnected {
                     let tokenExpired = KeychainClient.loadExpiry(toolID: tool.id).map { $0 < Date() } ?? false
                     if tokenExpired {
                         Image(systemName: "exclamationmark.circle.fill")
@@ -360,10 +389,12 @@ private struct ToolRowView: View {
 
                 Spacer()
 
-                Button("Disconnect") { disconnectTool() }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(.red.opacity(0.8))
-                    .font(.callout)
+                if tool.effectiveAuthMethod != "system" {
+                    Button("Disconnect") { disconnectTool() }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.red.opacity(0.8))
+                        .font(.callout)
+                }
             } else {
                 Button("Connect \(tool.name)") { onConnect() }
                     .buttonStyle(.borderless)

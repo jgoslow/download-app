@@ -22,6 +22,7 @@ struct BasnAppIOS: App {
                 .task {
                     await appState.load()
                     seedDefaultTools()
+                    await MarketplaceSeeder.seedIfNeeded(modelContext: Self.modelContainer.mainContext)
                 }
                 .fullScreenCover(isPresented: Binding(
                     get: { appState.showOnboarding },
@@ -42,6 +43,19 @@ struct BasnAppIOS: App {
         for tool in Tool.allDefaults where !existingIDs.contains(tool.id) {
             context.insert(tool)
             inserted += 1
+        }
+        // System-auth tools never need a credential — mark any existing ones as connected.
+        for tool in existing where tool.effectiveAuthMethod == "system" && !tool.isConnected {
+            tool.isConnected = true
+            inserted += 1
+        }
+        // One-time migration: disable existing system tools so users opt in consciously.
+        let disableMigrationKey = "BasnApplied_SystemToolsDisableMigration_v1"
+        if !UserDefaults.standard.bool(forKey: disableMigrationKey) {
+            for tool in existing where tool.effectiveAuthMethod == "system" {
+                tool.isEnabled = false
+            }
+            UserDefaults.standard.set(true, forKey: disableMigrationKey)
         }
         if inserted > 0 { try? context.save() }
     }

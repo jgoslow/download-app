@@ -37,7 +37,25 @@ enum GenericToolExecutor {
             )
         }
 
-        // Resolve auth
+        // Native special handlers bypass HTTP entirely — dispatch BEFORE auth resolution.
+        // System tools (apple-*) have no keychain tokens, so resolveAuth returns nil for them;
+        // dispatching first ensures the native clients are always reached.
+        if let handler = actionSpec.specialHandler {
+            if handler.hasPrefix("eventkit_") {
+                return await EventKitActionClient.execute(action: action, handler: handler)
+            }
+            if handler.hasPrefix("url_scheme_") {
+                return await URLSchemeActionClient.execute(action: action, handler: handler)
+            }
+            if handler.hasPrefix("applescript_") {
+                return await NotesAppleScriptClient.execute(action: action, handler: handler)
+            }
+            if handler.hasPrefix("files_") {
+                return await FilesActionClient.execute(action: action, handler: handler)
+            }
+        }
+
+        // Resolve auth (HTTP-based tools only reach this point)
         guard let (authHeader, baseURL) = resolveAuth(tool: tool, spec: spec) else {
             return ActionResult(
                 actionID: action.id,
@@ -61,25 +79,8 @@ enum GenericToolExecutor {
             request.setValue(value, forHTTPHeaderField: key)
         }
 
-        // Special handlers — native platform integrations bypass HTTP entirely
+        // HTTP-level special handlers (modify the URLRequest before sending)
         if let handler = actionSpec.specialHandler {
-            // EventKit (Reminders / Calendar) — cross-platform
-            if handler.hasPrefix("eventkit_") {
-                return await EventKitActionClient.execute(action: action, handler: handler)
-            }
-            // URL schemes (Mail, Messages, Maps)
-            if handler.hasPrefix("url_scheme_") {
-                return await URLSchemeActionClient.execute(action: action, handler: handler)
-            }
-            // Notes — AppleScript on macOS, share sheet on iOS
-            if handler.hasPrefix("applescript_") {
-                return await NotesAppleScriptClient.execute(action: action, handler: handler)
-            }
-            // Files (iCloud Drive)
-            if handler.hasPrefix("files_") {
-                return await FilesActionClient.execute(action: action, handler: handler)
-            }
-            // HTTP-level special handlers (modify the URLRequest before sending)
             switch handler {
             case "gmail_send":
                 guard let mimeRequest = buildGmailSendRequest(baseRequest: request, params: action.parameters) else {

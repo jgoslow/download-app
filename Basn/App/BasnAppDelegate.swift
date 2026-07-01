@@ -245,6 +245,19 @@ class BasnAppDelegate: NSObject, NSApplicationDelegate {
 				context.insert(tool)
 				inserted += 1
 			}
+			// System-auth tools never need a credential — mark any existing ones as connected.
+			for tool in existingTools where tool.effectiveAuthMethod == "system" && !tool.isConnected {
+				tool.isConnected = true
+				inserted += 1
+			}
+			// One-time migration: disable existing system tools so users opt in consciously.
+			let disableMigrationKey = "BasnApplied_SystemToolsDisableMigration_v1"
+			if !UserDefaults.standard.bool(forKey: disableMigrationKey) {
+				for tool in existingTools where tool.effectiveAuthMethod == "system" {
+					tool.isEnabled = false
+				}
+				UserDefaults.standard.set(true, forKey: disableMigrationKey)
+			}
 			if inserted > 0 {
 				appLogger.info("Seeded \(inserted) new default tool(s)")
 			}

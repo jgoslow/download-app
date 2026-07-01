@@ -21,5 +21,13 @@
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)-spks</string>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)-spki</string>
 	</array>
+	<key>com.apple.security.personal-information.calendars</key>
+	<true/>
+	<key>com.apple.security.personal-information.reminders</key>
+	<true/>
+	<key>com.apple.security.automation.apple-events</key>
+	<array>
+		<string>com.apple.Notes</string>
+	</array>
 </dict>
 </plist>

@@ -186,7 +186,7 @@ struct TranscriptionFeature {
 
           // Heuristic bypass: same single-intent check as the voice path.
           let tools = (try? await basinDB.fetchTools()) ?? []
-          let connectedToolIDs = Set(tools.filter(\.isConnected).map(\.id))
+          let connectedToolIDs = Set(tools.filter(\.isAvailableForRouting).map(\.id))
           if let heuristicActions = HeuristicRouter.route(transcript: trimmed, connectedToolIDs: connectedToolIDs) {
             let plan = ExecutionPlan(captureID: session.id, actions: heuristicActions, modelUsed: "heuristic")
             let minimalAnalysis = SessionAnalysis(summary: String(trimmed.prefix(100)))
@@ -683,7 +683,7 @@ private extension TranscriptionFeature {
       try? await basinDB.saveCapture(capture)
 
       let tools = (try? await basinDB.fetchTools()) ?? []
-      let connectedTools = tools.filter(\.isConnected)
+      let connectedTools = tools.filter(\.isAvailableForRouting)
       let connectedToolIDs = Set(connectedTools.map(\.id))
 
       #if DEBUG

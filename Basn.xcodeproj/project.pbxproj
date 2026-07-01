@@ -36,21 +36,18 @@
 		A1CABA5E0000000000000025 /* iOS/Processing/CapabilityResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000015 /* iOS/Processing/CapabilityResolver.swift */; };
 		A1CABA5E0000000000000042 /* ToolActionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000032 /* ToolActionRegistry.swift */; };
 		A1CABA5E0000000000000043 /* GenericToolExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000033 /* GenericToolExecutor.swift */; };
-		F4A10002C2D3E4F5A6B7C8D1 /* EventKitActionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A10001C2D3E4F5A6B7C8D1 /* EventKitActionClient.swift */; };
-		F4A20002C2D3E4F5A6B7C8D2 /* URLSchemeActionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A20001C2D3E4F5A6B7C8D2 /* URLSchemeActionClient.swift */; };
-		F4A30002C2D3E4F5A6B7C8D3 /* NotesAppleScriptClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A30001C2D3E4F5A6B7C8D3 /* NotesAppleScriptClient.swift */; };
-		F4A40002C2D3E4F5A6B7C8D4 /* FilesActionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A40001C2D3E4F5A6B7C8D4 /* FilesActionClient.swift */; };
-		F4B10002C2D3E4F5A6B7C8D5 /* MarketplaceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B10001C2D3E4F5A6B7C8D5 /* MarketplaceClient.swift */; };
-		F4B20002C2D3E4F5A6B7C8D6 /* MarketplaceSubmissionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B20001C2D3E4F5A6B7C8D6 /* MarketplaceSubmissionClient.swift */; };
-		F4B30002C2D3E4F5A6B7C8D7 /* MarketplaceSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B30001C2D3E4F5A6B7C8D7 /* MarketplaceSeeder.swift */; };
-		F4C10002C2D3E4F5A6B7C8D8 /* MarketplaceFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C10001C2D3E4F5A6B7C8D8 /* MarketplaceFeature.swift */; };
-		F4C20002C2D3E4F5A6B7C8D9 /* MarketplaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C20001C2D3E4F5A6B7C8D9 /* MarketplaceView.swift */; };
-		F4C30002C2D3E4F5A6B7C8DA /* ToolDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C30001C2D3E4F5A6B7C8DA /* ToolDetailView.swift */; };
 		A1CABA5E0000000000000060 /* github.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000050 /* github.json */; };
 		A1CABA5E0000000000000061 /* google.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000051 /* google.json */; };
 		A1CABA5E0000000000000062 /* jira.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000052 /* jira.json */; };
 		A1CABA5E0000000000000063 /* slack.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000053 /* slack.json */; };
 		A1CABA5E0000000000000064 /* toggl.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000054 /* toggl.json */; };
+		A1CABA5E0000000000000080 /* apple-calendar.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000070 /* apple-calendar.json */; };
+		A1CABA5E0000000000000081 /* apple-files.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000071 /* apple-files.json */; };
+		A1CABA5E0000000000000082 /* apple-mail.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000072 /* apple-mail.json */; };
+		A1CABA5E0000000000000083 /* apple-maps.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000073 /* apple-maps.json */; };
+		A1CABA5E0000000000000084 /* apple-messages.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000074 /* apple-messages.json */; };
+		A1CABA5E0000000000000085 /* apple-notes.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000075 /* apple-notes.json */; };
+		A1CABA5E0000000000000086 /* apple-reminders.json in Resources */ = {isa = PBXBuildFile; fileRef = A1CABA5E0000000000000076 /* apple-reminders.json */; };
 		AA20B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift */; };
 		AC20B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC10B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift */; };
 		B3A2388B51B89AA56116F3DC /* iOS/RecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E524C29A4EBE4129F3E091 /* iOS/RecordingView.swift */; };
@@ -68,6 +65,20 @@
 		F220B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = F210B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift */; };
 		F320B001C2D3E4F5A6B7C8D9 /* Basn/Clients/KeychainClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F310B001C2D3E4F5A6B7C8D9 /* Basn/Clients/KeychainClient.swift */; };
 		F420B001C2D3E4F5A6B7C8D9 /* Basn/Clients/ToolActions/ToolDefinitionLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F410B001C2D3E4F5A6B7C8D9 /* Basn/Clients/ToolActions/ToolDefinitionLoader.swift */; };
+		F4A10002C2D3E4F5A6B7C8D1 /* EventKitActionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A10001C2D3E4F5A6B7C8D1 /* EventKitActionClient.swift */; };
+		F4A20002C2D3E4F5A6B7C8D2 /* URLSchemeActionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A20001C2D3E4F5A6B7C8D2 /* URLSchemeActionClient.swift */; };
+		F4A30002C2D3E4F5A6B7C8D3 /* NotesAppleScriptClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A30001C2D3E4F5A6B7C8D3 /* NotesAppleScriptClient.swift */; };
+		F4A40002C2D3E4F5A6B7C8D4 /* FilesActionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A40001C2D3E4F5A6B7C8D4 /* FilesActionClient.swift */; };
+		F4B10002C2D3E4F5A6B7C8D5 /* MarketplaceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B10001C2D3E4F5A6B7C8D5 /* MarketplaceClient.swift */; };
+		F4B20002C2D3E4F5A6B7C8D6 /* MarketplaceSubmissionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B20001C2D3E4F5A6B7C8D6 /* MarketplaceSubmissionClient.swift */; };
+		F4B30002C2D3E4F5A6B7C8D7 /* MarketplaceSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B30001C2D3E4F5A6B7C8D7 /* MarketplaceSeeder.swift */; };
+		F4C10002C2D3E4F5A6B7C8D8 /* MarketplaceFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C10001C2D3E4F5A6B7C8D8 /* MarketplaceFeature.swift */; };
+		F4C20002C2D3E4F5A6B7C8D9 /* MarketplaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C20001C2D3E4F5A6B7C8D9 /* MarketplaceView.swift */; };
+		F4C30002C2D3E4F5A6B7C8DA /* ToolDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C30001C2D3E4F5A6B7C8DA /* ToolDetailView.swift */; };
+		F4D10002C2D3E4F5A6B7C8D1 /* ToolBuilderClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D10001C2D3E4F5A6B7C8D1 /* ToolBuilderClient.swift */; };
+		F4D20002C2D3E4F5A6B7C8D2 /* ToolActionTestRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D20001C2D3E4F5A6B7C8D2 /* ToolActionTestRunner.swift */; };
+		F4D30002C2D3E4F5A6B7C8D3 /* AIToolBuilderFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D30001C2D3E4F5A6B7C8D3 /* AIToolBuilderFeature.swift */; };
+		F4D40002C2D3E4F5A6B7C8D4 /* AIToolBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D40001C2D3E4F5A6B7C8D4 /* AIToolBuilderView.swift */; };
 		FE10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE00B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift */; };
 		FF20B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift */; };
 /* End PBXBuildFile section */
@@ -124,21 +135,18 @@
 		A1CABA5E0000000000000015 /* iOS/Processing/CapabilityResolver.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Processing/CapabilityResolver.swift; sourceTree = "<group>"; };
 		A1CABA5E0000000000000032 /* ToolActionRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ToolActionRegistry.swift; path = Basn/Clients/ToolActions/ToolActionRegistry.swift; sourceTree = "<group>"; };
 		A1CABA5E0000000000000033 /* GenericToolExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GenericToolExecutor.swift; path = Basn/Clients/ToolActions/GenericToolExecutor.swift; sourceTree = "<group>"; };
-		F4A10001C2D3E4F5A6B7C8D1 /* EventKitActionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EventKitActionClient.swift; path = Basn/Clients/ToolActions/EventKitActionClient.swift; sourceTree = "<group>"; };
-		F4A20001C2D3E4F5A6B7C8D2 /* URLSchemeActionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = URLSchemeActionClient.swift; path = Basn/Clients/ToolActions/URLSchemeActionClient.swift; sourceTree = "<group>"; };
-		F4A30001C2D3E4F5A6B7C8D3 /* NotesAppleScriptClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotesAppleScriptClient.swift; path = Basn/Clients/ToolActions/NotesAppleScriptClient.swift; sourceTree = "<group>"; };
-		F4A40001C2D3E4F5A6B7C8D4 /* FilesActionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FilesActionClient.swift; path = Basn/Clients/ToolActions/FilesActionClient.swift; sourceTree = "<group>"; };
-		F4B10001C2D3E4F5A6B7C8D5 /* MarketplaceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceClient.swift; path = Basn/Clients/MarketplaceClient.swift; sourceTree = "<group>"; };
-		F4B20001C2D3E4F5A6B7C8D6 /* MarketplaceSubmissionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceSubmissionClient.swift; path = Basn/Clients/MarketplaceSubmissionClient.swift; sourceTree = "<group>"; };
-		F4B30001C2D3E4F5A6B7C8D7 /* MarketplaceSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceSeeder.swift; path = Basn/Features/Marketplace/MarketplaceSeeder.swift; sourceTree = "<group>"; };
-		F4C10001C2D3E4F5A6B7C8D8 /* MarketplaceFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceFeature.swift; path = Basn/Features/Marketplace/MarketplaceFeature.swift; sourceTree = "<group>"; };
-		F4C20001C2D3E4F5A6B7C8D9 /* MarketplaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceView.swift; path = Basn/Features/Marketplace/MarketplaceView.swift; sourceTree = "<group>"; };
-		F4C30001C2D3E4F5A6B7C8DA /* ToolDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ToolDetailView.swift; path = Basn/Features/Marketplace/ToolDetailView.swift; sourceTree = "<group>"; };
 		A1CABA5E0000000000000050 /* github.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = github.json; path = "Basn/Resources/Data/tool-definitions/github.json"; sourceTree = "<group>"; };
 		A1CABA5E0000000000000051 /* google.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = google.json; path = "Basn/Resources/Data/tool-definitions/google.json"; sourceTree = "<group>"; };
 		A1CABA5E0000000000000052 /* jira.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = jira.json; path = "Basn/Resources/Data/tool-definitions/jira.json"; sourceTree = "<group>"; };
 		A1CABA5E0000000000000053 /* slack.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = slack.json; path = "Basn/Resources/Data/tool-definitions/slack.json"; sourceTree = "<group>"; };
 		A1CABA5E0000000000000054 /* toggl.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = toggl.json; path = "Basn/Resources/Data/tool-definitions/toggl.json"; sourceTree = "<group>"; };
+		A1CABA5E0000000000000070 /* apple-calendar.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "apple-calendar.json"; path = "Basn/Resources/Data/tool-definitions/apple-calendar.json"; sourceTree = "<group>"; };
+		A1CABA5E0000000000000071 /* apple-files.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "apple-files.json"; path = "Basn/Resources/Data/tool-definitions/apple-files.json"; sourceTree = "<group>"; };
+		A1CABA5E0000000000000072 /* apple-mail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "apple-mail.json"; path = "Basn/Resources/Data/tool-definitions/apple-mail.json"; sourceTree = "<group>"; };
+		A1CABA5E0000000000000073 /* apple-maps.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "apple-maps.json"; path = "Basn/Resources/Data/tool-definitions/apple-maps.json"; sourceTree = "<group>"; };
+		A1CABA5E0000000000000074 /* apple-messages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "apple-messages.json"; path = "Basn/Resources/Data/tool-definitions/apple-messages.json"; sourceTree = "<group>"; };
+		A1CABA5E0000000000000075 /* apple-notes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "apple-notes.json"; path = "Basn/Resources/Data/tool-definitions/apple-notes.json"; sourceTree = "<group>"; };
+		A1CABA5E0000000000000076 /* apple-reminders.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "apple-reminders.json"; path = "Basn/Resources/Data/tool-definitions/apple-reminders.json"; sourceTree = "<group>"; };
 		AA10B001C2D3E4F5A6B7C8D9 /* iOS/App/AppState.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/AppState.swift; sourceTree = "<group>"; };
 		AC10B001C2D3E4F5A6B7C8D9 /* iOS/App/IOSAppSettings.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/App/IOSAppSettings.swift; sourceTree = "<group>"; };
 		B53355FF2D7B8D4900E5F542 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -153,6 +161,20 @@
 		F210B001C2D3E4F5A6B7C8D9 /* iOS/Clients/OAuthClientIOS.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Clients/OAuthClientIOS.swift; sourceTree = "<group>"; };
 		F310B001C2D3E4F5A6B7C8D9 /* Basn/Clients/KeychainClient.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Basn/Clients/KeychainClient.swift; sourceTree = "<group>"; };
 		F410B001C2D3E4F5A6B7C8D9 /* Basn/Clients/ToolActions/ToolDefinitionLoader.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = Basn/Clients/ToolActions/ToolDefinitionLoader.swift; sourceTree = "<group>"; };
+		F4A10001C2D3E4F5A6B7C8D1 /* EventKitActionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EventKitActionClient.swift; path = Basn/Clients/ToolActions/EventKitActionClient.swift; sourceTree = "<group>"; };
+		F4A20001C2D3E4F5A6B7C8D2 /* URLSchemeActionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = URLSchemeActionClient.swift; path = Basn/Clients/ToolActions/URLSchemeActionClient.swift; sourceTree = "<group>"; };
+		F4A30001C2D3E4F5A6B7C8D3 /* NotesAppleScriptClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotesAppleScriptClient.swift; path = Basn/Clients/ToolActions/NotesAppleScriptClient.swift; sourceTree = "<group>"; };
+		F4A40001C2D3E4F5A6B7C8D4 /* FilesActionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FilesActionClient.swift; path = Basn/Clients/ToolActions/FilesActionClient.swift; sourceTree = "<group>"; };
+		F4B10001C2D3E4F5A6B7C8D5 /* MarketplaceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceClient.swift; path = Basn/Clients/MarketplaceClient.swift; sourceTree = "<group>"; };
+		F4B20001C2D3E4F5A6B7C8D6 /* MarketplaceSubmissionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceSubmissionClient.swift; path = Basn/Clients/MarketplaceSubmissionClient.swift; sourceTree = "<group>"; };
+		F4B30001C2D3E4F5A6B7C8D7 /* MarketplaceSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceSeeder.swift; path = Basn/Features/Marketplace/MarketplaceSeeder.swift; sourceTree = "<group>"; };
+		F4C10001C2D3E4F5A6B7C8D8 /* MarketplaceFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceFeature.swift; path = Basn/Features/Marketplace/MarketplaceFeature.swift; sourceTree = "<group>"; };
+		F4C20001C2D3E4F5A6B7C8D9 /* MarketplaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketplaceView.swift; path = Basn/Features/Marketplace/MarketplaceView.swift; sourceTree = "<group>"; };
+		F4C30001C2D3E4F5A6B7C8DA /* ToolDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ToolDetailView.swift; path = Basn/Features/Marketplace/ToolDetailView.swift; sourceTree = "<group>"; };
+		F4D10001C2D3E4F5A6B7C8D1 /* ToolBuilderClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ToolBuilderClient.swift; path = Basn/Clients/ToolBuilderClient.swift; sourceTree = "<group>"; };
+		F4D20001C2D3E4F5A6B7C8D2 /* ToolActionTestRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ToolActionTestRunner.swift; path = Basn/Features/Marketplace/ToolActionTestRunner.swift; sourceTree = "<group>"; };
+		F4D30001C2D3E4F5A6B7C8D3 /* AIToolBuilderFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AIToolBuilderFeature.swift; path = Basn/Features/Marketplace/AIToolBuilderFeature.swift; sourceTree = "<group>"; };
+		F4D40001C2D3E4F5A6B7C8D4 /* AIToolBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AIToolBuilderView.swift; path = Basn/Features/Marketplace/AIToolBuilderView.swift; sourceTree = "<group>"; };
 		F99ACD2512699EC978D1BD59 /* iOS/SettingsView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/SettingsView.swift; sourceTree = "<group>"; };
 		FD9F920EA43B2E6DB17375E2 /* iOS/HomeView.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/HomeView.swift; sourceTree = "<group>"; };
 		FE00B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; includeInIndex = 1; path = iOS/Flow/FlowTranscriptionEngine.swift; sourceTree = "<group>"; };
@@ -335,6 +357,13 @@
 				A1CABA5E0000000000000052 /* jira.json */,
 				A1CABA5E0000000000000053 /* slack.json */,
 				A1CABA5E0000000000000054 /* toggl.json */,
+				A1CABA5E0000000000000070 /* apple-calendar.json */,
+				A1CABA5E0000000000000071 /* apple-files.json */,
+				A1CABA5E0000000000000072 /* apple-mail.json */,
+				A1CABA5E0000000000000073 /* apple-maps.json */,
+				A1CABA5E0000000000000074 /* apple-messages.json */,
+				A1CABA5E0000000000000075 /* apple-notes.json */,
+				A1CABA5E0000000000000076 /* apple-reminders.json */,
 				CC10B001C2D3E4F5A6B7C8D9 /* Basn/Clients/RecordingClient.swift */,
 				DD10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/OnboardingView.swift */,
 				EE10B001C2D3E4F5A6B7C8D9 /* iOS/Onboarding/LoopingVideoView.swift */,
@@ -547,6 +576,13 @@
 				A1CABA5E0000000000000062 /* jira.json in Resources */,
 				A1CABA5E0000000000000063 /* slack.json in Resources */,
 				A1CABA5E0000000000000064 /* toggl.json in Resources */,
+				A1CABA5E0000000000000080 /* apple-calendar.json in Resources */,
+				A1CABA5E0000000000000081 /* apple-files.json in Resources */,
+				A1CABA5E0000000000000082 /* apple-mail.json in Resources */,
+				A1CABA5E0000000000000083 /* apple-maps.json in Resources */,
+				A1CABA5E0000000000000084 /* apple-messages.json in Resources */,
+				A1CABA5E0000000000000085 /* apple-notes.json in Resources */,
+				A1CABA5E0000000000000086 /* apple-reminders.json in Resources */,
 				A1CABA5E0000000000000022 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -613,6 +649,10 @@
 				F4C10002C2D3E4F5A6B7C8D8 /* MarketplaceFeature.swift in Sources */,
 				F4C20002C2D3E4F5A6B7C8D9 /* MarketplaceView.swift in Sources */,
 				F4C30002C2D3E4F5A6B7C8DA /* ToolDetailView.swift in Sources */,
+				F4D10002C2D3E4F5A6B7C8D1 /* ToolBuilderClient.swift in Sources */,
+				F4D20002C2D3E4F5A6B7C8D2 /* ToolActionTestRunner.swift in Sources */,
+				F4D30002C2D3E4F5A6B7C8D3 /* AIToolBuilderFeature.swift in Sources */,
+				F4D40002C2D3E4F5A6B7C8D4 /* AIToolBuilderView.swift in Sources */,
 				FF20B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowSessionView.swift in Sources */,
 				FE10B001C2D3E4F5A6B7C8D9 /* iOS/Flow/FlowTranscriptionEngine.swift in Sources */,
 			);

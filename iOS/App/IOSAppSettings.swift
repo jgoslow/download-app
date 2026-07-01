@@ -19,6 +19,11 @@ struct IOSAppSettings: Codable, Equatable {
     var notificationsEnabled: Bool = false
     var diagnosticsEnabled: Bool = false
 
+    /// When enabled, ambiguous captures on devices without Apple Intelligence are routed
+    /// through a lightweight cloud model (Claude Haiku) for intent classification before
+    /// falling through to full Castellum analysis. Only transcript text is transmitted.
+    var lightweightCloudRoutingEnabled: Bool = false
+
     init() {}
 
     init(from decoder: Decoder) throws {
@@ -35,5 +40,6 @@ struct IOSAppSettings: Codable, Equatable {
         defaultFlowID         = try c.decodeIfPresent(String.self, forKey: .defaultFlowID)        ?? "open"
         notificationsEnabled  = try c.decodeIfPresent(Bool.self,   forKey: .notificationsEnabled)  ?? false
         diagnosticsEnabled    = try c.decodeIfPresent(Bool.self,   forKey: .diagnosticsEnabled)    ?? false
+        lightweightCloudRoutingEnabled = try c.decodeIfPresent(Bool.self, forKey: .lightweightCloudRoutingEnabled) ?? false
     }
 }
