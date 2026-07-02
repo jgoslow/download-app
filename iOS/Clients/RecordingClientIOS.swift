@@ -8,6 +8,14 @@ import os
 
 private let recordingLogger = Logger(subsystem: "com.lyra.basn", category: "recording")
 
+/// Autonomous events the recorder emits so the app can react (e.g. offer resume).
+enum IOSRecordingEvent: Sendable {
+    /// The active input device was removed mid-recording (USB/Bluetooth unplug).
+    /// Recording is auto-paused rather than restarted onto a fallback input (which
+    /// previously recorded silence). The app should prompt the user to resume.
+    case inputDeviceLost
+}
+
 actor RecordingClientLiveIOS {
     private var recorder: AVAudioRecorder?
     private let recordingURL = FileManager.default.temporaryDirectory
@@ -22,6 +30,7 @@ actor RecordingClientLiveIOS {
         AVLinearPCMIsNonInterleaved: false,
     ]
     private let (meterStream, meterContinuation) = AsyncStream<Meter>.makeStream()
+    private let (eventStream, eventContinuation) = AsyncStream<IOSRecordingEvent>.makeStream()
     private var meterTask: Task<Void, Never>?
     private var interruptionTask: Task<Void, Never>?
     private var routeChangeTask: Task<Void, Never>?
@@ -76,6 +85,11 @@ actor RecordingClientLiveIOS {
         recorder = nil
         isPaused = false
         wasInterrupted = false
+
+        // AVAudioRecorder flushes the WAV header/data asynchronously after stop(); copying
+        // immediately can grab a partial/corrupt file (esp. if a route change is racing).
+        // Wait until the file size stops growing before copying, then deactivate.
+        await Self.waitForStableFile(at: recordingURL)
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
 
         let exportURL = recordingURL
@@ -84,6 +98,19 @@ actor RecordingClientLiveIOS {
         try? FileManager.default.copyItem(at: recordingURL, to: exportURL)
         recordingLogger.notice("iOS recording stopped")
         return exportURL
+    }
+
+    /// Poll the file size until it stabilizes (or a short cap elapses) so we only copy a
+    /// fully-flushed WAV. Never hangs — bounded to ~600ms.
+    private static func waitForStableFile(at url: URL, maxAttempts: Int = 12) async {
+        var lastSize = -1
+        for _ in 0..<maxAttempts {
+            let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+            let size = (attrs?[.size] as? Int) ?? 0
+            if size > 0, size == lastSize { return }
+            lastSize = size
+            try? await Task.sleep(for: .milliseconds(50))
+        }
     }
 
     func pauseRecording() {
@@ -112,6 +139,9 @@ actor RecordingClientLiveIOS {
     }
 
     func observeAudioLevel() -> AsyncStream<Meter> { meterStream }
+
+    /// Stream of autonomous recorder events (e.g. input-device loss). One consumer.
+    func observeEvents() -> AsyncStream<IOSRecordingEvent> { eventStream }
 
     func getAvailableInputDevices() -> [AudioInputDevice] { [] }
     func getDefaultInputDeviceName() -> String? { nil }
@@ -197,9 +227,24 @@ actor RecordingClientLiveIOS {
               let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue)
         else { return }
 
+        guard let r = recorder else { return }
+
         switch reason {
-        case .oldDeviceUnavailable, .override, .wakeFromSleep, .noSuitableRouteForCategory:
-            guard let r = recorder, !r.isRecording, !isPaused, !wasInterrupted else { return }
+        case .oldDeviceUnavailable, .noSuitableRouteForCategory:
+            // The input device we were recording from was removed (USB/car/Bluetooth
+            // unplug). Do NOT blindly restart — iOS would resume onto a fallback input
+            // and silently record silence (the root of the lost car capture). Pause and
+            // tell the app so it can play a sound / offer to resume on a valid input.
+            guard !isPaused, !wasInterrupted else { return }
+            r.pause()
+            isPaused = true
+            stopMeterTask()
+            recordingLogger.notice("Route change (\(reasonValue)) — input device lost; pausing recording")
+            eventContinuation.yield(.inputDeviceLost)
+
+        case .override, .wakeFromSleep:
+            // Benign route changes — resume if the recorder was unexpectedly stopped.
+            guard !r.isRecording, !isPaused, !wasInterrupted else { return }
             recordingLogger.notice("Route change (\(reasonValue)), attempting to continue recording")
             do {
                 try AVAudioSession.sharedInstance().setActive(true)
@@ -208,6 +253,7 @@ actor RecordingClientLiveIOS {
             } catch {
                 recordingLogger.error("Failed to reactivate after route change: \(error.localizedDescription)")
             }
+
         default:
             break
         }

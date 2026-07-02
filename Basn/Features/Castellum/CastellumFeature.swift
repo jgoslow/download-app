@@ -169,11 +169,22 @@ struct CastellumFeature {
                 }
 
             case let .planReadyFromTranscription(plan):
-                guard plan.hasActionableItems else { return .none }
+                // Every capture's result flows through here, and the analysis shown
+                // alongside the plan is updated unconditionally upstream. Reset the plan
+                // view state on each new result so a *previous* capture's plan can never
+                // linger next to a new capture's transcript/analysis. When the new plan
+                // has no actionable items we leave it cleared (showing nothing) rather
+                // than keeping the stale one.
                 state.isPlanning = false
+                state.actionResults = [:]
+                state.expandedActions = []
+                guard plan.hasActionableItems else {
+                    state.currentPlan = nil
+                    state.selectedActions = []
+                    return .none
+                }
                 state.currentPlan = plan
                 state.selectedActions = Set(plan.actions.map(\.id))
-                state.actionResults = [:]
                 return .run { send in
                     let tools = try await basinDB.fetchTools()
                     let toolIDs = Set(plan.actions.map(\.toolID))

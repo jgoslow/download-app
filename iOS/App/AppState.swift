@@ -1,3 +1,4 @@
+import AudioToolbox
 import AVFoundation
 import BasinShared
 import Foundation
@@ -57,6 +58,7 @@ final class AppState {
     private let flowStore = FlowStore.live(bundle: .main)
     private var timerTask: Task<Void, Never>?
     private var levelTask: Task<Void, Never>?
+    private var recorderEventTask: Task<Void, Never>?
     /// Accumulated duration from completed segments before the current one (used during pause/resume).
     private var accumulatedDuration: TimeInterval = 0
     private var recordingStart: Date?
@@ -138,6 +140,61 @@ final class AppState {
         appLogger.notice("Loaded \(self.flows.count) flows, \(self.sessions.count) sessions")
         // Pre-load WhisperKit in the background so the first recording doesn't wait.
         Task { try? await ensureWhisperKitLoaded() }
+        startRecorderEventObserver()
+    }
+
+    /// Observe autonomous recorder events (currently: input-device loss mid-recording).
+    /// Started once; the recorder's event stream lives for the app's lifetime.
+    private func startRecorderEventObserver() {
+        guard recorderEventTask == nil else { return }
+        recorderEventTask = Task { [weak self] in
+            guard let self else { return }
+            for await event in await self.recorder.observeEvents() {
+                switch event {
+                case .inputDeviceLost:
+                    self.handleInputDeviceLost()
+                }
+            }
+        }
+    }
+
+    /// The recorder auto-paused because its input device was removed (USB/car/Bluetooth
+    /// unplug). Mirror the pause in app state (with correct duration accounting) and alert
+    /// the user so they can resume on a valid input instead of silently losing the capture.
+    private func handleInputDeviceLost() {
+        guard isRecording, !isPaused else { return }
+        accumulatedDuration += Date().timeIntervalSince(recordingStart ?? Date())
+        recordingStart = nil
+        timerTask?.cancel()
+        timerTask = nil
+        isPaused = true
+        audioLevel = 0
+        playFailureSound()
+        appLogger.notice("Input device lost mid-recording — paused; awaiting resume")
+        // TODO: when backgrounded/locked, post a local notification that deep-links back
+        // to the record screen to resume (needs a notification-permission subsystem).
+    }
+
+    /// Short alert tone + error haptic so an interrupted or failed capture is noticeable.
+    /// The system-sound id is tunable; the haptic fires regardless.
+    private func playFailureSound() {
+        AudioServicesPlaySystemSound(1073)
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
+    }
+
+    /// True when the recorded audio is effectively silent (near-zero peak) — e.g. a dead
+    /// input after a device disconnect. Reads up to ~600s; failures return false (don't
+    /// falsely flag a capture we simply can't inspect).
+    private func audioIsSilent(url: URL, threshold: Float = 0.001) -> Bool {
+        guard let file = try? AVAudioFile(forReading: url) else { return false }
+        let capFrames = AVAudioFrameCount(min(file.length, 16_000 * 600))
+        guard capFrames > 0,
+              let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: capFrames),
+              (try? file.read(into: buffer)) != nil,
+              let samples = buffer.floatChannelData?[0] else { return false }
+        var peak: Float = 0
+        for i in 0..<Int(buffer.frameLength) { peak = max(peak, abs(samples[i])) }
+        return peak < threshold
     }
 
     func startRecording() async {
@@ -230,6 +287,16 @@ final class AppState {
             )
         }
 
+        // Detect a silent capture (e.g. input died mid-recording) and surface it with a
+        // failure sound instead of quietly producing an empty session. Audio is still
+        // archived for debugging.
+        if audioIsSilent(url: exportURL) {
+            appLogger.warning("Captured audio is silent — likely a lost/dead input mid-recording")
+            playFailureSound()
+            archiveCapture(wordCount: 0, transcript: nil)
+            return
+        }
+
         guard isModelDownloaded(variant: settings.selectedModel) else {
             appLogger.warning("No model downloaded — skipping transcription")
             archiveCapture(wordCount: 0, transcript: nil)  // still keep the audio
@@ -246,6 +313,7 @@ final class AppState {
             let text = results.map(\.text).joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
             guard !text.isEmpty else {
                 appLogger.notice("Empty transcription — skipping session save")
+                playFailureSound()
                 return
             }
             let wordCount = text.split(whereSeparator: \.isWhitespace).count

@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 /// Side-channel archive for debug builds: saves the audio and all derived JSON
 /// for a capture into a dated, per-capture folder so recordings can be kept for
@@ -234,6 +235,33 @@ public enum DebugCaptureArchive {
         try? FileManager.default.copyItem(at: sourceURL, to: dest)
     }
 
+    // MARK: - Import de-duplication
+
+    /// SHA-256 of a file's bytes, lowercase hex. The content identity used to
+    /// recognize a re-imported capture even when its `captureID` differs (e.g. a
+    /// loose `.wav` with no metadata, which gets a fresh random id each import).
+    public static func audioHash(for url: URL) -> String? {
+        guard let data = try? Data(contentsOf: url, options: .mappedIfSafe) else { return nil }
+        return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    /// Find an already-ingested capture matching either the given `captureID` or
+    /// the given audio content hash, so a duplicate import can be skipped. Returns
+    /// the existing capture's folder, or nil if this capture is new. Existing
+    /// captures compare by their stored `audioSHA256`; folders imported before
+    /// hashing existed are hashed on demand as a fallback.
+    public static func findExistingCapture(captureID: String, audioSHA256: String?) -> URL? {
+        for capture in listArchivedCaptures() {
+            guard let metadata = capture.metadata else { continue }
+            if metadata.captureID == captureID { return capture.folder }
+            if let incoming = audioSHA256 {
+                let existing = metadata.audioSHA256 ?? capture.audioURL.flatMap { audioHash(for: $0) }
+                if existing == incoming { return capture.folder }
+            }
+        }
+        return nil
+    }
+
     /// Write any Codable artifact to a named file in an explicit folder.
     public static func writeArtifact<T: Encodable>(_ value: T, named: String, to folder: URL) {
         guard let data = try? makeEncoder().encode(value) else { return }
@@ -300,6 +328,9 @@ public struct CaptureArchiveMetadata: Codable, Sendable, Equatable {
     /// for desktop ingest (labeling + WER comparison). Nil on the macOS path,
     /// where the transcript lives in scenario.json.
     public let onDeviceTranscript: String?
+    /// SHA-256 (lowercase hex) of the capture's audio bytes, used to de-duplicate
+    /// re-imports by content. Nil for captures archived before hashing existed.
+    public let audioSHA256: String?
 
     public init(
         captureID: String,
@@ -315,7 +346,8 @@ public struct CaptureArchiveMetadata: Codable, Sendable, Equatable {
         appVersion: String,
         connectedToolIDs: [String],
         platform: String? = nil,
-        onDeviceTranscript: String? = nil
+        onDeviceTranscript: String? = nil,
+        audioSHA256: String? = nil
     ) {
         self.captureID = captureID
         self.timestamp = timestamp
@@ -331,5 +363,6 @@ public struct CaptureArchiveMetadata: Codable, Sendable, Equatable {
         self.connectedToolIDs = connectedToolIDs
         self.platform = platform
         self.onDeviceTranscript = onDeviceTranscript
+        self.audioSHA256 = audioSHA256
     }
 }

@@ -107,14 +107,22 @@ struct DebugBar: View {
         isImporting = true
         importStatus = "importing \(items.count)…"
         Task {
-            var ok = 0, failed = 0
+            var ok = 0, failed = 0, duplicates = 0
             for url in items {
                 let result = await CaptureIngestor.ingest(url)
-                if result.folder != nil, result.error == nil { ok += 1 } else { failed += 1 }
+                if result.skippedDuplicate {
+                    duplicates += 1
+                } else if result.folder != nil, result.error == nil {
+                    ok += 1
+                } else {
+                    failed += 1
+                }
             }
             await MainActor.run {
                 isImporting = false
-                importStatus = "imported \(ok)" + (failed > 0 ? ", \(failed) failed" : "")
+                importStatus = "imported \(ok)"
+                    + (duplicates > 0 ? ", \(duplicates) dupes skipped" : "")
+                    + (failed > 0 ? ", \(failed) failed" : "")
             }
         }
     }

@@ -28,10 +28,7 @@ struct BasnWidgetEntryView: View {
     @Environment(\.widgetFamily) private var family
 
     var body: some View {
-        ZStack {
-            ContainerRelativeShape()
-                .fill(Color(.systemBackground))
-
+        Group {
             switch family {
             case .systemSmall:
                 smallLayout
@@ -39,7 +36,14 @@ struct BasnWidgetEntryView: View {
                 mediumLayout
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .widgetURL(URL(string: "basin://capture")!)
+        // Required since iOS 17: widgets must declare their background via
+        // containerBackground. Without it WidgetKit shows a
+        // "Please adopt containerBackground API" error placeholder.
+        .containerBackground(for: .widget) {
+            Color(.systemBackground)
+        }
     }
 
     private var smallLayout: some View {

@@ -540,9 +540,15 @@ private struct ToolRowView: View {
     }
 
     private func tokenHealthText(_ expiresAt: Date) -> some View {
+        // Match the badge's exact-timestamp expiry check so the two never disagree
+        // (a token valid for a few more hours today is "expiring", not "expired").
+        let expired = expiresAt < Date()
         let days = Calendar.current.dateComponents([.day], from: Date(), to: expiresAt).day ?? 0
-        let label: String = days <= 0 ? "Token expired" : days < 8 ? "Expiring in \(days) days" : "Auth valid"
-        let color: Color = days > 30 ? .secondary : days > 8 ? .orange : .red
+        let label: String = expired ? "Token expired"
+            : days < 1 ? "Expires today"
+            : days < 8 ? "Expiring in \(days) days"
+            : "Auth valid"
+        let color: Color = expired ? .red : days <= 8 ? .orange : .secondary
         return Text(label).font(.caption2).foregroundStyle(color)
     }
 

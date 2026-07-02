@@ -114,7 +114,9 @@ enum ToolActionRegistry {
             description: "Create a time entry in Toggl Track",
             parameters: [
                 .init(name: "description", description: "What you worked on", required: true),
-                .init(name: "project_name", description: "Project name", required: true),
+                // Optional to match toggl.json — Toggl logs time without a project fine.
+                // (Was required:true, which dropped time-log actions that had no project.)
+                .init(name: "project_name", description: "Project name"),
                 .init(name: "duration_minutes", type: "integer", description: "Duration in minutes", required: true),
                 .init(name: "tags", type: "array", description: "Tags to apply"),
             ]

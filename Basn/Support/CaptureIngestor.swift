@@ -27,6 +27,10 @@ enum CaptureIngestor {
         var routedVia: String?
         var actionCount: Int = 0
         var error: String?
+        /// Set when this capture was already imported (matched by captureID or
+        /// audio content hash). `folder` points at the existing archive; the
+        /// pipeline is not re-run.
+        var skippedDuplicate = false
     }
 
     /// Expand a user selection into individual ingestible items. Handles:
@@ -71,6 +75,18 @@ enum CaptureIngestor {
         }
         let captureID = pulledMeta?.captureID ?? UUID().uuidString
         let timestamp = pulledMeta?.timestamp ?? Date()
+
+        // De-dupe: skip captures already imported, matched by captureID (same
+        // archive re-imported) or audio content hash (same bytes, e.g. a loose
+        // .wav that gets a fresh random id each import). Checked before the
+        // expensive transcribe/route pipeline runs.
+        let audioSHA256 = DebugCaptureArchive.audioHash(for: audioURL)
+        if let existing = DebugCaptureArchive.findExistingCapture(captureID: captureID, audioSHA256: audioSHA256) {
+            result.folder = existing
+            result.skippedDuplicate = true
+            return result
+        }
+
         guard let folder = DebugCaptureArchive.ingestFolderURL(captureID: captureID, timestamp: timestamp) else {
             result.error = "Could not create archive folder"
             return result
@@ -200,7 +216,8 @@ enum CaptureIngestor {
             sourceAppBundleID: nil, sourceAppName: nil, appVersion: appVersion,
             connectedToolIDs: Array(connectedToolIDs).sorted(),
             platform: pulledMeta?.platform ?? "ingested",
-            onDeviceTranscript: pulledMeta?.onDeviceTranscript
+            onDeviceTranscript: pulledMeta?.onDeviceTranscript,
+            audioSHA256: DebugCaptureArchive.audioHash(for: audioURL)
         )
         DebugCaptureArchive.writeArtifact(metadata, named: "metadata.json", to: folder)
 

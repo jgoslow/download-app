@@ -261,14 +261,21 @@ private struct ToolRowView: View {
     }
 
     private func tokenHealthView(expiresAt: Date) -> some View {
+        // Expiry is judged by exact timestamp — the same comparison the status badge
+        // uses — so a token still valid for a few more hours reads as "expiring",
+        // never "expired". (Previously a whole-day count showed "expired" while the
+        // badge still showed a green check.)
+        let expired = expiresAt < Date()
         let days = Calendar.current.dateComponents([.day], from: Date(), to: expiresAt).day ?? 0
         return HStack(spacing: 4) {
-            Image(systemName: days > 8 ? "key.fill" : "exclamationmark.triangle.fill")
+            Image(systemName: expired || days <= 8 ? "exclamationmark.triangle.fill" : "key.fill")
                 .font(.caption2)
             Group {
-                if days <= 0 {
+                if expired {
                     Text("Token expired — reconnect now")
-                } else if days < 8 {
+                } else if days < 1 {
+                    Text("Expires today — reconnect soon")
+                } else if days <= 8 {
                     Text("Expiring in \(days) days — reconnect soon")
                 } else if days <= 30 {
                     Text("Expires in \(days) days")
@@ -278,7 +285,7 @@ private struct ToolRowView: View {
             }
             .font(.caption2)
         }
-        .foregroundStyle(days > 30 ? Color.secondary : days > 8 ? Color.orange : Color.red)
+        .foregroundStyle(expired ? Color.red : days <= 8 ? Color.orange : Color.secondary)
     }
 
     // MARK: - Authorized permissions section

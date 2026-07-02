@@ -43,6 +43,30 @@ struct HeuristicRouterTests {
         #expect(actions?.count == 1)
     }
 
+    @Test
+    func trackHoursOfTimeWorkedOnMatches() {
+        // Real capture that previously fell through to Castellum and produced 0 actions.
+        let actions = HeuristicRouter.route(
+            transcript: "Doing another capture, I just want to track one hour of time worked on the basin app today",
+            connectedToolIDs: togglConnected
+        )
+        #expect(actions?.count == 1)
+        #expect(actions?.first?.toolID == "toggl")
+        #expect(actions?.first?.actionType == "create_time_entry")
+        #expect(actions?.first?.parameters["duration_minutes"] == "60")
+    }
+
+    @Test
+    func trackVerbWithoutDurationDoesNotMatch() {
+        // Verb ("track") + work phrase but NO explicit duration → the loose matcher must
+        // not fire (avoids bogus time entries from incidental mentions of work).
+        let actions = HeuristicRouter.route(
+            transcript: "I want to track the time worked on the basin app",
+            connectedToolIDs: togglConnected
+        )
+        #expect(actions == nil)
+    }
+
     // MARK: - Toggl not connected
 
     @Test

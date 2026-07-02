@@ -46,8 +46,23 @@ public struct HeuristicRouter {
     // MARK: - Pattern matchers (extend as native tools are added)
 
     private static func checkToggl(_ lower: String, original: String) -> PlannedAction? {
-        let triggers = ["start timer", "start a timer", "log time for", "track time for", "track time on"]
-        guard let trigger = triggers.first(where: { lower.contains($0) }) else { return nil }
+        // Explicit imperative triggers (highest precision).
+        let triggers = ["start timer", "start a timer", "log time for", "track time for",
+                        "track time on", "track time", "log time", "track my time", "log my time"]
+        var trigger = triggers.first(where: { lower.contains($0) })
+
+        // Looser intent: a time-tracking verb + a time/work phrase + an explicit duration,
+        // e.g. "track one hour of time worked on the basin app". Requiring all three keeps
+        // this from misfiring on incidental mentions of work.
+        if trigger == nil,
+           ["track", "log"].contains(where: { lower.contains($0) }),
+           explicitDurationMinutes(from: lower) != nil {
+            let phrases = ["of time worked on", "time worked on", "of time working on",
+                           "time working on", "hours of work on", "hour of work on"]
+            trigger = phrases.first(where: { lower.contains($0) })
+        }
+
+        guard let trigger else { return nil }
 
         var description = original
         if let range = lower.range(of: trigger) {
@@ -360,6 +375,12 @@ public struct HeuristicRouter {
     /// Extract a duration in minutes from natural-language text.
     /// Falls back to 30 if no duration is found.
     private static func parseDurationMinutes(from lower: String) -> Int {
+        explicitDurationMinutes(from: lower) ?? 30
+    }
+
+    /// Like `parseDurationMinutes` but returns nil when no duration is stated. Used to
+    /// keep the looser Toggl matcher precise (it fires only with an explicit duration).
+    private static func explicitDurationMinutes(from lower: String) -> Int? {
         // "half an hour" / "half hour"
         if lower.contains("half an hour") || lower.contains("half hour") { return 30 }
         // "an hour" / "a hour" / "one hour"
@@ -381,6 +402,6 @@ public struct HeuristicRouter {
             return value
         }
 
-        return 30 // default when no duration mentioned
+        return nil // no duration mentioned
     }
 }
